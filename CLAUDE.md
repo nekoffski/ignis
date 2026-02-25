@@ -18,10 +18,15 @@ make build-release        # conan + cmake Release
 make build-debug          # conan + cmake Debug
 make run                  # build-release + run sandbox
 make clean                # remove build dir
+make fmt                  # clang-format all src/ and sandbox/ files
 ```
 
 ## Conventions
 
 - No decorative/unnecessary comments in code
-- Show a quick draft of planned changes and wait for approval before generating code
+- Always show a draft of planned changes and wait for explicit approval before touching any file
 - Update CLAUDE.md whenever crucial code/infra is added
+- Use TODO.md for storing project tasks and todos
+- Run `make fmt` after every code generation
+- Run `make build` after every code generation to verify compilation
+- Header extension: `.hh` for C++ headers, `.cpp` for sources

@@ -1,12 +1,22 @@
 cmake_minimum_required(VERSION 3.22)
 project(ember VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(Vulkan REQUIRED)
 find_package(fmt REQUIRED)
+find_package(VulkanHeaders REQUIRED)
+find_package(vk-bootstrap REQUIRED)
+find_package(VulkanMemoryAllocator REQUIRED)
+find_package(glm REQUIRED)
+find_package(shaderc REQUIRED)
+find_package(fastgltf REQUIRED)
+find_package(stb REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
 
 add_subdirectory(src/ember)
 add_subdirectory(sandbox)

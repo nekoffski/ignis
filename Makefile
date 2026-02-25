@@ -1,4 +1,4 @@
-.PHONY: all build build-release build-debug run clean
+.PHONY: all build build-release build-debug run clean fmt
 
 all: build
 
@@ -16,6 +16,9 @@ build-debug:
 
 run: build-release
 	./build/Release/sandbox/sandbox
+
+fmt:
+	find src sandbox -name '*.cpp' -o -name '*.hh' -o -name '*.h' | xargs clang-format -i
 
 clean:
 	rm -rf build CMakeUserPresets.json
