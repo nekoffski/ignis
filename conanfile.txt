@@ -14,5 +14,9 @@ tomlplusplus/3.4.0
 CMakeDeps
 CMakeToolchain
 
+[options]
+*:fPIC=True
+*:shared=False
+
 [layout]
 cmake_layout

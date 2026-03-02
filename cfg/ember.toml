@@ -1,0 +1,15 @@
+[version]
+major = 0
+minor = 1
+build = 1
+
+[core]
+appName = "ember-sandbox"
+
+[renderer]
+backend = "vulkan"
+
+[vulkan]
+apiVersion = "v1.3"
+extensions = ["VK_EXT_debug_utils"]
+layers = ["VK_LAYER_KHRONOS_validation"]

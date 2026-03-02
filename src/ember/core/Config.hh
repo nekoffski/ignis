@@ -1,6 +1,9 @@
 #pragma once
 
+#include <string>
+#include <toml++/toml.hpp>
 #include <unordered_map>
+#include <vector>
 
 #include "Core.hh"
 #include "Singleton.hh"
@@ -9,45 +12,48 @@ namespace ember {
 
 class Config : public Singleton<Config> {
    public:
-    //     struct Directories {
-    //         std::string home;
-    //         std::string etc;
-    //         std::string bin;
-    //         std::string log;
-    //     };
+    struct Renderer {
+        enum class Backend {
+            vulkan,
+        };
 
-    //     struct Version {
-    //         u16 major;
-    //         u16 minor;
-    //         u16 patch;
-    //     };
+        Backend backend{Backend::vulkan};
+    };
 
-    //     struct Daemon {
-    //         u16 port;
-    //         std::string pidFile;
-    //         std::string binaryPath;
-    //     };
+    struct Version {
+        u32 major{0};
+        u32 minor{0};
+        u32 patch{0};
+    };
 
-    //     struct Logging {
-    //         std::string level;
-    //         std::string file;
-    //     };
+    struct Core {
+        std::string appName;
+    };
+
+    struct Vulkan {
+        enum class Api { v1_3 };
+
+        Api api{Api::v1_3};
+        std::vector<std::string> extensions;
+        std::vector<std::string> layers;
+    };
+
+    const Renderer& renderer() const;
+    const Vulkan& vulkan() const;
+    const Version& version() const;
+    const Core& core() const;
 
     void loadFromFile(const std::string& path);
 
-    //     const Directories& directories() const;
-    //     const Daemon& daemon() const;
-    //     const Logging& logging() const;
-    //     const Version& version() const;
-
    private:
-    //     Directories m_directories;
-    //     Daemon m_daemon;
-    //     Logging m_logging;
-    //     Version m_version;
+    void parseFields(const std::string& path);
 
-    //     void readHomeDir();
-    //     void parseConfig();
+    Renderer m_renderer;
+    Version m_version;
+    std::optional<Vulkan> m_vulkan;
+    Core m_core;
 };
+
+inline Config& cfg() { return Config::get(); }
 
 }  // namespace ember

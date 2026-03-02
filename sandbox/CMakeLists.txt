@@ -1,6 +1,6 @@
-add_executable(sandbox main.cpp)
+add_executable(ember-sandbox main.cpp)
 
-target_link_libraries(sandbox
+target_link_libraries(ember-sandbox
     PRIVATE
         ember
 )
