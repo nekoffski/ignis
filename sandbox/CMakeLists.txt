@@ -1,6 +1,6 @@
-add_executable(ember-sandbox main.cpp)
+add_executable(ignis-sandbox main.cpp)
 
-target_link_libraries(ember-sandbox
+target_link_libraries(ignis-sandbox
     PRIVATE
-        ember
+        ignis
 )

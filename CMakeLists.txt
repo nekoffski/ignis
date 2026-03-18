@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(ember VERSION 0.1.0 LANGUAGES CXX)
+project(ignis VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,5 +17,5 @@ find_package(stb REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
 
-add_subdirectory(src/ember)
+add_subdirectory(src/ignis)
 add_subdirectory(sandbox)

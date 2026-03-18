@@ -1,10 +1,10 @@
 [version]
 major = 0
 minor = 1
-build = 1
+patch = 1
 
 [core]
-appName = "ember-sandbox"
+appName = "ignis-sandbox"
 
 [renderer]
 backend = "vulkan"

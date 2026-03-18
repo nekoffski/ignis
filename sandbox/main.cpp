@@ -1,29 +1,28 @@
 #include <fmt/format.h>
 
-#include "ember/core/Config.hh"
-#include "ember/core/Log.hh"
-#include "ember/renderer/Renderer.hh"
-#include "ember/rhi/RHI.hh"
+#include "ignis/Engine.hh"
+#include "ignis/core/Config.hh"
+#include "ignis/core/Log.hh"
 
 int main(int argc, char** argv) {
-    ember::log::init();
-    ember::log::expect(argc > 1, "No config file path provided");
-    ember::Config::get().loadFromFile(argv[1]);
+    using namespace ignis;
 
-    auto rhi = ember::RHI::create();
-    ember::Renderer renderer{*rhi};
+    log::init(log::LoggerOptions{.enableColors = false});
+    log::expect(argc > 1, "No config file path provided");
 
-    auto frameStats = renderer.renderFrame([&](ember::CommandList& cmd) {
-        fmt::println("Hello, world!");
-        return;
-    });
+    const auto config = Config::fromFile(argv[1]);
+    Engine engine{config};
 
-    if (not frameStats) {
-        ember::log::error("Failed to render frame: {}",
-                          frameStats.error().message());
-    } else {
-        ember::log::info("Frame rendered successfully");
-    }
+    auto& renderer = engine.renderer();
+    auto renderGraph = renderer.createRenderGraph();
+
+    RenderScene scene{};
+    RenderView view{};
+
+    std::vector<const RenderView*> renderViews{&view};
+
+    if (auto err = renderer.drawFrame(*renderGraph, renderViews); err)
+        log::error("Failed to draw frame: {}", err->message());
 
     return 0;
 }
