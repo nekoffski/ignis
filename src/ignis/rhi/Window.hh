@@ -1,12 +1,12 @@
-// #pragma once
+#pragma once
 
-// #include "ignis/core/Concepts.hh"
-// #include "ignis/core/Core.hh"
+#include "ignis/core/Concepts.hh"
+#include "ignis/core/Core.hh"
 
-// namespace ignis {
+namespace ignis {
 
-// struct Window : public NonCopyable, public NonMovable {
-//     virtual ~Window() = default;
-// };
+struct Window : public NonCopyable, public NonMovable {
+    virtual ~Window() = default;
+};
 
-// }  // namespace ignis
+}  // namespace ignis

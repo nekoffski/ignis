@@ -16,7 +16,9 @@ class Renderer : public NonCopyable, public NonMovable {
     std::unique_ptr<RenderGraph> createRenderGraph();
 
     [[nodiscard]] OError drawFrame(const RenderGraph& renderGraph,
-                                   std::span<const RenderView*> renderViews) {}
+                                   std::span<const RenderView*> renderViews) {
+        return Error::empty();
+    }
 
    private:
 };

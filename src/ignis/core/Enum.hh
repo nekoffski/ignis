@@ -46,4 +46,6 @@ bool checkFlag(auto value, auto flag) {
            0;
 }
 
+#define BIT_ENUM(name) constexpr void enableBitOperations(name);
+
 }  // namespace ignis

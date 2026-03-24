@@ -10,7 +10,14 @@ add_library(ignis SHARED
     # -- renderer
     "renderer/Renderer.cpp"
     # -- rhi
-    # "rhi/RHI.cpp"
+    "rhi/Device.cpp"
+    "rhi/Window.cpp"
+    "rhi/ResourceRegistry.cpp"
+    # -- rhi/vk
+    "rhi/vk/VulkanDevice.cpp"
+    "rhi/vk/VulkanResourceRegistry.cpp"
+    "rhi/vk/VulkanBootstrap.cpp"
+    "rhi/vk/VulkanQueue.cpp"
 )
 
 target_include_directories(ignis

@@ -22,6 +22,8 @@ class ServiceLocator : public StaticClass {
         s_instance = instance;
     }
 
+    static void clear() { s_instance = nullptr; }
+
    private:
     inline static T* s_instance{nullptr};
 };
