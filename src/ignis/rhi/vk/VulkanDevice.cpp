@@ -14,9 +14,16 @@ VulkanDevice::VulkanDevice(const Config& config, Window* window)
     m_physicalDevice = bootstrap.physicalDevice();
     m_device = bootstrap.device();
     m_deviceInfo = bootstrap.deviceInfo();
+    m_graphicsCommandPool = bootstrap.graphicsCommandPool();
+    m_queues = bootstrap.queues();
 }
 
 VulkanDevice::~VulkanDevice() {
+    if (m_graphicsCommandPool != VK_NULL_HANDLE) {
+        VK_TRACE(
+            vkDestroyCommandPool(m_device, m_graphicsCommandPool, m_allocator));
+    }
+
     if (m_device != VK_NULL_HANDLE)
         VK_TRACE(vkDestroyDevice(m_device, m_allocator));
 
@@ -33,6 +40,10 @@ VulkanDevice::~VulkanDevice() {
     if (m_instance != VK_NULL_HANDLE)
         VK_TRACE(vkDestroyInstance(m_instance, m_allocator));
 }
+
+Device::WorkloadReceipt VulkanDevice::submit(const Workload&) { return 0u; }
+
+void VulkanDevice::wait(WorkloadReceipt receipt) {}
 
 bool VulkanDevice::headless() const { return m_window == nullptr; }
 

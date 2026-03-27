@@ -2,6 +2,7 @@
 
 #include "Vulkan.hh"
 #include "VulkanDeviceInfo.hh"
+#include "VulkanQueue.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Config.hh"
 #include "ignis/core/Core.hh"
@@ -30,12 +31,16 @@ class VulkanBootstrap : public NonCopyable, public NonMovable {
     Allocator allocator() const;
     VkDebugUtilsMessengerEXT debugMessenger() const;
     const VulkanDeviceInfo& deviceInfo() const;
+    VkCommandPool graphicsCommandPool() const;
+    VulkanQueueSet queues() const;
 
    private:
     void createInstance();
     void createDebugMessenger();
     void pickPhysicalDevice();
     void createLogicalDevice();
+    void createGraphicsCommandPool();
+    void fetchQueues();
 
     const Config& m_cfg;
     Window* m_window;
@@ -46,6 +51,8 @@ class VulkanBootstrap : public NonCopyable, public NonMovable {
     VkPhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
     VkDevice m_device{VK_NULL_HANDLE};
     Allocator m_allocator{nullptr};
+    VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
+    VulkanQueueSet m_queues;
 };
 
 }  // namespace ignis

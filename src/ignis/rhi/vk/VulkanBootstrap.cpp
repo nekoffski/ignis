@@ -110,6 +110,8 @@ VulkanBootstrap::VulkanBootstrap(const Config& config, Window* window)
     createDebugMessenger();
     pickPhysicalDevice();
     createLogicalDevice();
+    createGraphicsCommandPool();
+    fetchQueues();
 }
 
 VkInstance VulkanBootstrap::instance() const { return m_instance; }
@@ -300,6 +302,11 @@ void VulkanBootstrap::createLogicalDevice() {
     if (queueIndices.at(Queue::graphics) != queueIndices.at(Queue::transfer))
         indices.push_back(queueIndices.at(Queue::transfer));
 
+    if (queueIndices.contains(Queue::compute) &&
+        queueIndices.at(Queue::graphics) != queueIndices.at(Queue::compute)) {
+        indices.push_back(queueIndices.at(Queue::compute));
+    }
+
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::vector<f32> queueProrities;
 
@@ -338,5 +345,33 @@ void VulkanBootstrap::createLogicalDevice() {
                              &m_device));
     log::trace("vkCreateDevice: {}", static_cast<void*>(m_device));
 }
+
+void VulkanBootstrap::createGraphicsCommandPool() {
+    VkCommandPoolCreateInfo poolCreateInfo{};
+    poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+
+    poolCreateInfo.queueFamilyIndex =
+        m_deviceInfo.queueIndices.at(Queue::graphics);
+    poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
+                                  &m_graphicsCommandPool));
+    log::trace("vkCreateCommandPool: {}",
+               static_cast<void*>(m_graphicsCommandPool));
+}
+
+void VulkanBootstrap::fetchQueues() {
+    for (const auto& [type, index] : m_deviceInfo.queueIndices) {
+        VkQueue queue;
+        vkGetDeviceQueue(m_device, index, 0, &queue);
+        m_queues.emplace(type, queue);
+    }
+}
+
+VkCommandPool VulkanBootstrap::graphicsCommandPool() const {
+    return m_graphicsCommandPool;
+}
+
+VulkanQueueSet VulkanBootstrap::queues() const { return m_queues; }
 
 }  // namespace ignis

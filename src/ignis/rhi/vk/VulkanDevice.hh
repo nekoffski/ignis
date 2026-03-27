@@ -2,6 +2,7 @@
 
 #include "Vulkan.hh"
 #include "VulkanDeviceInfo.hh"
+#include "VulkanQueue.hh"
 #include "VulkanResourceRegistry.hh"
 #include "ignis/rhi/Device.hh"
 
@@ -20,6 +21,9 @@ class VulkanDevice : public Device {
     Allocator allocator() const;
     VulkanDeviceInfo deviceInfo() const;
 
+    WorkloadReceipt submit(const Workload& workload) override;
+    void wait(WorkloadReceipt receipt) override;
+
    private:
     const Config& m_cfg;
     Window* m_window;
@@ -30,6 +34,8 @@ class VulkanDevice : public Device {
     VkDevice m_device{VK_NULL_HANDLE};
     Allocator m_allocator{nullptr};
     VulkanDeviceInfo m_deviceInfo;
+    VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
+    VulkanQueueSet m_queues;
 };
 
 }  // namespace ignis
