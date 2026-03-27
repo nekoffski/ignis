@@ -1,11 +1,14 @@
 #include "VulkanDevice.hh"
 
 #include "VulkanBootstrap.hh"
+#include "ignis/core/Profiler.hh"
 
 namespace ignis {
 
 VulkanDevice::VulkanDevice(const Config& config, Window* window)
     : m_cfg(config), m_window(window) {
+    JUNO_PROFILE_FUNCTION();
+
     VulkanBootstrap bootstrap{config, window};
 
     m_instance = bootstrap.instance();

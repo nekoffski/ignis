@@ -7,6 +7,7 @@ add_library(ignis SHARED
     "core/String.cpp"
     "core/Error.cpp"
     "core/FileSystem.cpp"
+    "core/Profiler.cpp"
     # -- renderer
     "renderer/Renderer.cpp"
     # -- rhi

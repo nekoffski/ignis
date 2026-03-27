@@ -12,10 +12,12 @@ class Singleton : public virtual NonMovable, public virtual NonCopyable {
     inline static std::string className = getTypeName<T>();
 
    public:
-    static T& get() {
+    [[nodiscard]] static T& get() {
         static T* instance = new T{};  // let it leak
         return *instance;
     }
+
+    static void noop() {}
 };
 
 template <typename T>
