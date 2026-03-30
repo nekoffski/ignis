@@ -47,6 +47,6 @@ target_link_libraries(ignis
 set_target_properties(ignis PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_compile_definitions(ignis PUBLIC
-    $<$<CONFIG:Debug>:JUNO_ENABLE_PROFILING>
-    $<$<CONFIG:Debug>:JUNO_DEBUG_BUILD>
+    $<$<CONFIG:Debug>:IGNIS_ENABLE_PROFILING>
+    $<$<CONFIG:Debug>:IGNIS_DEBUG_BUILD>
 )

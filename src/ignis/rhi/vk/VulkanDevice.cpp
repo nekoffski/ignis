@@ -7,7 +7,7 @@ namespace ignis {
 
 VulkanDevice::VulkanDevice(const Config& config, Window* window)
     : m_cfg(config), m_window(window) {
-    JUNO_PROFILE_FUNCTION();
+    IGNIS_PROFILE_FUNCTION();
 
     VulkanBootstrap bootstrap{config, window};
 

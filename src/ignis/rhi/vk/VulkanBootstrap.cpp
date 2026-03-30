@@ -107,7 +107,7 @@ void showDeviceInfo(const VulkanDeviceInfo& info) {
 VulkanBootstrap::VulkanBootstrap(const Config& config, Window* window)
     : m_cfg(config), m_window(window) {
     if (not window) log::warn("Bootstraping vulkan without surface support");
-    JUNO_PROFILE_FUNCTION();
+    IGNIS_PROFILE_FUNCTION();
 
     createInstance();
     createDebugMessenger();
@@ -136,7 +136,7 @@ const VulkanDeviceInfo& VulkanBootstrap::deviceInfo() const {
 }
 
 void VulkanBootstrap::createInstance() {
-    JUNO_PROFILE_FUNCTION();
+    IGNIS_PROFILE_FUNCTION();
 
     const auto& [major, minor, patch] = m_cfg.version();
 
@@ -172,7 +172,7 @@ void VulkanBootstrap::createInstance() {
 }
 
 void VulkanBootstrap::createDebugMessenger() {
-    JUNO_PROFILE_FUNCTION();
+    IGNIS_PROFILE_FUNCTION();
 
     static const auto debugFactoryFunctionName =
         "vkCreateDebugUtilsMessengerEXT";
@@ -237,7 +237,7 @@ std::pair<std::unordered_map<Queue, u32>, Queue> discoverQueues(
 
 std::optional<VulkanDeviceInfo> VulkanBootstrap::DeviceRequirements::fulfills(
     const VkPhysicalDevice& device) const {
-    JUNO_PROFILE_FUNCTION();
+    IGNIS_PROFILE_FUNCTION();
     VulkanDeviceInfo info;
 
     VK_TRACE(vkGetPhysicalDeviceProperties(device, &info.coreProperties));

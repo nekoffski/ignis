@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     log::init(log::LoggerOptions{.enableColors = false});
     log::expect(argc > 1, "No config file path provided");
 
-    JUNO_PROFILE_REGISTER_THREAD();
+    IGNIS_PROFILE_REGISTER_THREAD();
 
     // engine core
     Engine engine{Config::fromFile(argv[1])};
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    JUNO_PROFILE_DUMP_SUMMARY();
+    IGNIS_PROFILE_DUMP_SUMMARY();
     log::info("Cya!");
     return 0;
 }
