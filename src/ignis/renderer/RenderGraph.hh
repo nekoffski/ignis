@@ -1,11 +1,13 @@
 #pragma once
 
+#include "RenderPass.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 
 namespace ignis {
 
-enum class RAcess { colorAttachment, depthAttachment, read };
-enum class RPassType { graphics, compute, copy };
+using RenderGraphId = u64;
+
+class RenderGraph : public NonCopyable, public NonMovable {};
 
 }  // namespace ignis

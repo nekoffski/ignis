@@ -1,3 +1,3 @@
-#include "RGraph.hh"
+#include "RenderGraph.hh"
 
 namespace ignis {}  // namespace ignis

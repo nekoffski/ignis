@@ -5,8 +5,12 @@
 
 namespace ignis {
 
-class RScene : public NonCopyable, public NonMovable {
+using ResourceTag = u64;
+
+class RenderBundle : public NonCopyable, public NonMovable {
    public:
+    explicit RenderBundle() = default;
+
    private:
 };
 

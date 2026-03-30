@@ -18,13 +18,13 @@ int main(int argc, char** argv) {
     auto& renderer = engine.renderer();
 
     // compile render graph
-    RGraphLayout rgraphLayout{};
+    RenderGraphLayout rgraphLayout{};
 
     auto mainPassBody = []() { return; };
 
     rgraphLayout.addPass(Name{"Main Pass"}, mainPassBody)
-        .access(RAcess::colorAttachment, 0)
-        .access(RAcess::depthAttachment, 1);
+        .access(ResourceAccess::colorAttachment, 0)
+        .access(ResourceAccess::depthAttachment, 1);
 
     auto renderGraphHandle = renderer.compileRenderGraph(rgraphLayout);
 
@@ -35,8 +35,8 @@ int main(int argc, char** argv) {
     }
 
     // prepare render bundle
-    RScene scene{};
-    RBundle bundle{};
+    RenderScene scene{};
+    RenderBundle bundle{};
 
     // enqeue bundles
     auto frame = renderer.enqueue(renderGraphHandle.value(), bundle);

@@ -12,11 +12,11 @@ add_library(ignis SHARED
     "core/Profiler.cpp"
     # -- renderer
     "renderer/Renderer.cpp"
-    "renderer/RGraph.cpp"
-    "renderer/RGraphLayout.cpp"
-    "renderer/RScene.cpp"
-    "renderer/RPass.cpp"
-    "renderer/RBundle.cpp"
+    "renderer/RenderGraph.cpp"
+    "renderer/RenderGraphLayout.cpp"
+    "renderer/RenderScene.cpp"
+    "renderer/RenderPass.cpp"
+    "renderer/RenderBundle.cpp"
     # -- rhi
     "rhi/Device.cpp"
     "rhi/Window.cpp"

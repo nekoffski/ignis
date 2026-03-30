@@ -5,6 +5,6 @@
 
 namespace ignis {
 
-struct RFrame {};
+struct RenderFrame {};
 
 }  // namespace ignis

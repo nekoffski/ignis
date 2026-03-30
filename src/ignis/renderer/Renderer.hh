@@ -2,11 +2,11 @@
 
 #include <span>
 
-#include "RBundle.hh"
-#include "RFrame.hh"
-#include "RGraph.hh"
-#include "RGraphLayout.hh"
-#include "RScene.hh"
+#include "RenderBundle.hh"
+#include "RenderFrame.hh"
+#include "RenderGraph.hh"
+#include "RenderGraphLayout.hh"
+#include "RenderScene.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Config.hh"
 #include "ignis/core/Core.hh"
@@ -22,19 +22,22 @@ class Renderer : public NonCopyable, public NonMovable {
     explicit Renderer(const Config& config, Device& device,
                       ResourceRegistry& resourceRegistry);
 
-    [[nodiscard]] Result<RFrame> enqueue(RGraphId renderGraphId,
-                                         const RBundle& bundle) {
-        return enqueue(renderGraphId, std::span<const RBundle>{&bundle, 1});
+    [[nodiscard]] Result<RenderFrame> enqueue(RenderGraphId renderGraphId,
+                                              const RenderBundle& bundle) {
+        return enqueue(renderGraphId,
+                       std::span<const RenderBundle>{&bundle, 1});
     }
 
-    [[nodiscard]] Result<RFrame> enqueue(RGraphId renderGraphId,
-                                         std::span<const RBundle> bundles) {
+    [[nodiscard]] Result<RenderFrame> enqueue(
+        RenderGraphId renderGraphId, std::span<const RenderBundle> bundles) {
         return {};
     }
 
-    [[nodiscard]] OError wait(const RFrame& frame) { return Error::empty(); }
+    [[nodiscard]] OError wait(const RenderFrame& frame) {
+        return Error::empty();
+    }
 
-    Result<RGraphId> compileRenderGraph(const RGraphLayout& layout) {
+    Result<RenderGraphId> compileRenderGraph(const RenderGraphLayout& layout) {
         return 0u;
     }
 
@@ -42,7 +45,7 @@ class Renderer : public NonCopyable, public NonMovable {
     Device& m_device;
     ResourceRegistry& m_resourceRegistry;
 
-    Pool<RGraph> m_renderGraphs;
+    Pool<RenderGraph> m_renderGraphs;
 };
 
 }  // namespace ignis

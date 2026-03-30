@@ -33,4 +33,11 @@ struct DrawCommand : public CommandBase<CommandType::draw, Queue::graphics> {
 
 using Command = std::variant<DrawCommand>;
 
+template <typename T>
+concept CommandConcept = requires {
+    { T::type() } -> std::same_as<CommandType>;
+    { T::targetQueue() } -> std::same_as<Queue>;
+    { T{} } -> std::convertible_to<Command>;
+};
+
 }  // namespace ignis
