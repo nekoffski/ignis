@@ -1,15 +1,15 @@
-#include "VulkanDevice.hh"
+#include "VKDevice.hh"
 
-#include "VulkanBootstrap.hh"
+#include "VKBootstrap.hh"
 #include "ignis/core/Profiler.hh"
 
 namespace ignis {
 
-VulkanDevice::VulkanDevice(const Config& config, Window* window)
+VKDevice::VKDevice(const Config& config, Window* window)
     : m_cfg(config), m_window(window) {
     IGNIS_PROFILE_FUNCTION();
 
-    VulkanBootstrap bootstrap{config, window};
+    VKBootstrap bootstrap{config, window};
 
     m_instance = bootstrap.instance();
     m_allocator = bootstrap.allocator();
@@ -21,7 +21,7 @@ VulkanDevice::VulkanDevice(const Config& config, Window* window)
     m_queues = bootstrap.queues();
 }
 
-VulkanDevice::~VulkanDevice() {
+VKDevice::~VKDevice() {
     if (m_graphicsCommandPool != VK_NULL_HANDLE) {
         VK_TRACE(
             vkDestroyCommandPool(m_device, m_graphicsCommandPool, m_allocator));
@@ -44,22 +44,20 @@ VulkanDevice::~VulkanDevice() {
         VK_TRACE(vkDestroyInstance(m_instance, m_allocator));
 }
 
-Device::WorkloadReceipt VulkanDevice::submit(const Workload&) { return 0u; }
+Device::WorkloadReceipt VKDevice::submit(const Workload&) { return 0u; }
 
-void VulkanDevice::wait(WorkloadReceipt receipt) {}
+void VKDevice::wait(WorkloadReceipt receipt) {}
 
-bool VulkanDevice::headless() const { return m_window == nullptr; }
+bool VKDevice::headless() const { return m_window == nullptr; }
 
-VkInstance VulkanDevice::instance() const { return m_instance; }
+VkInstance VKDevice::instance() const { return m_instance; }
 
-VkPhysicalDevice VulkanDevice::physicalDevice() const {
-    return m_physicalDevice;
-}
+VkPhysicalDevice VKDevice::physicalDevice() const { return m_physicalDevice; }
 
-VkDevice VulkanDevice::device() const { return m_device; }
+VkDevice VKDevice::device() const { return m_device; }
 
-Allocator VulkanDevice::allocator() const { return m_allocator; }
+Allocator VKDevice::allocator() const { return m_allocator; }
 
-VulkanDeviceInfo VulkanDevice::deviceInfo() const { return m_deviceInfo; }
+VKDeviceInfo VKDevice::deviceInfo() const { return m_deviceInfo; }
 
 }  // namespace ignis

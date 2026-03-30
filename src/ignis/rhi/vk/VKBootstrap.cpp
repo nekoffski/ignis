@@ -1,4 +1,4 @@
-#include "VulkanBootstrap.hh"
+#include "VKBootstrap.hh"
 
 #include "ignis/core/Profiler.hh"
 #include "vulkan/vulkan.hpp"
@@ -72,7 +72,7 @@ std::string deviceTypeName(VkPhysicalDeviceType type) {
     }
 }
 
-void showDeviceInfo(const VulkanDeviceInfo& info) {
+void showDeviceInfo(const VKDeviceInfo& info) {
     const auto& p = info.coreProperties;
 
     u32 apiMajor = VK_API_VERSION_MAJOR(p.apiVersion);
@@ -104,7 +104,7 @@ void showDeviceInfo(const VulkanDeviceInfo& info) {
 
 }  // namespace
 
-VulkanBootstrap::VulkanBootstrap(const Config& config, Window* window)
+VKBootstrap::VKBootstrap(const Config& config, Window* window)
     : m_cfg(config), m_window(window) {
     if (not window) log::warn("Bootstraping vulkan without surface support");
     IGNIS_PROFILE_FUNCTION();
@@ -117,25 +117,23 @@ VulkanBootstrap::VulkanBootstrap(const Config& config, Window* window)
     fetchQueues();
 }
 
-VkInstance VulkanBootstrap::instance() const { return m_instance; }
+VkInstance VKBootstrap::instance() const { return m_instance; }
 
-VkPhysicalDevice VulkanBootstrap::physicalDevice() const {
+VkPhysicalDevice VKBootstrap::physicalDevice() const {
     return m_physicalDevice;
 }
 
-VkDevice VulkanBootstrap::device() const { return m_device; }
+VkDevice VKBootstrap::device() const { return m_device; }
 
-Allocator VulkanBootstrap::allocator() const { return m_allocator; }
+Allocator VKBootstrap::allocator() const { return m_allocator; }
 
-VkDebugUtilsMessengerEXT VulkanBootstrap::debugMessenger() const {
+VkDebugUtilsMessengerEXT VKBootstrap::debugMessenger() const {
     return m_debugMessenger;
 }
 
-const VulkanDeviceInfo& VulkanBootstrap::deviceInfo() const {
-    return m_deviceInfo;
-}
+const VKDeviceInfo& VKBootstrap::deviceInfo() const { return m_deviceInfo; }
 
-void VulkanBootstrap::createInstance() {
+void VKBootstrap::createInstance() {
     IGNIS_PROFILE_FUNCTION();
 
     const auto& [major, minor, patch] = m_cfg.version();
@@ -171,7 +169,7 @@ void VulkanBootstrap::createInstance() {
     log::debug("Vulkan instance created successfully");
 }
 
-void VulkanBootstrap::createDebugMessenger() {
+void VKBootstrap::createDebugMessenger() {
     IGNIS_PROFILE_FUNCTION();
 
     static const auto debugFactoryFunctionName =
@@ -235,10 +233,10 @@ std::pair<std::unordered_map<Queue, u32>, Queue> discoverQueues(
     return {indices, foundQueues};
 }
 
-std::optional<VulkanDeviceInfo> VulkanBootstrap::DeviceRequirements::fulfills(
+std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
     const VkPhysicalDevice& device) const {
     IGNIS_PROFILE_FUNCTION();
-    VulkanDeviceInfo info;
+    VKDeviceInfo info;
 
     VK_TRACE(vkGetPhysicalDeviceProperties(device, &info.coreProperties));
     VK_TRACE(
@@ -270,7 +268,7 @@ std::optional<VulkanDeviceInfo> VulkanBootstrap::DeviceRequirements::fulfills(
     return info;
 }
 
-void VulkanBootstrap::pickPhysicalDevice() {
+void VKBootstrap::pickPhysicalDevice() {
     DeviceRequirements req;
     req.supportSurface = false;
     req.isDiscrete = true;
@@ -294,7 +292,7 @@ void VulkanBootstrap::pickPhysicalDevice() {
     log::panic("Failed to find a suitable physical device");
 }
 
-void VulkanBootstrap::createLogicalDevice() {
+void VKBootstrap::createLogicalDevice() {
     static constexpr u64 maximumExpectedQueuesCount = 3;
 
     std::vector<u32> indices;
@@ -354,7 +352,7 @@ void VulkanBootstrap::createLogicalDevice() {
     log::trace("vkCreateDevice: {}", static_cast<void*>(m_device));
 }
 
-void VulkanBootstrap::createGraphicsCommandPool() {
+void VKBootstrap::createGraphicsCommandPool() {
     VkCommandPoolCreateInfo poolCreateInfo{};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 
@@ -368,7 +366,7 @@ void VulkanBootstrap::createGraphicsCommandPool() {
                static_cast<void*>(m_graphicsCommandPool));
 }
 
-void VulkanBootstrap::fetchQueues() {
+void VKBootstrap::fetchQueues() {
     for (const auto& [type, index] : m_deviceInfo.queueIndices) {
         VkQueue queue;
         vkGetDeviceQueue(m_device, index, 0, &queue);
@@ -376,10 +374,10 @@ void VulkanBootstrap::fetchQueues() {
     }
 }
 
-VkCommandPool VulkanBootstrap::graphicsCommandPool() const {
+VkCommandPool VKBootstrap::graphicsCommandPool() const {
     return m_graphicsCommandPool;
 }
 
-VulkanQueueSet VulkanBootstrap::queues() const { return m_queues; }
+VKQueueSet VKBootstrap::queues() const { return m_queues; }
 
 }  // namespace ignis

@@ -3,13 +3,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Vulkan.hh"
+#include "VK.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/rhi/Queue.hh"
 
 namespace ignis {
 
-struct VulkanDeviceInfo {
+struct VKDeviceInfo {
     VkPhysicalDeviceProperties coreProperties;
     VkPhysicalDeviceMemoryProperties memoryProperties;
     VkPhysicalDeviceFeatures features;

@@ -1,17 +1,17 @@
 #pragma once
 
-#include "Vulkan.hh"
-#include "VulkanDeviceInfo.hh"
-#include "VulkanQueue.hh"
-#include "VulkanResourceRegistry.hh"
+#include "VK.hh"
+#include "VKDeviceInfo.hh"
+#include "VKQueue.hh"
+#include "VKResourceRegistry.hh"
 #include "ignis/rhi/Device.hh"
 
 namespace ignis {
 
-class VulkanDevice : public Device {
+class VKDevice : public Device {
    public:
-    explicit VulkanDevice(const Config& config, Window* window);
-    ~VulkanDevice() override;
+    explicit VKDevice(const Config& config, Window* window);
+    ~VKDevice() override;
 
     bool headless() const override;
 
@@ -19,7 +19,7 @@ class VulkanDevice : public Device {
     VkPhysicalDevice physicalDevice() const;
     VkDevice device() const;
     Allocator allocator() const;
-    VulkanDeviceInfo deviceInfo() const;
+    VKDeviceInfo deviceInfo() const;
 
     WorkloadReceipt submit(const Workload& workload) override;
     void wait(WorkloadReceipt receipt) override;
@@ -33,9 +33,9 @@ class VulkanDevice : public Device {
     VkPhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
     VkDevice m_device{VK_NULL_HANDLE};
     Allocator m_allocator{nullptr};
-    VulkanDeviceInfo m_deviceInfo;
+    VKDeviceInfo m_deviceInfo;
     VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
-    VulkanQueueSet m_queues;
+    VKQueueSet m_queues;
 };
 
 }  // namespace ignis

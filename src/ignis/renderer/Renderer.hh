@@ -34,7 +34,9 @@ class Renderer : public NonCopyable, public NonMovable {
 
     [[nodiscard]] OError wait(const RFrame& frame) { return Error::empty(); }
 
-    RGraphId compileRenderGraph(const RGraphLayout& layout) { return 0u; }
+    Result<RGraphId> compileRenderGraph(const RGraphLayout& layout) {
+        return 0u;
+    }
 
    private:
     Device& m_device;

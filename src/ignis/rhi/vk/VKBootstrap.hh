@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Vulkan.hh"
-#include "VulkanDeviceInfo.hh"
-#include "VulkanQueue.hh"
+#include "VK.hh"
+#include "VKDeviceInfo.hh"
+#include "VKQueue.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Config.hh"
 #include "ignis/core/Core.hh"
@@ -11,7 +11,7 @@
 
 namespace ignis {
 
-class VulkanBootstrap : public NonCopyable, public NonMovable {
+class VKBootstrap : public NonCopyable, public NonMovable {
    public:
     struct DeviceRequirements {
         Queue queues;
@@ -19,20 +19,20 @@ class VulkanBootstrap : public NonCopyable, public NonMovable {
         bool isDiscrete;
         std::vector<const char*> extensions;
 
-        std::optional<VulkanDeviceInfo> fulfills(
+        std::optional<VKDeviceInfo> fulfills(
             const VkPhysicalDevice& device) const;
     };
 
-    explicit VulkanBootstrap(const Config& config, Window* window);
+    explicit VKBootstrap(const Config& config, Window* window);
 
     VkInstance instance() const;
     VkPhysicalDevice physicalDevice() const;
     VkDevice device() const;
     Allocator allocator() const;
     VkDebugUtilsMessengerEXT debugMessenger() const;
-    const VulkanDeviceInfo& deviceInfo() const;
+    const VKDeviceInfo& deviceInfo() const;
     VkCommandPool graphicsCommandPool() const;
-    VulkanQueueSet queues() const;
+    VKQueueSet queues() const;
 
    private:
     void createInstance();
@@ -47,12 +47,12 @@ class VulkanBootstrap : public NonCopyable, public NonMovable {
 
     VkInstance m_instance{VK_NULL_HANDLE};
     VkDebugUtilsMessengerEXT m_debugMessenger{VK_NULL_HANDLE};
-    VulkanDeviceInfo m_deviceInfo;
+    VKDeviceInfo m_deviceInfo;
     VkPhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
     VkDevice m_device{VK_NULL_HANDLE};
     Allocator m_allocator{nullptr};
     VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
-    VulkanQueueSet m_queues;
+    VKQueueSet m_queues;
 };
 
 }  // namespace ignis

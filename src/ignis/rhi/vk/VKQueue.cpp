@@ -1,3 +1,3 @@
-#include "VulkanQueue.hh"
+#include "VKQueue.hh"
 
 namespace ignis {}  // namespace ignis

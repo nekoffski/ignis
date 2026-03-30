@@ -21,11 +21,12 @@ add_library(ignis SHARED
     "rhi/Device.cpp"
     "rhi/Window.cpp"
     "rhi/ResourceRegistry.cpp"
+    "rhi/Workload.cpp"
     # -- rhi/vk
-    "rhi/vk/VulkanDevice.cpp"
-    "rhi/vk/VulkanResourceRegistry.cpp"
-    "rhi/vk/VulkanBootstrap.cpp"
-    "rhi/vk/VulkanQueue.cpp"
+    "rhi/vk/VKDevice.cpp"
+    "rhi/vk/VKResourceRegistry.cpp"
+    "rhi/vk/VKBootstrap.cpp"
+    "rhi/vk/VKQueue.cpp"
 )
 
 target_include_directories(ignis

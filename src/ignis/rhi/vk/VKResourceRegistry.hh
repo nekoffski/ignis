@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Vulkan.hh"
+#include "VK.hh"
 #include "ignis/rhi/ResourceRegistry.hh"
 
 namespace ignis {
 
-class VulkanDevice;
+class VKDevice;
 
-class VulkanResourceRegistry : public ResourceRegistry {
+class VKResourceRegistry : public ResourceRegistry {
    public:
-    explicit VulkanResourceRegistry(VulkanDevice& vk);
+    explicit VKResourceRegistry(VKDevice& device);
 
     BufferHandle createBuffer(const BufferDescription& desc) override;
     void destroyBuffer(BufferHandle handle) override;
@@ -18,7 +18,7 @@ class VulkanResourceRegistry : public ResourceRegistry {
     void destroyTexture(TextureHandle handle) override;
 
    private:
-    VulkanDevice& m_vk;
+    VKDevice& m_device;
 };
 
 }  // namespace ignis

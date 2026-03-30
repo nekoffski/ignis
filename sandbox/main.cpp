@@ -28,12 +28,18 @@ int main(int argc, char** argv) {
 
     auto renderGraphHandle = renderer.compileRenderGraph(rgraphLayout);
 
+    if (not renderGraphHandle) {
+        log::info("Failed to compile render graph: {}",
+                  renderGraphHandle.error().message());
+        return -1;
+    }
+
     // prepare render bundle
     RScene scene{};
     RBundle bundle{};
 
     // enqeue bundles
-    auto frame = renderer.enqueue(renderGraphHandle, bundle);
+    auto frame = renderer.enqueue(renderGraphHandle.value(), bundle);
 
     if (not frame) {
         log::info("Failed to enqueue render graph: {}",

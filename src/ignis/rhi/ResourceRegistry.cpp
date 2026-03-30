@@ -1,7 +1,7 @@
 #include "ResourceRegistry.hh"
 
-#include "vk/VulkanDevice.hh"
-#include "vk/VulkanResourceRegistry.hh"
+#include "vk/VKDevice.hh"
+#include "vk/VKResourceRegistry.hh"
 
 namespace ignis {
 
@@ -10,11 +10,11 @@ std::unique_ptr<ResourceRegistry> ResourceRegistry::create(const Config& config,
     const auto& backend = config.renderer().backend;
 
     if (backend == Config::Renderer::Backend::vulkan) {
-        auto* vkDevice = dynamic_cast<VulkanDevice*>(&device);
+        auto* vkDevice = dynamic_cast<VKDevice*>(&device);
         log::expect(vkDevice != nullptr,
-                    "Expected VulkanDevice for Vulkan backend");
+                    "Expected VKDevice for Vulkan backend");
 
-        return std::make_unique<VulkanResourceRegistry>(*vkDevice);
+        return std::make_unique<VKResourceRegistry>(*vkDevice);
     } else {
         log::panic("Unsupported renderer backend: {}",
                    static_cast<int>(backend));

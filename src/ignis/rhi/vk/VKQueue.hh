@@ -2,11 +2,11 @@
 
 #include <unordered_map>
 
-#include "Vulkan.hh"
+#include "VK.hh"
 #include "ignis/rhi/Queue.hh"
 
 namespace ignis {
 
-using VulkanQueueSet = std::unordered_map<Queue, VkQueue>;
+using VKQueueSet = std::unordered_map<Queue, VkQueue>;
 
 }
