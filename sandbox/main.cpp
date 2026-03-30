@@ -11,29 +11,43 @@ int main(int argc, char** argv) {
     log::init(log::LoggerOptions{.enableColors = false});
     log::expect(argc > 1, "No config file path provided");
 
-    Profiler::get().registerThread();
+    JUNO_PROFILE_REGISTER_THREAD();
 
-    const auto config = Config::fromFile(argv[1]);
+    // engine core
+    Engine engine{Config::fromFile(argv[1])};
+    auto& renderer = engine.renderer();
 
-    {
-        JUNO_PROFILE_REGION("engineBootstrap");
+    // compile render graph
+    RGraphLayout rgraphLayout{};
 
-        Engine engine{config};
+    auto mainPassBody = []() { return; };
 
-        auto& renderer = engine.renderer();
-        auto renderGraph = renderer.createRenderGraph();
+    rgraphLayout.addPass(Name{"Main Pass"}, mainPassBody)
+        .access(RAcess::colorAttachment, 0)
+        .access(RAcess::depthAttachment, 1);
 
-        RenderScene scene{};
-        RenderView view{};
+    auto renderGraphHandle = renderer.compileRenderGraph(rgraphLayout);
 
-        std::vector<const RenderView*> renderViews{&view};
+    // prepare render bundle
+    RScene scene{};
+    RBundle bundle{};
 
-        if (auto err = renderer.drawFrame(*renderGraph, renderViews); err)
-            log::error("Failed to draw frame: {}", err->message());
+    // enqeue bundles
+    auto frame = renderer.enqueue(renderGraphHandle, bundle);
+
+    if (not frame) {
+        log::info("Failed to enqueue render graph: {}",
+                  frame.error().message());
+        return -1;
     }
 
-    Profiler::get().generateSummary().print();
+    // wait for frame to finish rendering
+    if (auto err = renderer.wait(frame.value()); err) {
+        log::info("Failed to wait for frame: {}", err->message());
+        return -1;
+    }
 
+    JUNO_PROFILE_DUMP_SUMMARY();
     log::info("Cya!");
     return 0;
 }

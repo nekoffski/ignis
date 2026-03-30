@@ -8,6 +8,9 @@ appName = "ignis-sandbox"
 
 [renderer]
 backend = "vulkan"
+maxRenderGraphs = 16
+maxTextues = 128
+maxBuffers = 128
 
 [vulkan]
 apiVersion = "v1.3"

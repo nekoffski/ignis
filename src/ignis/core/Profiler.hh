@@ -91,10 +91,6 @@ class Profiler : public Singleton<Profiler> {
 
 }  // namespace ignis
 
-#ifndef JUNO_ENABLE_PROFILING
-#define JUNO_ENABLE_PROFILING
-#endif
-
 #ifdef JUNO_ENABLE_PROFILING
 
 #define JUNO_PROFILE_REGION(name)      \
@@ -105,9 +101,15 @@ class Profiler : public Singleton<Profiler> {
     auto ANONYMOUS_VAR(FUNCTION_TIMER) = \
         ignis::Profiler::get().profileRegion(__func__)
 
+#define JUNO_PROFILE_REGISTER_THREAD() ignis::Profiler::get().registerThread()
+#define JUNO_PROFILE_DUMP_SUMMARY() \
+    ignis::Profiler::get().generateSummary().print()
+
 #else
 
 #define JUNO_PROFILE_REGION(name)
 #define JUNO_PROFILE_FUNCTION()
+#define JUNO_PROFILE_REGISTER_THREAD()
+#define JUNO_PROFILE_DUMP_SUMMARY()
 
 #endif

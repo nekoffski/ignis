@@ -95,6 +95,9 @@ void Config::parseFields(const std::string& path) {
 
     m_renderer.backend =
         parseBackend(r.read<std::string>("renderer", "backend"));
+    m_renderer.maxTextures = r.read<u64>("renderer", "maxTextures");
+    m_renderer.maxBuffers = r.read<u64>("renderer", "maxBuffers");
+    m_renderer.maxRenderGraphs = r.read<u64>("renderer", "maxRenderGraphs");
 
     if (m_renderer.backend == Renderer::Backend::vulkan) {
         m_vulkan.emplace();

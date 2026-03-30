@@ -16,6 +16,7 @@ find_package(fastgltf REQUIRED)
 find_package(stb REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
+find_package(stduuid REQUIRED)
 
 add_subdirectory(src/ignis)
 add_subdirectory(sandbox)

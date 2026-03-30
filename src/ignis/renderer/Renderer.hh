@@ -2,25 +2,45 @@
 
 #include <span>
 
-#include "RenderGraph.hh"
-#include "RenderScene.hh"
-#include "RenderView.hh"
+#include "RBundle.hh"
+#include "RFrame.hh"
+#include "RGraph.hh"
+#include "RGraphLayout.hh"
+#include "RScene.hh"
 #include "ignis/core/Concepts.hh"
+#include "ignis/core/Config.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Error.hh"
+#include "ignis/core/Pool.hh"
+#include "ignis/rhi/Device.hh"
+#include "ignis/rhi/ResourceRegistry.hh"
 
 namespace ignis {
 
 class Renderer : public NonCopyable, public NonMovable {
    public:
-    std::unique_ptr<RenderGraph> createRenderGraph();
+    explicit Renderer(const Config& config, Device& device,
+                      ResourceRegistry& resourceRegistry);
 
-    [[nodiscard]] OError drawFrame(const RenderGraph& renderGraph,
-                                   std::span<const RenderView*> renderViews) {
-        return Error::empty();
+    [[nodiscard]] Result<RFrame> enqueue(RGraphId renderGraphId,
+                                         const RBundle& bundle) {
+        return enqueue(renderGraphId, std::span<const RBundle>{&bundle, 1});
     }
 
+    [[nodiscard]] Result<RFrame> enqueue(RGraphId renderGraphId,
+                                         std::span<const RBundle> bundles) {
+        return {};
+    }
+
+    [[nodiscard]] OError wait(const RFrame& frame) { return Error::empty(); }
+
+    RGraphId compileRenderGraph(const RGraphLayout& layout) { return 0u; }
+
    private:
+    Device& m_device;
+    ResourceRegistry& m_resourceRegistry;
+
+    Pool<RGraph> m_renderGraphs;
 };
 
 }  // namespace ignis

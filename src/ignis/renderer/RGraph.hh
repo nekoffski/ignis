@@ -1,15 +1,13 @@
 #pragma once
 
-#include <vector>
-
+#include "RPass.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 
 namespace ignis {
 
-class RenderView : public NonCopyable, public NonMovable {
-   public:
-   private:
-};
+using RGraphId = u64;
+
+class RGraph : public NonCopyable, public NonMovable {};
 
 }  // namespace ignis

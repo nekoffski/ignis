@@ -3,13 +3,20 @@ add_library(ignis SHARED
     # -- core
     "core/Config.cpp"
     "core/String.cpp"
+    "core/Core.cpp"
     "core/Log.cpp"
     "core/String.cpp"
     "core/Error.cpp"
     "core/FileSystem.cpp"
+    "core/Random.cpp"
     "core/Profiler.cpp"
     # -- renderer
     "renderer/Renderer.cpp"
+    "renderer/RGraph.cpp"
+    "renderer/RGraphLayout.cpp"
+    "renderer/RScene.cpp"
+    "renderer/RPass.cpp"
+    "renderer/RBundle.cpp"
     # -- rhi
     "rhi/Device.cpp"
     "rhi/Window.cpp"
@@ -32,8 +39,14 @@ target_link_libraries(ignis
         spdlog::spdlog
         tomlplusplus::tomlplusplus
         vulkan-headers::vulkan-headers
-    Vulkan::Vulkan
-    GPUOpen::VulkanMemoryAllocator
+        Vulkan::Vulkan
+        GPUOpen::VulkanMemoryAllocator
+        stduuid::stduuid
 )
 
 set_target_properties(ignis PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_compile_definitions(ignis PUBLIC
+    $<$<CONFIG:Debug>:JUNO_ENABLE_PROFILING>
+    $<$<CONFIG:Debug>:JUNO_DEBUG_BUILD>
+)

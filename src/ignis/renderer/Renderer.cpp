@@ -5,10 +5,10 @@
 
 namespace ignis {
 
-std::unique_ptr<RenderGraph> Renderer::createRenderGraph() {
-    JUNO_PROFILE_FUNCTION();
-
-    return std::make_unique<RenderGraph>(RenderGraph::Guard{});
-}
+Renderer::Renderer(const Config& config, Device& device,
+                   ResourceRegistry& resourceRegistry)
+    : m_device(device),
+      m_resourceRegistry(resourceRegistry),
+      m_renderGraphs(config.renderer().maxRenderGraphs) {}
 
 }  // namespace ignis

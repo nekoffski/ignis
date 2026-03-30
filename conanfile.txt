@@ -8,6 +8,7 @@ shaderc/2024.1
 fastgltf/0.8.0
 stb/cci.20230920
 tomlplusplus/3.4.0
+stduuid/1.2.3
 
 [generators]
 CMakeDeps

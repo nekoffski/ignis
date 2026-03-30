@@ -7,7 +7,8 @@ namespace ignis {
 Engine::Engine(const Config& config)
     : m_config(config),
       m_device(Device::create(config)),
-      m_resourceRegistry(ResourceRegistry::create(config, *m_device)) {
+      m_resourceRegistry(ResourceRegistry::create(config, *m_device)),
+      m_renderer(config, *m_device, *m_resourceRegistry) {
     ServiceLocator<Config>::set(&m_config);
     ServiceLocator<Renderer>::set(&m_renderer);
     ServiceLocator<Device>::set(m_device.get());

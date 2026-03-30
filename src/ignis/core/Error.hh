@@ -10,6 +10,7 @@ class Error {
    public:
     enum class Code {
         noError = 0,
+        poolFull = 1,
     };
 
     explicit Error(Code code,

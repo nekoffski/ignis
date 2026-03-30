@@ -5,9 +5,7 @@
 
 namespace ignis {
 
-class RenderScene : public NonCopyable, public NonMovable {
-   public:
-   private:
-};
+enum class RAcess { colorAttachment, depthAttachment, read };
+enum class RPassType { graphics, compute, copy };
 
 }  // namespace ignis

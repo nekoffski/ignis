@@ -17,6 +17,9 @@ class Config {
         };
 
         Backend backend{Backend::vulkan};
+        u64 maxTextures{128u};
+        u64 maxBuffers{128u};
+        u64 maxRenderGraphs{128u};
     };
 
     struct Version {
