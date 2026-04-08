@@ -24,4 +24,6 @@ using Allocator = const VkAllocationCallbacks*;
         (x);                               \
     } while (0)
 
+std::string toString(VkResult result, bool extended = true);
+
 }  // namespace ignis

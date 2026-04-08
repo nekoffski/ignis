@@ -11,6 +11,9 @@ class Error {
     enum class Code {
         noError = 0,
         poolFull = 1,
+        queueSubmissionFailed = 2,
+        invalidArgument = 3,
+        resourceMissing = 4,
     };
 
     explicit Error(Code code,

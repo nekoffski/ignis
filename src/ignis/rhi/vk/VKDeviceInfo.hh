@@ -5,7 +5,7 @@
 
 #include "VK.hh"
 #include "ignis/core/Core.hh"
-#include "ignis/rhi/Queue.hh"
+#include "ignis/rhi/DeviceQueue.hh"
 
 namespace ignis {
 
@@ -13,7 +13,7 @@ struct VKDeviceInfo {
     VkPhysicalDeviceProperties coreProperties;
     VkPhysicalDeviceMemoryProperties memoryProperties;
     VkPhysicalDeviceFeatures features;
-    std::unordered_map<Queue, u32> queueIndices;
+    std::unordered_map<DeviceQueue, u32> queueIndices;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     std::vector<VkSurfaceFormatKHR> surfaceFormats;
     std::vector<VkPresentModeKHR> presentModes;

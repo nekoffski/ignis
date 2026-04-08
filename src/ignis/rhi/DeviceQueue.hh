@@ -5,7 +5,7 @@
 
 namespace ignis {
 
-enum class Queue : u8 {
+enum class DeviceQueue : u8 {
     none = 0,
     graphics = 1 << 0,
     compute = 1 << 1,
@@ -13,6 +13,6 @@ enum class Queue : u8 {
     present = 1 << 3
 };
 
-BIT_ENUM(Queue);
+IGNIS_BIT_ENUM(DeviceQueue);
 
 }  // namespace ignis

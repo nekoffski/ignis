@@ -3,6 +3,7 @@
 #include <fmt/core.h>
 
 #include <cstdint>
+#include <limits>
 
 namespace ignis {
 
@@ -21,6 +22,16 @@ using i8 = int8_t;
 using f32 = float;
 using f64 = double;
 using Str = std::string;
+
+template <typename T>
+T max() {
+    return std::numeric_limits<T>::max();
+}
+
+template <typename T>
+T min() {
+    return std::numeric_limits<T>::min();
+}
 
 template <typename T>
 class Wrapper {

@@ -13,14 +13,12 @@
 #include "ignis/core/Error.hh"
 #include "ignis/core/Pool.hh"
 #include "ignis/rhi/Device.hh"
-#include "ignis/rhi/ResourceRegistry.hh"
 
 namespace ignis {
 
 class Renderer : public NonCopyable, public NonMovable {
    public:
-    explicit Renderer(const Config& config, Device& device,
-                      ResourceRegistry& resourceRegistry);
+    explicit Renderer(const Config& config, Device& device);
 
     [[nodiscard]] Result<RenderFrame> enqueue(RenderGraphId renderGraphId,
                                               const RenderBundle& bundle) {
@@ -43,8 +41,6 @@ class Renderer : public NonCopyable, public NonMovable {
 
    private:
     Device& m_device;
-    ResourceRegistry& m_resourceRegistry;
-
     Pool<RenderGraph> m_renderGraphs;
 };
 

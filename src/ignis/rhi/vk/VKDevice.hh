@@ -1,9 +1,10 @@
 #pragma once
 
 #include "VK.hh"
+#include "VKCommandBuffer.hh"
 #include "VKDeviceInfo.hh"
 #include "VKQueue.hh"
-#include "VKResourceRegistry.hh"
+#include "ignis/core/Pool.hh"
 #include "ignis/rhi/Device.hh"
 
 namespace ignis {
@@ -20,9 +21,19 @@ class VKDevice : public Device {
     VkDevice device() const;
     Allocator allocator() const;
     VKDeviceInfo deviceInfo() const;
+    VkCommandPool graphicsCommandPool() const;
 
-    WorkloadReceipt submit(const Workload& workload) override;
-    void wait(WorkloadReceipt receipt) override;
+    Result<DeviceWorkloadReceipt> submit(
+        const DeviceWorkload& workload) override;
+    OError wait(DeviceWorkloadReceipt receipt) override;
+
+    DeviceBufferHandle createBuffer(
+        const DeviceBufferDescription& desc) override;
+    void destroyBuffer(DeviceBufferHandle handle) override;
+
+    DeviceTextureHandle createTexture(
+        const DeviceTextureMetadata& metadata) override;
+    void destroyTexture(DeviceTextureHandle handle) override;
 
    private:
     const Config& m_cfg;
@@ -36,6 +47,8 @@ class VKDevice : public Device {
     VKDeviceInfo m_deviceInfo;
     VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
     VKQueueSet m_queues;
+
+    Pool<VKWorkload> m_pendingWorkloads;
 };
 
 }  // namespace ignis

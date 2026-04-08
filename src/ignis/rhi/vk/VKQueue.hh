@@ -3,10 +3,24 @@
 #include <unordered_map>
 
 #include "VK.hh"
-#include "ignis/rhi/Queue.hh"
+#include "VKCommandBuffer.hh"
+#include "ignis/core/Concepts.hh"
+#include "ignis/core/Core.hh"
+#include "ignis/rhi/DeviceQueue.hh"
 
 namespace ignis {
 
-using VKQueueSet = std::unordered_map<Queue, VkQueue>;
+using VKQueueSet = std::unordered_map<DeviceQueue, VkQueue>;
 
-}
+class VKQueueSubmitter : public NonCopyable, public NonMovable {
+   public:
+    explicit VKQueueSubmitter(VkQueue q, VKWorkload& workload);
+
+    bool submit();
+
+   private:
+    VkQueue m_q;
+    VKWorkload& m_workload;
+};
+
+}  // namespace ignis

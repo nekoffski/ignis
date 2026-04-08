@@ -20,13 +20,19 @@ add_library(ignis SHARED
     # -- rhi
     "rhi/Device.cpp"
     "rhi/Window.cpp"
-    "rhi/ResourceRegistry.cpp"
-    "rhi/Workload.cpp"
+    "rhi/DeviceWorkload.cpp"
+    "rhi/DeviceTexture.cpp"
+    "rhi/DeviceBuffer.cpp"
     # -- rhi/vk
+    "rhi/vk/VK.cpp"
+    "rhi/vk/VKBuffer.cpp"
     "rhi/vk/VKDevice.cpp"
-    "rhi/vk/VKResourceRegistry.cpp"
     "rhi/vk/VKBootstrap.cpp"
     "rhi/vk/VKQueue.cpp"
+    "rhi/vk/VKCommandBuffer.cpp"
+    "rhi/vk/VKCommands.cpp"
+    "rhi/vk/VKSync.cpp"
+    "rhi/vk/VKTexture.cpp"
 )
 
 target_include_directories(ignis
@@ -36,6 +42,7 @@ target_include_directories(ignis
 
 target_link_libraries(ignis
     PUBLIC
+        glm::glm
         fmt::fmt
         spdlog::spdlog
         tomlplusplus::tomlplusplus

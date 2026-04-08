@@ -6,7 +6,6 @@
 #include "ignis/core/Singleton.hh"
 #include "ignis/renderer/Renderer.hh"
 #include "ignis/rhi/Device.hh"
-#include "ignis/rhi/ResourceRegistry.hh"
 
 namespace ignis {
 
@@ -17,12 +16,10 @@ class Engine : public UniqueInstance<Engine> {
 
     Renderer& renderer();
     Device& device();
-    ResourceRegistry& resourceRegistry();
 
    private:
     Config m_config;
     std::unique_ptr<Device> m_device;
-    std::unique_ptr<ResourceRegistry> m_resourceRegistry;
 
     Renderer m_renderer;
 };
