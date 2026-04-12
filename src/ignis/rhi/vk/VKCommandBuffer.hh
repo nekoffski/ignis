@@ -22,7 +22,7 @@ class VKCommandBuffer : public NonCopyable, public NonMovable {
         simultaneousUse = 0x00000004,
     };
 
-    explicit VKCommandBuffer(VKDevice& device);
+    explicit VKCommandBuffer(VKDevice& device, DeviceQueue targetQueue);
     ~VKCommandBuffer();
 
     void begin(BeginFlags flags = BeginFlags::none);
@@ -42,12 +42,13 @@ class VKCommandBuffer : public NonCopyable, public NonMovable {
 
    private:
     VKDevice& m_device;
+    DeviceQueue m_targetQueue;
     VkCommandBuffer m_handle{VK_NULL_HANDLE};
 };
 
 class VKWorkload : public NonCopyable {
    public:
-    explicit VKWorkload(VKDevice& device);
+    explicit VKWorkload(VKDevice& device, DeviceQueue targetQueue);
 
     void addDependency(std::shared_ptr<VKSemaphore> semaphore);
 

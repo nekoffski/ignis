@@ -113,7 +113,7 @@ VKBootstrap::VKBootstrap(const Config& config, Window* window)
     createDebugMessenger();
     pickPhysicalDevice();
     createLogicalDevice();
-    createGraphicsCommandPool();
+    createCommandPools();
     fetchQueues();
 }
 
@@ -358,7 +358,7 @@ void VKBootstrap::createLogicalDevice() {
     log::trace("vkCreateDevice: {}", static_cast<void*>(m_device));
 }
 
-void VKBootstrap::createGraphicsCommandPool() {
+void VKBootstrap::createCommandPools() {
     VkCommandPoolCreateInfo poolCreateInfo{};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 
@@ -367,9 +367,17 @@ void VKBootstrap::createGraphicsCommandPool() {
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
-                                  &m_graphicsCommandPool));
+                                  &m_commandPools.graphics));
     log::trace("vkCreateCommandPool: {}",
-               static_cast<void*>(m_graphicsCommandPool));
+               static_cast<void*>(m_commandPools.graphics));
+
+    poolCreateInfo.queueFamilyIndex =
+        m_deviceInfo.queueIndices.at(DeviceQueue::transfer);
+    poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
+                                  &m_commandPools.transfer));
+    log::trace("vkCreateCommandPool: {}",
+               static_cast<void*>(m_commandPools.transfer));
 }
 
 void VKBootstrap::fetchQueues() {
@@ -380,9 +388,7 @@ void VKBootstrap::fetchQueues() {
     }
 }
 
-VkCommandPool VKBootstrap::graphicsCommandPool() const {
-    return m_graphicsCommandPool;
-}
+VKCommandPools& VKBootstrap::commandPools() { return m_commandPools; }
 
 VKQueueSet VKBootstrap::queues() const { return m_queues; }
 

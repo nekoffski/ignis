@@ -14,7 +14,8 @@ int main(int argc, char** argv) {
     IGNIS_PROFILE_REGISTER_THREAD();
 
     // engine core
-    Engine engine{Config::fromFile(argv[1])};
+    auto config = Config::fromFile(Path{argv[1]});
+    Engine engine{config};
     auto& renderer = engine.renderer();
 
     // compile render graph

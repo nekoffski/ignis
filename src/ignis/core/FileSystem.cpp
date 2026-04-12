@@ -7,34 +7,34 @@ namespace fs = std::filesystem;
 
 namespace ignis {
 
-bool FileSystem::isFile(const FileSystem::Path& path) const {
-    return fs::is_regular_file(path);
-}
+const std::string& Path::str() const { return m_path; }
 
-bool FileSystem::isDirectory(const FileSystem::Path& path) const {
-    return fs::is_directory(path);
-}
+bool Path::isFile() const { return fs::is_regular_file(m_path); }
 
-OError FileSystem::appendFile(const FileSystem::Path& path,
-                              const std::string& content) const {
-    std::ofstream file(path, std::ios::app);
+bool Path::isDirectory() const { return fs::is_directory(m_path); }
+
+File::File(const Path& path) : m_path(path) {}
+
+const Path& File::path() const { return m_path; }
+
+OError File::append(const std::string& content) {
+    std::ofstream file(m_path.str(), std::ios::app);
     if (!file.is_open())
         return Error{Error::Code::noError, "Failed to open file for appending"};
     file << content;
     return Error::empty();
 }
 
-OError FileSystem::writeFile(const FileSystem::Path& path,
-                             const std::string& content) const {
-    std::ofstream file(path, std::ios::trunc);
+OError File::write(const std::string& content) {
+    std::ofstream file(m_path.str(), std::ios::trunc);
     if (!file.is_open())
         return Error{Error::Code::noError, "Failed to open file for writing"};
     file << content;
     return Error::empty();
 }
 
-Result<std::string> FileSystem::readFile(const FileSystem::Path& path) const {
-    std::ifstream file(path);
+Result<std::string> File::read() const {
+    std::ifstream file(m_path.str());
     if (!file.is_open()) {
         return Error::unexpected(Error::Code::noError,
                                  "Failed to open file for reading");
@@ -44,9 +44,8 @@ Result<std::string> FileSystem::readFile(const FileSystem::Path& path) const {
     return buffer.str();
 }
 
-Result<std::vector<std::string>> FileSystem::readLines(
-    const FileSystem::Path& path) const {
-    std::ifstream file(path);
+Result<std::vector<std::string>> File::readLines() const {
+    std::ifstream file(m_path.str());
     if (!file.is_open()) {
         return Error::unexpected(Error::Code::noError,
                                  "Failed to open file for reading");
@@ -57,9 +56,9 @@ Result<std::vector<std::string>> FileSystem::readLines(
     return lines;
 }
 
-OError FileSystem::removeFile(const FileSystem::Path& path) const {
+OError File::remove() {
     std::error_code ec;
-    fs::remove(path, ec);
+    fs::remove(m_path.str(), ec);
     if (ec) return Error{Error::Code::noError, "Failed to remove file"};
     return Error::empty();
 }

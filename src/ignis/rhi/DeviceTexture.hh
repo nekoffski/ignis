@@ -236,9 +236,6 @@ enum class DeviceTextureFormat : u32 {
     G16B16R162Plane444Unorm = 1000330003,
 };
 
-using PixelWidth = u8;
-using Pixels = std::vector<PixelWidth>;
-
 using DeviceTextureHandle = DeviceResourceHandle<DeviceResourceType::texture>;
 
 enum class DeviceTextureType : u8 { flat, cubemap };
@@ -302,23 +299,10 @@ struct DeviceSamplerProperties {
     DeviceTextureRepeat wRepeat{DeviceTextureRepeat::repeat};
 };
 
-struct DeviceTextureMetadata {
+struct DeviceTextureDefinition {
     DeviceImageProperties image;
     DeviceViewProperties view;
     DeviceSamplerProperties sampler;
-};
-
-struct DeviceTextureDefinition {
-    DeviceTextureMetadata metadata;
-    Pixels pixels;
-
-    static DeviceTextureDefinition fromColor(const Vec4& color, u32 width,
-                                             u32 height);
-    static DeviceTextureDefinition fromColor(const Vec3& color, u32 width,
-                                             u32 height);
-    static DeviceTextureDefinition fromColor(const Vec2& color, u32 width,
-                                             u32 height);
-    static DeviceTextureDefinition fromColor(f32 color, u32 width, u32 height);
 };
 
 IGNIS_BIT_ENUM(DeviceTextureUsage);

@@ -12,6 +12,28 @@
 
 namespace ignis {
 
+struct HostToBufferTransfer {
+    void* from;
+    DeviceBufferHandle to;
+    u64 size;
+};
+
+struct BufferToTextureTransfer {
+    DeviceBufferHandle from;
+    DeviceTextureHandle to;
+};
+
+struct TextureToBufferTransfer {
+    DeviceTextureHandle from;
+    DeviceBufferHandle to;
+};
+
+struct BufferToHostTransfer {
+    DeviceBufferHandle from;
+    void* to;
+    u64 size;
+};
+
 class Device : public NonCopyable, public NonMovable {
    public:
     static std::unique_ptr<Device> create(const Config& config,
@@ -25,13 +47,29 @@ class Device : public NonCopyable, public NonMovable {
         const DeviceWorkload& workload) = 0;
     virtual OError wait(DeviceWorkloadReceipt receipt) = 0;
 
-    virtual DeviceBufferHandle createBuffer(
+    virtual Result<DeviceBufferHandle> createBuffer(
         const DeviceBufferDescription& desc) = 0;
     virtual void destroyBuffer(DeviceBufferHandle handle) = 0;
 
-    virtual DeviceTextureHandle createTexture(
-        const DeviceTextureMetadata& metadata) = 0;
+    virtual Result<DeviceTextureHandle> createTexture(
+        const DeviceTextureDefinition& metadata) = 0;
     virtual void destroyTexture(DeviceTextureHandle handle) = 0;
+
+    virtual void transfer(HostToBufferTransfer copy) = 0;
+    virtual void transfer(HostToBufferTransfer copy,
+                          DeviceWorkload& workload) = 0;
+
+    virtual void transfer(BufferToTextureTransfer copy) = 0;
+    virtual void transfer(BufferToTextureTransfer copy,
+                          DeviceWorkload& workload) = 0;
+
+    virtual void transfer(TextureToBufferTransfer copy,
+                          DeviceWorkload& workload) = 0;
+    virtual void transfer(TextureToBufferTransfer copy) = 0;
+
+    virtual void transfer(BufferToHostTransfer copy) = 0;
+    virtual void transfer(BufferToHostTransfer copy,
+                          DeviceWorkload& workload) = 0;
 };
 
 }  // namespace ignis

@@ -1,5 +1,8 @@
 add_library(ignis SHARED
     "Engine.cpp"
+    # -- asset
+    "asset/Image.cpp"
+    "asset/Stb.cpp"
     # -- core
     "core/Config.cpp"
     "core/String.cpp"
@@ -23,6 +26,7 @@ add_library(ignis SHARED
     "rhi/DeviceWorkload.cpp"
     "rhi/DeviceTexture.cpp"
     "rhi/DeviceBuffer.cpp"
+    "rhi/DeviceQueue.cpp"
     # -- rhi/vk
     "rhi/vk/VK.cpp"
     "rhi/vk/VKBuffer.cpp"
@@ -50,6 +54,7 @@ target_link_libraries(ignis
         Vulkan::Vulkan
         GPUOpen::VulkanMemoryAllocator
         stduuid::stduuid
+        stb::stb 
 )
 
 set_target_properties(ignis PROPERTIES POSITION_INDEPENDENT_CODE ON)

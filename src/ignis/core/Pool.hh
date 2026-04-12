@@ -13,12 +13,24 @@ template <typename T>
 class Pool : public NonCopyable, public NonMovable {
    public:
     explicit Pool(u64 size) : m_pool(size) {}
+    ~Pool() { log::trace("Destroying pool with {} objects", m_pool.size()); }
 
     template <typename... Args>
         requires std::constructible_from<T, Args...>
     Result<u64> create(Args&&... args) {
         if (auto slot = findFreeSlot(); slot.has_value()) [[likely]] {
             m_pool[slot.value()].emplace(std::forward<Args>(args)...);
+            return slot.value();
+        }
+        return Error::unexpected(Error::Code::poolFull,
+                                 "No free slots available in pool");
+    }
+
+    template <typename Constructor>
+        requires Callable<Constructor, T(u32)>
+    Result<u64> create(Constructor&& constructor) {
+        if (auto slot = findFreeSlot(); slot.has_value()) [[likely]] {
+            m_pool[slot.value()].emplace(constructor(slot.value()));
             return slot.value();
         }
         return Error::unexpected(Error::Code::poolFull,

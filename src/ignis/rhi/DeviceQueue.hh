@@ -13,6 +13,8 @@ enum class DeviceQueue : u8 {
     present = 1 << 3
 };
 
+Str toString(DeviceQueue q);
+
 IGNIS_BIT_ENUM(DeviceQueue);
 
 }  // namespace ignis

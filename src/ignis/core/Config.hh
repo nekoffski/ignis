@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Core.hh"
+#include "FileSystem.hh"
 
 namespace ignis {
 
@@ -45,10 +46,10 @@ class Config {
     const Version& version() const;
     const Core& core() const;
 
-    static Config fromFile(const std::string& path);
+    static Config fromFile(const Path& path);
 
    private:
-    void parseFields(const std::string& path);
+    void parseFields(const Path& path);
 
     Renderer m_renderer;
     Version m_version;

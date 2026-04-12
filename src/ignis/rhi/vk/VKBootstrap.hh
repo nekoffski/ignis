@@ -31,15 +31,16 @@ class VKBootstrap : public NonCopyable, public NonMovable {
     Allocator allocator() const;
     VkDebugUtilsMessengerEXT debugMessenger() const;
     const VKDeviceInfo& deviceInfo() const;
-    VkCommandPool graphicsCommandPool() const;
     VKQueueSet queues() const;
+
+    VKCommandPools& commandPools();
 
    private:
     void createInstance();
     void createDebugMessenger();
     void pickPhysicalDevice();
     void createLogicalDevice();
-    void createGraphicsCommandPool();
+    void createCommandPools();
     void fetchQueues();
 
     const Config& m_cfg;
@@ -51,7 +52,7 @@ class VKBootstrap : public NonCopyable, public NonMovable {
     VkPhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
     VkDevice m_device{VK_NULL_HANDLE};
     Allocator m_allocator{nullptr};
-    VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
+    VKCommandPools m_commandPools;
     VKQueueSet m_queues;
 };
 

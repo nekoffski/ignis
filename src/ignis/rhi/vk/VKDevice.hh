@@ -1,18 +1,26 @@
 #pragma once
 
 #include "VK.hh"
+#include "VKBuffer.hh"
 #include "VKCommandBuffer.hh"
 #include "VKDeviceInfo.hh"
 #include "VKQueue.hh"
+#include "VKTexture.hh"
 #include "ignis/core/Pool.hh"
+#include "ignis/core/Scoped.hh"
 #include "ignis/rhi/Device.hh"
 
 namespace ignis {
 
 class VKDevice : public Device {
+    using BufferPool =
+        Pool<DeviceResourceWrapper<VKBuffer, DeviceResourceType::buffer>>;
+    using TexturePool =
+        Pool<DeviceResourceWrapper<VKTexture, DeviceResourceType::texture>>;
+
    public:
     explicit VKDevice(const Config& config, Window* window);
-    ~VKDevice() override;
+    ~VKDevice() override = default;
 
     bool headless() const override;
 
@@ -21,34 +29,54 @@ class VKDevice : public Device {
     VkDevice device() const;
     Allocator allocator() const;
     VKDeviceInfo deviceInfo() const;
-    VkCommandPool graphicsCommandPool() const;
+    const VKCommandPools& commandPools() const;
 
     Result<DeviceWorkloadReceipt> submit(
         const DeviceWorkload& workload) override;
     OError wait(DeviceWorkloadReceipt receipt) override;
 
-    DeviceBufferHandle createBuffer(
+    Result<DeviceBufferHandle> createBuffer(
         const DeviceBufferDescription& desc) override;
     void destroyBuffer(DeviceBufferHandle handle) override;
 
-    DeviceTextureHandle createTexture(
-        const DeviceTextureMetadata& metadata) override;
+    Result<DeviceTextureHandle> createTexture(
+        const DeviceTextureDefinition& metadata) override;
     void destroyTexture(DeviceTextureHandle handle) override;
+
+    void transfer(HostToBufferTransfer copy) override;
+    void transfer(HostToBufferTransfer copy, DeviceWorkload& workload) override;
+
+    void transfer(BufferToTextureTransfer copy) override;
+    void transfer(BufferToTextureTransfer copy,
+                  DeviceWorkload& workload) override;
+
+    void transfer(TextureToBufferTransfer copy,
+                  DeviceWorkload& workload) override;
+    void transfer(TextureToBufferTransfer copy) override;
+
+    void transfer(BufferToHostTransfer copy) override;
+    void transfer(BufferToHostTransfer copy, DeviceWorkload& workload) override;
+
+    Opt<i32> findMemoryIndex(u32 typeFilter,
+                             DeviceMemoryProperty memoryProperty);
 
    private:
     const Config& m_cfg;
     Window* m_window;
 
-    VkInstance m_instance{VK_NULL_HANDLE};
-    VkDebugUtilsMessengerEXT m_debugMessenger{VK_NULL_HANDLE};
-    VkPhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
-    VkDevice m_device{VK_NULL_HANDLE};
+    Scoped<VkInstance> m_instance;
+    Scoped<VkDebugUtilsMessengerEXT> m_debugMessenger;
+    VkPhysicalDevice m_physicalDevice;
+    Scoped<VkDevice> m_device;
     Allocator m_allocator{nullptr};
     VKDeviceInfo m_deviceInfo;
-    VkCommandPool m_graphicsCommandPool{VK_NULL_HANDLE};
+    Scoped<VKCommandPools> m_commandPools;
     VKQueueSet m_queues;
 
     Pool<VKWorkload> m_pendingWorkloads;
+
+    BufferPool m_bufferPool;
+    TexturePool m_texturePool;
 };
 
 }  // namespace ignis

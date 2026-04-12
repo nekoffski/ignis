@@ -63,12 +63,11 @@ class Reader : public NonCopyable, public NonMovable {
 
 }  // namespace
 
-Config Config::fromFile(const std::string& path) {
+Config Config::fromFile(const Path& path) {
     Config cfg;
 
-    auto& fs = FileSystem::get();
-    log::expect(fs.isFile(path),
-                "Config path {} does not exist or is not a file", path);
+    log::expect(path.isFile(), "Config path {} does not exist or is not a file",
+                path.str());
 
     try {
         cfg.parseFields(path);
@@ -83,8 +82,8 @@ Config Config::fromFile(const std::string& path) {
 
 using StrVec = std::vector<std::string>;
 
-void Config::parseFields(const std::string& path) {
-    auto tbl = toml::parse_file(path);
+void Config::parseFields(const Path& path) {
+    auto tbl = toml::parse_file(path.str());
     Reader r{tbl};
 
     m_version.major = r.read<u32>("version", "major");

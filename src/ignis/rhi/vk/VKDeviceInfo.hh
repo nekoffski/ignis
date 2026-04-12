@@ -24,4 +24,9 @@ struct VKDeviceInfo {
     bool supportsDeviceLocalHostVisibleMemory;
 };
 
+struct VKCommandPools {
+    VkCommandPool graphics{VK_NULL_HANDLE};
+    VkCommandPool transfer{VK_NULL_HANDLE};
+};
+
 }  // namespace ignis

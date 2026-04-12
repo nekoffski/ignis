@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <optional>
 
 namespace ignis {
 
@@ -11,6 +12,9 @@ using u64 = uint64_t;
 using u32 = uint32_t;
 using u16 = uint16_t;
 using u8 = uint8_t;
+
+template <typename T>
+using Opt = std::optional<T>;
 
 using Nanoseconds = u64;
 
@@ -32,6 +36,18 @@ template <typename T>
 T min() {
     return std::numeric_limits<T>::min();
 }
+
+template <typename T>
+T getAlignedValue(T value, T granularity) {
+    return (value + granularity - 1) & ~(granularity - 1);
+}
+
+struct Range {
+    u64 offset;
+    u64 size;
+
+    static Range aligned(u64 offset, u64 size, u64 granularity);
+};
 
 template <typename T>
 class Wrapper {

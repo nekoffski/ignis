@@ -23,10 +23,20 @@ struct NonMovable {
     NonMovable& operator=(NonMovable&&) = delete;
 };
 
-template <typename C, typename R = void, typename... Args>
-concept Callable = requires(C&& callback, Args&&... args) {
-    { callback(std::forward<Args>(args)...) } -> std::same_as<R>;
+namespace detail {
+template <typename C, typename Signature>
+struct CallableHelper;
+
+template <typename C, typename R, typename... Args>
+struct CallableHelper<C, R(Args...)> {
+    static constexpr bool value = requires(C&& c, Args&&... args) {
+        { c(std::forward<Args>(args)...) } -> std::same_as<R>;
+    };
 };
+}  // namespace detail
+
+template <typename C, typename Signature>
+concept Callable = detail::CallableHelper<C, Signature>::value;
 
 template <typename T, typename... Ts>
 concept OneOf = requires() {

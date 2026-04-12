@@ -14,6 +14,7 @@ class Error {
         queueSubmissionFailed = 2,
         invalidArgument = 3,
         resourceMissing = 4,
+        ioError = 5,
     };
 
     explicit Error(Code code,
