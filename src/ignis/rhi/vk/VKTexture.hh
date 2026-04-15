@@ -3,20 +3,33 @@
 #include "VK.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
+#include "ignis/rhi/DeviceQueue.hh"
 #include "ignis/rhi/DeviceTexture.hh"
 
 namespace ignis {
 
 class VKDevice;
+class VKCommandBuffer;
 
-class VKTexture : public NonCopyable, public NonMovable {
+class VKTexture : public NonCopyable {
    public:
+    struct Transition {
+        VkImageLayout oldLayout;
+        VkImageLayout newLayout;
+        VkPipelineStageFlags srcStageMask;
+        VkPipelineStageFlags dstStageMask;
+        VkAccessFlags srcAccessMask;
+        VkAccessFlags dstAccessMask;
+        DeviceQueue srcQueue;
+        DeviceQueue dstQueue;
+    };
+
     explicit VKTexture(VKDevice& device, const DeviceImageProperties& imgProps,
-                       const DeviceViewProperties& viewProps,
+                       const DeviceTextureMetadata& metadata,
                        const DeviceSamplerProperties& samplerProps);
 
     explicit VKTexture(VKDevice& device, VkImage image,
-                       const DeviceViewProperties& viewProps,
+                       const DeviceTextureMetadata& metadata,
                        const DeviceSamplerProperties& samplerProps);
 
     ~VKTexture();
@@ -29,11 +42,17 @@ class VKTexture : public NonCopyable, public NonMovable {
 
     VkImageLayout& layout();
 
+    void transitionLayout(VKCommandBuffer& cmdBuffer,
+                          const Transition& transition);
+
+    VKTexture& operator=(VKTexture&& other) noexcept = delete;
+    VKTexture(VKTexture&& other) noexcept;
+
    private:
     void bindMemory();
     void createImage(const DeviceImageProperties& imgProps,
-                     const DeviceViewProperties& viewProps);
-    void createView(const DeviceViewProperties& viewProps);
+                     const DeviceTextureMetadata& metadata);
+    void createView(const DeviceTextureMetadata& metadata);
     void createSampler(const DeviceSamplerProperties& samplerProps);
 
     bool m_ownedBySwapchain;

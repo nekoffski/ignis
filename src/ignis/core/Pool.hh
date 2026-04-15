@@ -13,7 +13,6 @@ template <typename T>
 class Pool : public NonCopyable, public NonMovable {
    public:
     explicit Pool(u64 size) : m_pool(size) {}
-    ~Pool() { log::trace("Destroying pool with {} objects", m_pool.size()); }
 
     template <typename... Args>
         requires std::constructible_from<T, Args...>

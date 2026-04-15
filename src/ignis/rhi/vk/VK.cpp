@@ -2,6 +2,62 @@
 
 namespace ignis {
 
+VkCommandBufferUsageFlags toVk(DeviceBufferUsage usage) {
+    return static_cast<VkCommandBufferUsageFlags>(usage);
+}
+
+VkMemoryPropertyFlags toVk(DeviceMemoryProperty memoryProperty) {
+    return static_cast<VkMemoryPropertyFlags>(memoryProperty);
+}
+
+VkFormat toVk(DeviceTextureFormat format) {
+    switch (format) {
+        case DeviceTextureFormat::undefined:
+            return VK_FORMAT_UNDEFINED;
+        case DeviceTextureFormat::r8unorm:
+            return VK_FORMAT_R8_UNORM;
+        case DeviceTextureFormat::r8g8unorm:
+            return VK_FORMAT_R8G8_UNORM;
+        case DeviceTextureFormat::r8g8b8unorm:
+            return VK_FORMAT_R8G8B8_UNORM;
+        case DeviceTextureFormat::r8g8b8a8unorm:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        default:
+            log::error("Unsupported texture format: {}",
+                       fmt::underlying(format));
+            return VK_FORMAT_UNDEFINED;
+    }
+}
+
+VkImageTiling toVk(DeviceTextureTiling tiling) {
+    switch (tiling) {
+        case DeviceTextureTiling::optimal:
+            return VK_IMAGE_TILING_OPTIMAL;
+        case DeviceTextureTiling::linear:
+            return VK_IMAGE_TILING_LINEAR;
+        default:
+            log::error("Unsupported texture tiling: {}",
+                       fmt::underlying(tiling));
+            return VK_IMAGE_TILING_OPTIMAL;
+    }
+}
+
+VkImageUsageFlags toVk(DeviceTextureUsage usage) {
+    return static_cast<VkImageUsageFlags>(usage);
+}
+
+VkImageAspectFlags toVk(DeviceTextureAspect aspect) {
+    return static_cast<VkImageAspectFlags>(aspect);
+}
+
+VkFilter toVk(DeviceTextureFilter filter) {
+    return static_cast<VkFilter>(filter);
+}
+
+VkSamplerAddressMode toVk(DeviceTextureRepeat repeat) {
+    return static_cast<VkSamplerAddressMode>(repeat);
+}
+
 std::string toString(VkResult result, bool extended) {
     switch (result) {
         default:

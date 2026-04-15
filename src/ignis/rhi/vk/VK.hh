@@ -3,6 +3,8 @@
 #include <vulkan/vulkan.h>
 
 #include "ignis/core/Log.hh"
+#include "ignis/rhi/DeviceBuffer.hh"
+#include "ignis/rhi/DeviceTexture.hh"
 
 namespace ignis {
 
@@ -25,5 +27,14 @@ using Allocator = const VkAllocationCallbacks*;
     } while (0)
 
 std::string toString(VkResult result, bool extended = true);
+
+VkCommandBufferUsageFlags toVk(DeviceBufferUsage usage);
+VkMemoryPropertyFlags toVk(DeviceMemoryProperty memoryProperty);
+VkFormat toVk(DeviceTextureFormat format);
+VkImageTiling toVk(DeviceTextureTiling tiling);
+VkImageUsageFlags toVk(DeviceTextureUsage usage);
+VkImageAspectFlags toVk(DeviceTextureAspect aspect);
+VkFilter toVk(DeviceTextureFilter filter);
+VkSamplerAddressMode toVk(DeviceTextureRepeat repeat);
 
 }  // namespace ignis

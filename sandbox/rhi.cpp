@@ -5,9 +5,11 @@
 #include "ignis/core/Config.hh"
 #include "ignis/core/Log.hh"
 #include "ignis/core/Profiler.hh"
+#include "ignis/core/Scope.hh"
 
 int main(int argc, char** argv) {
     using namespace ignis;
+    ON_SCOPE_EXIT { log::info("Cya!"); };
 
     log::init(log::LoggerOptions{.enableColors = false});
     log::expect(argc > 1, "No config file path provided");
@@ -26,8 +28,8 @@ int main(int argc, char** argv) {
     DeviceTextureDefinition td{};
     td.image.width = 32;
     td.image.height = 32;
-    td.image.channels = 3;
-    td.view.format = DeviceTextureFormat::R8G8B8Unorm;
+    td.image.channels = 4;
+    td.metadata.format = DeviceTextureFormat::r8g8b8a8unorm;
 
     auto texture = device.createTexture(td);
 
@@ -70,7 +72,7 @@ int main(int argc, char** argv) {
     });
 
     {
-        IGNIS_PROFILE_REGION("Image-save");
+        IGNIS_PROFILE_REGION("image-save");
 
         auto err = ImageWriter{"output.png"}.write({
             .pixels = readback.data(),
@@ -86,6 +88,5 @@ int main(int argc, char** argv) {
     }
 
     IGNIS_PROFILE_DUMP_SUMMARY();
-    log::info("Cya!");
     return 0;
 }

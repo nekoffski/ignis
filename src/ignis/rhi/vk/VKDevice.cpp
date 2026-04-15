@@ -140,7 +140,10 @@ Result<DeviceBufferHandle> VKDevice::createBuffer(
     const DeviceBufferDescription& desc) {
     auto id = m_bufferPool.create([&](u32 slot) {
         return DeviceResourceWrapper{
-            VKBuffer{*this, desc},
+            VKBuffer{
+                *this,
+                desc,
+            },
             DeviceBufferHandle{slot},
         };
     });
@@ -153,33 +156,78 @@ Result<DeviceBufferHandle> VKDevice::createBuffer(
     return m_bufferPool.get(*id)->handle;
 }
 
-void VKDevice::destroyBuffer(DeviceBufferHandle handle) {}
-
-Result<DeviceTextureHandle> VKDevice::createTexture(
-    const DeviceTextureDefinition& metadata) {
-    DeviceTextureHandle handle;
-    return handle;
+void VKDevice::destroyBuffer(DeviceBufferHandle handle) {
+    m_bufferPool.destroy(handle.id);
 }
 
-void VKDevice::destroyTexture(DeviceTextureHandle handle) {}
+Result<DeviceTextureHandle> VKDevice::createTexture(
+    const DeviceTextureDefinition& definition) {
+    auto id = m_texturePool.create([&](u32 slot) {
+        return DeviceResourceWrapper{
+            VKTexture{
+                *this,
+                definition.image,
+                definition.metadata,
+                definition.sampler,
+            },
+            DeviceTextureHandle{slot},
+        };
+    });
 
-void VKDevice::transfer(HostToBufferTransfer copy) {}
-void VKDevice::transfer(HostToBufferTransfer copy, DeviceWorkload& workload) {}
+    if (not id) {
+        return Error::unexpected(
+            Error::Code::poolFull,
+            "Failed to create texture: texture pool is full");
+    }
+    return m_texturePool.get(*id)->handle;
+}
 
-void VKDevice::transfer(BufferToTextureTransfer copy) {}
-void VKDevice::transfer(BufferToTextureTransfer copy,
-                        DeviceWorkload& workload) {}
+void VKDevice::destroyTexture(DeviceTextureHandle handle) {
+    m_texturePool.destroy(handle.id);
+}
 
-void VKDevice::transfer(TextureToBufferTransfer copy,
-                        DeviceWorkload& workload) {}
-void VKDevice::transfer(TextureToBufferTransfer copy) {}
+OError VKDevice::transfer(HostToBufferTransfer copy) {
+    auto bufferWrapper = m_bufferPool.get(copy.to.id);
+    if (not bufferWrapper)
+        return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
 
-void VKDevice::transfer(BufferToHostTransfer copy) {}
-void VKDevice::transfer(BufferToHostTransfer copy, DeviceWorkload& workload) {}
+    auto& buffer = bufferWrapper->resource;
+    buffer.copyTo(copy.from, {0, copy.size});
+    return Error::empty();
+}
+
+OError VKDevice::transfer(BufferToTextureTransfer copy) {
+    return Error::empty();
+}
+
+OError VKDevice::transfer(BufferToTextureTransfer copy,
+                          DeviceWorkload& workload) {
+    return Error::empty();
+}
+
+OError VKDevice::transfer(TextureToBufferTransfer copy,
+                          DeviceWorkload& workload) {
+    return Error::empty();
+}
+
+OError VKDevice::transfer(TextureToBufferTransfer copy) {
+    return Error::empty();
+}
+
+OError VKDevice::transfer(BufferToHostTransfer copy) {
+    auto bufferWrapper = m_bufferPool.get(copy.from.id);
+    if (not bufferWrapper)
+        return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
+
+    auto& buffer = bufferWrapper->resource;
+    buffer.copyFrom(copy.to, {0, copy.size});
+
+    return Error::empty();
+}
 
 Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
                                    DeviceMemoryProperty memoryProperty) {
-    auto vkMemoryProperty = static_cast<VkMemoryPropertyFlags>(memoryProperty);
+    auto vkMemoryProperty = toVk(memoryProperty);
     const auto& props = m_deviceInfo.memoryProperties;
     for (u32 i = 0; i < props.memoryTypeCount; ++i) {
         bool isSuitable =
@@ -190,6 +238,35 @@ Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
     log::warn("Unable to find suitable memory type: {}/{}", typeFilter,
               vkMemoryProperty);
     return {};
+}
+
+bool VKDevice::supportsFormat(DeviceTextureFormat format,
+                              DeviceTextureTiling tiling,
+                              DeviceTextureUsage usage) {
+    static constexpr struct {
+        DeviceTextureUsage usage;
+        VkFormatFeatureFlags feature;
+    } usageToFeature[] = {
+        {DeviceTextureUsage::transferSrc, VK_FORMAT_FEATURE_TRANSFER_SRC_BIT},
+        {DeviceTextureUsage::transferDest, VK_FORMAT_FEATURE_TRANSFER_DST_BIT},
+        {DeviceTextureUsage::sampled, VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT},
+        {DeviceTextureUsage::storage, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT},
+        {DeviceTextureUsage::colorAttachment,
+         VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT},
+        {DeviceTextureUsage::depthStencilAttachment,
+         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT},
+    };
+
+    VkFormatProperties props{};
+    vkGetPhysicalDeviceFormatProperties(m_physicalDevice, toVk(format), &props);
+
+    const VkFormatFeatureFlags available = tiling == DeviceTextureTiling::linear
+                                               ? props.linearTilingFeatures
+                                               : props.optimalTilingFeatures;
+
+    for (const auto& [u, f] : usageToFeature)
+        if (checkFlag(usage, u) && not(available & f)) return false;
+    return true;
 }
 
 }  // namespace ignis

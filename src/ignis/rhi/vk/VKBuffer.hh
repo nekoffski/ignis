@@ -21,7 +21,7 @@ class VKBuffer : public NonCopyable {
     void copyTo(const void* data, const Range& range);
     void copyFrom(void* data, const Range& range);
 
-    VKBuffer(VKBuffer&&);
+    VKBuffer(VKBuffer&&) noexcept;
     VKBuffer& operator=(VKBuffer&&) = delete;
 
     void bind(u64 offset = 0);

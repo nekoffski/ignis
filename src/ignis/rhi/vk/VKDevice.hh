@@ -40,25 +40,26 @@ class VKDevice : public Device {
     void destroyBuffer(DeviceBufferHandle handle) override;
 
     Result<DeviceTextureHandle> createTexture(
-        const DeviceTextureDefinition& metadata) override;
+        const DeviceTextureDefinition& definition) override;
     void destroyTexture(DeviceTextureHandle handle) override;
 
-    void transfer(HostToBufferTransfer copy) override;
-    void transfer(HostToBufferTransfer copy, DeviceWorkload& workload) override;
+    OError transfer(HostToBufferTransfer copy) override;
 
-    void transfer(BufferToTextureTransfer copy) override;
-    void transfer(BufferToTextureTransfer copy,
-                  DeviceWorkload& workload) override;
+    OError transfer(BufferToTextureTransfer copy) override;
+    OError transfer(BufferToTextureTransfer copy,
+                    DeviceWorkload& workload) override;
 
-    void transfer(TextureToBufferTransfer copy,
-                  DeviceWorkload& workload) override;
-    void transfer(TextureToBufferTransfer copy) override;
+    OError transfer(TextureToBufferTransfer copy,
+                    DeviceWorkload& workload) override;
+    OError transfer(TextureToBufferTransfer copy) override;
 
-    void transfer(BufferToHostTransfer copy) override;
-    void transfer(BufferToHostTransfer copy, DeviceWorkload& workload) override;
+    OError transfer(BufferToHostTransfer copy) override;
 
     Opt<i32> findMemoryIndex(u32 typeFilter,
                              DeviceMemoryProperty memoryProperty);
+
+    bool supportsFormat(DeviceTextureFormat format, DeviceTextureTiling tiling,
+                        DeviceTextureUsage usage);
 
    private:
     const Config& m_cfg;

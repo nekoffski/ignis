@@ -55,21 +55,17 @@ class Device : public NonCopyable, public NonMovable {
         const DeviceTextureDefinition& metadata) = 0;
     virtual void destroyTexture(DeviceTextureHandle handle) = 0;
 
-    virtual void transfer(HostToBufferTransfer copy) = 0;
-    virtual void transfer(HostToBufferTransfer copy,
-                          DeviceWorkload& workload) = 0;
+    virtual OError transfer(HostToBufferTransfer copy) = 0;
 
-    virtual void transfer(BufferToTextureTransfer copy) = 0;
-    virtual void transfer(BufferToTextureTransfer copy,
-                          DeviceWorkload& workload) = 0;
+    virtual OError transfer(BufferToTextureTransfer copy) = 0;
+    virtual OError transfer(BufferToTextureTransfer copy,
+                            DeviceWorkload& workload) = 0;
 
-    virtual void transfer(TextureToBufferTransfer copy,
-                          DeviceWorkload& workload) = 0;
-    virtual void transfer(TextureToBufferTransfer copy) = 0;
+    virtual OError transfer(TextureToBufferTransfer copy,
+                            DeviceWorkload& workload) = 0;
+    virtual OError transfer(TextureToBufferTransfer copy) = 0;
 
-    virtual void transfer(BufferToHostTransfer copy) = 0;
-    virtual void transfer(BufferToHostTransfer copy,
-                          DeviceWorkload& workload) = 0;
+    virtual OError transfer(BufferToHostTransfer copy) = 0;
 };
 
 }  // namespace ignis

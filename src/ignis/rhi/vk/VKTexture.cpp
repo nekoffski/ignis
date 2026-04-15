@@ -1,24 +1,26 @@
 #include "VKTexture.hh"
 
+#include "VKCommandBuffer.hh"
 #include "VKDevice.hh"
 
 namespace ignis {
 
 VKTexture::VKTexture(VKDevice& device, const DeviceImageProperties& imgProps,
-                     const DeviceViewProperties& viewProps,
+                     const DeviceTextureMetadata& metadata,
                      const DeviceSamplerProperties& samplerProps)
     : m_device(device), m_ownedBySwapchain(false) {
-    createImage(imgProps, viewProps);
-    createView(viewProps);
+    createImage(imgProps, metadata);
+    bindMemory();
+    createView(metadata);
     createSampler(samplerProps);
 }
 
 VKTexture::VKTexture(VKDevice& device, VkImage image,
-                     const DeviceViewProperties& viewProps,
+                     const DeviceTextureMetadata& metadata,
                      const DeviceSamplerProperties& samplerProps)
     : m_device(device), m_image(image), m_ownedBySwapchain(true) {
     bindMemory();
-    createView(viewProps);
+    createView(metadata);
     createSampler(samplerProps);
 }
 
@@ -45,30 +47,32 @@ void VKTexture::bindMemory() {
     VK_TRACE(vkGetImageMemoryRequirements(m_device.device(), m_image,
                                           &memoryRequirements));
 
-    // auto memoryType = m_device.findMemoryIndex(
-    //     memoryRequirements.memoryTypeBits,
-    //     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    auto memoryType = m_device.findMemoryIndex(
+        memoryRequirements.memoryTypeBits, DeviceMemoryProperty::deviceLocal);
 
-    // if (not memoryType)
-    //     log::error("Required memory type not found. VKImage not valid.");
+    if (not memoryType)
+        log::error("Required memory type not found. VKImage not valid.");
 
-    // VkMemoryAllocateInfo memoryAllocateInfo;
-    // clearMemory(&memoryAllocateInfo);
-    // memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    // memoryAllocateInfo.allocationSize = memoryRequirements.size;
-    // memoryAllocateInfo.memoryTypeIndex = memoryType.value_or(-1);
+    VkMemoryAllocateInfo memoryAllocateInfo{};
 
-    // log::vkExpect(vkAllocateMemory(m_device.logical.handle,
-    // &memoryAllocateInfo,
-    //                                m_device.allocator, &m_memory));
-    // log::trace("vkAllocateMemory: {}", static_cast<void*>(m_memory));
-    // log::vkExpect(
-    //     vkBindImageMemory(m_device.logical.handle, m_image, m_memory, 0));
+    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memoryAllocateInfo.allocationSize = memoryRequirements.size;
+    memoryAllocateInfo.memoryTypeIndex = memoryType.value_or(-1);
+
+    VK_ASSERT(vkAllocateMemory(m_device.device(), &memoryAllocateInfo,
+                               m_device.allocator(), &m_memory));
+    VK_ASSERT(vkBindImageMemory(m_device.device(), m_image, m_memory, 0));
 }
 
 void VKTexture::createImage(const DeviceImageProperties& imgProps,
-                            const DeviceViewProperties& viewProps) {
-    bool isCubemap = viewProps.type == DeviceTextureType::cubemap;
+                            const DeviceTextureMetadata& metadata) {
+    log::expect(
+        m_device.supportsFormat(metadata.format, metadata.tiling,
+                                metadata.usage),
+        "Device does not support the requested texture "
+        "format/tiling/usage combination - format: {}, tiling: {}, usage: {}",
+        toString(metadata.format), toString(metadata.tiling),
+        toString(metadata.usage));
 
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -76,33 +80,34 @@ void VKTexture::createImage(const DeviceImageProperties& imgProps,
     imageCreateInfo.extent.width = imgProps.width;
     imageCreateInfo.extent.height = imgProps.height;
     imageCreateInfo.extent.depth = 1;
-    // imageCreateInfo.mipLevels = imgProps.mipLevels;
-    imageCreateInfo.arrayLayers = isCubemap ? 6 : 1;
-    // imageCreateInfo.format = toVk(imgProps.format, imgProps.channels);
-    // imageCreateInfo.tiling = toVk(imgProps.tiling);
+    imageCreateInfo.mipLevels = metadata.mipLevels;
+    imageCreateInfo.arrayLayers = metadata.arrayLayers;
+    imageCreateInfo.format = toVk(metadata.format);
+    imageCreateInfo.tiling = toVk(metadata.tiling);
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    // imageCreateInfo.usage = toVk(imgProps.usage);
+    imageCreateInfo.usage = toVk(metadata.usage);
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if (isCubemap) imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+    if (metadata.type == DeviceTextureType::cubemap)
+        imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
     VK_ASSERT(vkCreateImage(m_device.device(), &imageCreateInfo,
                             m_device.allocator(), &m_image));
 }
 
-void VKTexture::createView(const DeviceViewProperties& viewProps) {
+void VKTexture::createView(const DeviceTextureMetadata& metadata) {
     VkImageViewCreateInfo viewCreateInfo{};
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
-    bool isCubemap = viewProps.type == DeviceTextureType::cubemap;
+    viewCreateInfo.viewType = metadata.type == DeviceTextureType::cubemap
+                                  ? VK_IMAGE_VIEW_TYPE_CUBE
+                                  : VK_IMAGE_VIEW_TYPE_2D;
 
-    viewCreateInfo.viewType =
-        isCubemap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
-    // viewCreateInfo.format = toVk(imageProperties.format,
-    // imageProperties.channels); viewCreateInfo.subresourceRange.aspectMask =
-    // toVk(imageProperties.aspect);
+    viewCreateInfo.format = toVk(metadata.format);
+    viewCreateInfo.subresourceRange.aspectMask = toVk(metadata.aspect);
     viewCreateInfo.subresourceRange.levelCount = 1;
-    viewCreateInfo.subresourceRange.layerCount = isCubemap ? 6 : 1;
+    viewCreateInfo.subresourceRange.layerCount = metadata.arrayLayers;
     viewCreateInfo.image = m_image;
 
     VK_ASSERT(vkCreateImageView(m_device.device(), &viewCreateInfo,
@@ -153,5 +158,42 @@ VkImageView VKTexture::view() const { return m_view; }
 bool VKTexture::ownedBySwapchain() const { return m_ownedBySwapchain; }
 
 VkImageLayout& VKTexture::layout() { return m_layout; }
+
+void VKTexture::transitionLayout(VKCommandBuffer& cmdBuffer,
+                                 const Transition& transition) {
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    // barrier.oldLayout = transition.oldLayout;
+    // barrier.newLayout = transition.newLayout;
+    // barrier.srcQueueFamilyIndex = transition.srcQueue;
+    // barrier.dstQueueFamilyIndex = transition.dstQueue;
+    // barrier.image = m_image;
+    // barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    // barrier.subresourceRange.baseMipLevel = 0;
+    // barrier.subresourceRange.levelCount = 1;
+    // barrier.subresourceRange.baseArrayLayer = 0;
+    // barrier.subresourceRange.layerCount = 1;
+    // barrier.srcAccessMask = transition.srcAccessMask;
+    // barrier.dstAccessMask = transition.dstAccessMask;
+
+    vkCmdPipelineBarrier(cmdBuffer.handle(), transition.srcStageMask,
+                         transition.dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
+                         &barrier);
+}
+
+VKTexture::VKTexture(VKTexture&& other) noexcept
+    : m_ownedBySwapchain(other.m_ownedBySwapchain),
+      m_device(other.m_device),
+      m_image(other.m_image),
+      m_sampler(other.m_sampler),
+      m_view(other.m_view),
+      m_memory(other.m_memory),
+      m_layout(other.m_layout) {
+    other.m_image = VK_NULL_HANDLE;
+    other.m_sampler = VK_NULL_HANDLE;
+    other.m_view = VK_NULL_HANDLE;
+    other.m_memory = VK_NULL_HANDLE;
+    other.m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+}
 
 }  // namespace ignis

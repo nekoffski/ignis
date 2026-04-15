@@ -17,7 +17,7 @@ VKBuffer::~VKBuffer() {
     if (m_handle) VK_TRACE(vkDestroyBuffer(device, m_handle, allocator));
 }
 
-VKBuffer::VKBuffer(VKBuffer&& oth)
+VKBuffer::VKBuffer(VKBuffer&& oth) noexcept
     : m_device(oth.m_device),
       m_description(oth.m_description),
       m_handle(oth.m_handle),
@@ -59,8 +59,8 @@ void VKBuffer::create() {
     VkBufferCreateInfo bufferCreateInfo{};
     bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferCreateInfo.size = m_description.size;
-    bufferCreateInfo.usage =
-        static_cast<VkBufferUsageFlags>(m_description.usage);
+    bufferCreateInfo.usage = toVk(m_description.usage);
+
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     VK_ASSERT(vkCreateBuffer(m_device.device(), &bufferCreateInfo,
                              m_device.allocator(), &m_handle));
