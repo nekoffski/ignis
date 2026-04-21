@@ -51,8 +51,6 @@ enum class DeviceTextureUsage : u32 {
     inputAttachment = 0x00000080,
 };
 
-
-
 enum class DeviceTextureAspect : u32 {
     none = 0x0,
     color = 0x00000001,
@@ -64,7 +62,7 @@ enum class DeviceTextureAspect : u32 {
 IGNIS_BIT_ENUM(DeviceTextureUsage);
 IGNIS_BIT_ENUM(DeviceTextureAspect);
 
-struct DeviceImageProperties {
+struct DeviceImageDimensions {
     u32 width;
     u32 height;
     u8 channels;
@@ -92,7 +90,7 @@ struct DeviceSamplerProperties {
 };
 
 struct DeviceTextureDefinition {
-    DeviceImageProperties image;
+    DeviceImageDimensions image;
     DeviceTextureMetadata metadata;
     DeviceSamplerProperties sampler;
 };

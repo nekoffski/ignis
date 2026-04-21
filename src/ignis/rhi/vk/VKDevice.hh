@@ -18,6 +18,8 @@ class VKDevice : public Device {
     using TexturePool =
         Pool<DeviceResourceWrapper<VKTexture, DeviceResourceType::texture>>;
 
+    friend class DeviceBufferProxy;
+
    public:
     explicit VKDevice(const Config& config, Window* window);
     ~VKDevice() override = default;
@@ -43,25 +45,18 @@ class VKDevice : public Device {
         const DeviceTextureDefinition& definition) override;
     void destroyTexture(DeviceTextureHandle handle) override;
 
-    OError transfer(HostToBufferTransfer copy) override;
-
-    OError transfer(BufferToTextureTransfer copy) override;
-    OError transfer(BufferToTextureTransfer copy,
-                    DeviceWorkload& workload) override;
-
-    OError transfer(TextureToBufferTransfer copy,
-                    DeviceWorkload& workload) override;
-    OError transfer(TextureToBufferTransfer copy) override;
-
-    OError transfer(BufferToHostTransfer copy) override;
-
     Opt<i32> findMemoryIndex(u32 typeFilter,
                              DeviceMemoryProperty memoryProperty);
 
     bool supportsFormat(DeviceTextureFormat format, DeviceTextureTiling tiling,
                         DeviceTextureUsage usage);
 
+    VkQueue queue(DeviceQueue type) const;
+    u32 queueIndex(DeviceQueue type) const;
+
    private:
+    DeviceBufferProxy::Impl* proxy(DeviceBufferHandle handle) override;
+
     const Config& m_cfg;
     Window* m_window;
 

@@ -12,29 +12,9 @@
 
 namespace ignis {
 
-struct HostToBufferTransfer {
-    void* from;
-    DeviceBufferHandle to;
-    u64 size;
-};
-
-struct BufferToTextureTransfer {
-    DeviceBufferHandle from;
-    DeviceTextureHandle to;
-};
-
-struct TextureToBufferTransfer {
-    DeviceTextureHandle from;
-    DeviceBufferHandle to;
-};
-
-struct BufferToHostTransfer {
-    DeviceBufferHandle from;
-    void* to;
-    u64 size;
-};
-
 class Device : public NonCopyable, public NonMovable {
+    friend class DeviceBufferProxy;
+
    public:
     static std::unique_ptr<Device> create(const Config& config,
                                           Window* window = nullptr);
@@ -55,17 +35,8 @@ class Device : public NonCopyable, public NonMovable {
         const DeviceTextureDefinition& metadata) = 0;
     virtual void destroyTexture(DeviceTextureHandle handle) = 0;
 
-    virtual OError transfer(HostToBufferTransfer copy) = 0;
-
-    virtual OError transfer(BufferToTextureTransfer copy) = 0;
-    virtual OError transfer(BufferToTextureTransfer copy,
-                            DeviceWorkload& workload) = 0;
-
-    virtual OError transfer(TextureToBufferTransfer copy,
-                            DeviceWorkload& workload) = 0;
-    virtual OError transfer(TextureToBufferTransfer copy) = 0;
-
-    virtual OError transfer(BufferToHostTransfer copy) = 0;
+   private:
+    virtual DeviceBufferProxy::Impl* proxy(DeviceBufferHandle handle) = 0;
 };
 
 }  // namespace ignis

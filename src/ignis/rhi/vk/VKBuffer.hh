@@ -10,16 +10,17 @@ namespace ignis {
 
 class VKDevice;
 
-class VKBuffer : public NonCopyable {
+class VKBuffer : public DeviceBufferProxy::Impl {
    public:
-    VKBuffer(VKDevice& device, const DeviceBufferDescription& description);
+    explicit VKBuffer(VKDevice& device,
+                      const DeviceBufferDescription& description);
     ~VKBuffer();
 
     VkBuffer handle() const;
     VkBuffer* handlePtr();
 
-    void copyTo(const void* data, const Range& range);
-    void copyFrom(void* data, const Range& range);
+    void write(const void* data, const Range& range) override;
+    void read(void* data, const Range& range) override;
 
     VKBuffer(VKBuffer&&) noexcept;
     VKBuffer& operator=(VKBuffer&&) = delete;
@@ -34,9 +35,8 @@ class VKBuffer : public NonCopyable {
     template <typename Callable>
         requires std::invocable<Callable, void*>
     void with(const Range& range, Callable&& callable) {
-        auto ptr = lock(range);
         ON_SCOPE_EXIT { unlock(); };
-        callable(ptr);
+        callable(lock(range));
     }
 
     VKDevice& m_device;

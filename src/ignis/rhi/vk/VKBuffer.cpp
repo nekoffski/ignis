@@ -38,11 +38,11 @@ void VKBuffer::bind(u64 offset) {
 VkBuffer VKBuffer::handle() const { return m_handle; }
 VkBuffer* VKBuffer::handlePtr() { return &m_handle; }
 
-void VKBuffer::copyTo(const void* data, const Range& range) {
+void VKBuffer::write(const void* data, const Range& range) {
     with(range, [&](void* ptr) { std::memcpy(ptr, data, range.size); });
 }
 
-void VKBuffer::copyFrom(void* data, const Range& range) {
+void VKBuffer::read(void* data, const Range& range) {
     with(range, [&](void* ptr) { std::memcpy(data, ptr, range.size); });
 }
 

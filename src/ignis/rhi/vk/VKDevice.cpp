@@ -186,44 +186,62 @@ void VKDevice::destroyTexture(DeviceTextureHandle handle) {
     m_texturePool.destroy(handle.id);
 }
 
-OError VKDevice::transfer(HostToBufferTransfer copy) {
-    auto bufferWrapper = m_bufferPool.get(copy.to.id);
-    if (not bufferWrapper)
-        return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
+// OError VKDevice::transfer(HostToBufferTransfer copy) {
+//     auto bufferWrapper = m_bufferPool.get(copy.to.id);
+//     if (not bufferWrapper)
+//         return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
 
-    auto& buffer = bufferWrapper->resource;
-    buffer.copyTo(copy.from, {0, copy.size});
-    return Error::empty();
-}
+//     auto& buffer = bufferWrapper->resource;
+//     buffer.copyTo(copy.from, {0, copy.size});
+//     return Error::empty();
+// }
 
-OError VKDevice::transfer(BufferToTextureTransfer copy) {
-    return Error::empty();
-}
+// OError VKDevice::transfer(BufferToTextureTransfer copy) {
+//     return Error::empty();
+// }
 
-OError VKDevice::transfer(BufferToTextureTransfer copy,
-                          DeviceWorkload& workload) {
-    return Error::empty();
-}
+// OError VKDevice::transfer(BufferToTextureTransfer copy,
+//                           DeviceWorkload& workload) {
+//     // auto bufferWrapper = m_bufferPool.get(copy.from.id);
+//     // if (not bufferWrapper)
+//     //     return Error{Error::Code::resourceMissing, "Invalid buffer
+//     handle"};
 
-OError VKDevice::transfer(TextureToBufferTransfer copy,
-                          DeviceWorkload& workload) {
-    return Error::empty();
-}
+//     // auto textureWrapper = m_texturePool.get(copy.to.id);
+//     // if (not textureWrapper)
+//     //     return Error{Error::Code::resourceMissing, "Invalid texture
+//     handle"};
 
-OError VKDevice::transfer(TextureToBufferTransfer copy) {
-    return Error::empty();
-}
+//     // auto& buffer = bufferWrapper->resource;
+//     // auto& texture = textureWrapper->resource;
 
-OError VKDevice::transfer(BufferToHostTransfer copy) {
-    auto bufferWrapper = m_bufferPool.get(copy.from.id);
-    if (not bufferWrapper)
-        return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
+//     // auto& workload = m_pendingWorkloads.get(workloadReceipt);
+//     // if (not workload)
 
-    auto& buffer = bufferWrapper->resource;
-    buffer.copyFrom(copy.to, {0, copy.size});
+//     // texture.copyFrom(buffer, *workload.);
 
-    return Error::empty();
-}
+//     return Error::empty();
+// }
+
+// OError VKDevice::transfer(TextureToBufferTransfer copy,
+//                           DeviceWorkload& workload) {
+//     return Error::empty();
+// }
+
+// OError VKDevice::transfer(TextureToBufferTransfer copy) {
+//     return Error::empty();
+// }
+
+// OError VKDevice::transfer(BufferToHostTransfer copy) {
+//     auto bufferWrapper = m_bufferPool.get(copy.from.id);
+//     if (not bufferWrapper)
+//         return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
+
+//     auto& buffer = bufferWrapper->resource;
+//     buffer.copyFrom(copy.to, {0, copy.size});
+
+//     return Error::empty();
+// }
 
 Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
                                    DeviceMemoryProperty memoryProperty) {
@@ -267,6 +285,24 @@ bool VKDevice::supportsFormat(DeviceTextureFormat format,
     for (const auto& [u, f] : usageToFeature)
         if (checkFlag(usage, u) && not(available & f)) return false;
     return true;
+}
+
+VkQueue VKDevice::queue(DeviceQueue type) const {
+    log::expect(m_queues.contains(type), "Requested queue type is not valid");
+    return m_queues.at(type);
+}
+
+u32 VKDevice::queueIndex(DeviceQueue type) const {
+    log::expect(m_deviceInfo.queueIndices.contains(type),
+                "Requested queue type is not valid");
+    return m_deviceInfo.queueIndices.at(type);
+}
+
+DeviceBufferProxy::Impl* VKDevice::proxy(DeviceBufferHandle handle) {
+    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
+        return &bufferWrapper->resource;
+    log::error("Failed to get buffer proxy: invalid buffer handle");
+    return nullptr;
 }
 
 }  // namespace ignis

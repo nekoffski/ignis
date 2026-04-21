@@ -1,8 +1,10 @@
 #pragma once
 
 #include "DeviceResourceHandle.hh"
+#include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Enum.hh"
+#include "ignis/core/Error.hh"
 
 namespace ignis {
 
@@ -57,6 +59,28 @@ struct DeviceBufferDescription {
     bool bindOnCreation;
 
     static DeviceBufferDescription staging(u64 size);
+};
+
+class Device;
+
+class DeviceBufferProxy {
+   public:
+    class Impl : public virtual NonCopyable {
+       public:
+        virtual ~Impl() = default;
+
+        virtual void write(const void* data, const Range& range) = 0;
+        virtual void read(void* data, const Range& range) = 0;
+    };
+
+    OError write(const void* data, const Range& range);
+    OError read(void* data, const Range& range);
+
+    explicit DeviceBufferProxy(Device& device, DeviceBufferHandle handleDevice);
+
+   private:
+    Device& m_device;
+    DeviceBufferHandle m_handle;
 };
 
 IGNIS_BIT_ENUM(DeviceBufferUsage);

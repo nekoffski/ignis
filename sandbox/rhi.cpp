@@ -38,16 +38,16 @@ int main(int argc, char** argv) {
     auto writeBuffer = device.createBuffer(bd);
     auto readBuffer = device.createBuffer(bd);
 
-    // copy data to buffer
-    device.transfer({.from = pixels.data(), .to = *writeBuffer, .size = size});
+    DeviceBufferProxy{device, *writeBuffer}.write(
+        pixels.data(), Range{.offset = 0, .size = size});
 
     DeviceWorkload workload{DeviceQueue::transfer};
 
-    // buffer -> texture
-    device.transfer({.from = *writeBuffer, .to = *texture}, workload);
+    // // buffer -> texture
+    // device.transfer({.from = *writeBuffer, .to = *texture}, workload);
 
-    // texture -> buffer
-    device.transfer({.from = *texture, .to = *readBuffer}, workload);
+    // // texture -> buffer
+    // device.transfer({.from = *texture, .to = *readBuffer}, workload);
 
     // submit workload
     auto wlReceipt = device.submit(workload);
@@ -65,11 +65,8 @@ int main(int argc, char** argv) {
     // read back data from buffer
     std::vector<u8> readback(size, 255u);
 
-    device.transfer({
-        .from = *readBuffer,
-        .to = readback.data(),
-        .size = size,
-    });
+    DeviceBufferProxy{device, *readBuffer}.read(
+        readback.data(), Range{.offset = 0, .size = size});
 
     {
         IGNIS_PROFILE_REGION("image-save");

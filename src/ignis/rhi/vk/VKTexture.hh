@@ -10,6 +10,7 @@ namespace ignis {
 
 class VKDevice;
 class VKCommandBuffer;
+class VKBuffer;
 
 class VKTexture : public NonCopyable {
    public:
@@ -24,7 +25,7 @@ class VKTexture : public NonCopyable {
         DeviceQueue dstQueue;
     };
 
-    explicit VKTexture(VKDevice& device, const DeviceImageProperties& imgProps,
+    explicit VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
                        const DeviceTextureMetadata& metadata,
                        const DeviceSamplerProperties& samplerProps);
 
@@ -48,9 +49,12 @@ class VKTexture : public NonCopyable {
     VKTexture& operator=(VKTexture&& other) noexcept = delete;
     VKTexture(VKTexture&& other) noexcept;
 
+    void copyFrom(VKBuffer& buffer, VKCommandBuffer& cmdBuffer);
+    void copyTo(VKBuffer& buffer, VKCommandBuffer& cmdBuffer);
+
    private:
     void bindMemory();
-    void createImage(const DeviceImageProperties& imgProps,
+    void createImage(const DeviceImageDimensions& dim,
                      const DeviceTextureMetadata& metadata);
     void createView(const DeviceTextureMetadata& metadata);
     void createSampler(const DeviceSamplerProperties& samplerProps);
@@ -63,6 +67,10 @@ class VKTexture : public NonCopyable {
     VkImageView m_view{VK_NULL_HANDLE};
     VkDeviceMemory m_memory{VK_NULL_HANDLE};
     VkImageLayout m_layout{VK_IMAGE_LAYOUT_UNDEFINED};
+
+    DeviceImageDimensions m_dim;
+    DeviceTextureMetadata m_metadata;
+    DeviceSamplerProperties m_samplerProps;
 };
 
 }  // namespace ignis

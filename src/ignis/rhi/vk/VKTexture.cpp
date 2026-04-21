@@ -1,15 +1,16 @@
 #include "VKTexture.hh"
 
+#include "VKBuffer.hh"
 #include "VKCommandBuffer.hh"
 #include "VKDevice.hh"
 
 namespace ignis {
 
-VKTexture::VKTexture(VKDevice& device, const DeviceImageProperties& imgProps,
+VKTexture::VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
                      const DeviceTextureMetadata& metadata,
                      const DeviceSamplerProperties& samplerProps)
     : m_device(device), m_ownedBySwapchain(false) {
-    createImage(imgProps, metadata);
+    createImage(dim, metadata);
     bindMemory();
     createView(metadata);
     createSampler(samplerProps);
@@ -64,7 +65,7 @@ void VKTexture::bindMemory() {
     VK_ASSERT(vkBindImageMemory(m_device.device(), m_image, m_memory, 0));
 }
 
-void VKTexture::createImage(const DeviceImageProperties& imgProps,
+void VKTexture::createImage(const DeviceImageDimensions& dim,
                             const DeviceTextureMetadata& metadata) {
     log::expect(
         m_device.supportsFormat(metadata.format, metadata.tiling,
@@ -77,8 +78,8 @@ void VKTexture::createImage(const DeviceImageProperties& imgProps,
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageCreateInfo.extent.width = imgProps.width;
-    imageCreateInfo.extent.height = imgProps.height;
+    imageCreateInfo.extent.width = dim.width;
+    imageCreateInfo.extent.height = dim.height;
     imageCreateInfo.extent.depth = 1;
     imageCreateInfo.mipLevels = metadata.mipLevels;
     imageCreateInfo.arrayLayers = metadata.arrayLayers;
@@ -159,22 +160,56 @@ bool VKTexture::ownedBySwapchain() const { return m_ownedBySwapchain; }
 
 VkImageLayout& VKTexture::layout() { return m_layout; }
 
+void VKTexture::copyFrom(VKBuffer& buffer, VKCommandBuffer& cmdBuffer) {
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {m_dim.width, m_dim.height, 1};
+
+    vkCmdCopyBufferToImage(cmdBuffer.handle(), buffer.handle(), m_image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+}
+
+void VKTexture::copyTo(VKBuffer& buffer, VKCommandBuffer& cmdBuffer) {
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {m_dim.width, m_dim.height, 1};
+
+    vkCmdCopyImageToBuffer(cmdBuffer.handle(), m_image,
+                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                           buffer.handle(), 1, &region);
+}
+
 void VKTexture::transitionLayout(VKCommandBuffer& cmdBuffer,
                                  const Transition& transition) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    // barrier.oldLayout = transition.oldLayout;
-    // barrier.newLayout = transition.newLayout;
-    // barrier.srcQueueFamilyIndex = transition.srcQueue;
-    // barrier.dstQueueFamilyIndex = transition.dstQueue;
-    // barrier.image = m_image;
-    // barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    // barrier.subresourceRange.baseMipLevel = 0;
-    // barrier.subresourceRange.levelCount = 1;
-    // barrier.subresourceRange.baseArrayLayer = 0;
-    // barrier.subresourceRange.layerCount = 1;
-    // barrier.srcAccessMask = transition.srcAccessMask;
-    // barrier.dstAccessMask = transition.dstAccessMask;
+    barrier.oldLayout = transition.oldLayout;
+    barrier.newLayout = transition.newLayout;
+    barrier.srcQueueFamilyIndex = m_device.queueIndex(transition.srcQueue);
+    barrier.dstQueueFamilyIndex = m_device.queueIndex(transition.dstQueue);
+    barrier.image = m_image;
+
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = transition.srcAccessMask;
+    barrier.dstAccessMask = transition.dstAccessMask;
 
     vkCmdPipelineBarrier(cmdBuffer.handle(), transition.srcStageMask,
                          transition.dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
