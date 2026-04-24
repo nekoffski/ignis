@@ -73,8 +73,8 @@ class DeviceBufferProxy {
         virtual void read(void* data, const Range& range) = 0;
     };
 
-    OError write(const void* data, const Range& range);
-    OError read(void* data, const Range& range);
+    Opt<Error> write(const void* data, const Range& range);
+    Opt<Error> read(void* data, const Range& range);
 
     explicit DeviceBufferProxy(Device& device, DeviceBufferHandle handleDevice);
 

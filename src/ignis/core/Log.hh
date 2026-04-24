@@ -8,6 +8,7 @@
 #include <source_location>
 #include <string_view>
 
+#include "Core.hh"
 #include "Error.hh"
 
 namespace ignis::log {
@@ -104,7 +105,7 @@ void expect(bool condition, details::FormatWithLocation fmt, Args&&... args) {
     }
 }
 
-void expect(const OError& e);
+void expect(const Opt<Error>& e);
 
 namespace internal {
 

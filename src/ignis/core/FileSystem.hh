@@ -29,12 +29,12 @@ class File {
 
     const Path& path() const;
 
-    OError append(const std::string& content);
-    OError write(const std::string& content);
+    Opt<Error> append(const std::string& content);
+    Opt<Error> write(const std::string& content);
     Result<std::string> read() const;
     Result<std::vector<std::string>> readLines() const;
 
-    OError remove();
+    Opt<Error> remove();
 
    private:
     Path m_path;

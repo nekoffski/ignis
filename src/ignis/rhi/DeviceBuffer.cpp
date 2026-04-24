@@ -16,7 +16,7 @@ DeviceBufferDescription DeviceBufferDescription::staging(u64 size) {
     return d;
 }
 
-OError DeviceBufferProxy::write(const void* data, const Range& range) {
+Opt<Error> DeviceBufferProxy::write(const void* data, const Range& range) {
     if (auto* impl = m_device.proxy(m_handle); impl) {
         impl->write(data, range);
         return Error::empty();
@@ -25,7 +25,7 @@ OError DeviceBufferProxy::write(const void* data, const Range& range) {
                  "Failed to get buffer proxy: invalid buffer handle"};
 }
 
-OError DeviceBufferProxy::read(void* data, const Range& range) {
+Opt<Error> DeviceBufferProxy::read(void* data, const Range& range) {
     if (auto* impl = m_device.proxy(m_handle); impl) {
         impl->read(data, range);
         return Error::empty();

@@ -22,12 +22,12 @@ int main(int argc, char** argv) {
     auto& device = engine.device();
 
     // create texture
-    const auto size = 128u * 128u * 3u;
-    std::vector<u8> pixels(size, 255u);
+    auto pixels = ImageUtils::chessboard(128, 128, 4, 16);
+    u64 size = pixels.size() * sizeof(u8);
 
     DeviceTextureDefinition td{};
-    td.image.width = 32;
-    td.image.height = 32;
+    td.image.width = 128;
+    td.image.height = 128;
     td.image.channels = 4;
     td.metadata.format = DeviceTextureFormat::r8g8b8a8unorm;
 
@@ -43,11 +43,17 @@ int main(int argc, char** argv) {
 
     DeviceWorkload workload{DeviceQueue::transfer};
 
-    // // buffer -> texture
-    // device.transfer({.from = *writeBuffer, .to = *texture}, workload);
+    // buffer -> texture
+    workload.enqueue(CmdUploadBufferToTexture{
+        .from = *writeBuffer,
+        .to = *texture,
+    });
 
-    // // texture -> buffer
-    // device.transfer({.from = *texture, .to = *readBuffer}, workload);
+    // texture -> buffer
+    workload.enqueue(CmdDownloadTextureToBuffer{
+        .from = *texture,
+        .to = *readBuffer,
+    });
 
     // submit workload
     auto wlReceipt = device.submit(workload);
@@ -75,7 +81,7 @@ int main(int argc, char** argv) {
             .pixels = readback.data(),
             .width = 128u,
             .height = 128u,
-            .channels = 3u,
+            .channels = 4u,
         });
 
         if (err.has_value()) {

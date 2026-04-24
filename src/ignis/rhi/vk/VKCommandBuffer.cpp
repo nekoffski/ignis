@@ -1,6 +1,5 @@
 #include "VKCommandBuffer.hh"
 
-#include "VKCommands.hh"
 #include "VKDevice.hh"
 
 namespace ignis {
@@ -35,14 +34,6 @@ void VKCommandBuffer::begin(BeginFlags flags) {
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     info.flags = static_cast<VkCommandBufferUsageFlags>(flags);
     VK_TRACE(vkBeginCommandBuffer(m_handle, &info));
-}
-
-void VKCommandBuffer::record(const DeviceCommand& cmd) {
-    translateVulkanCommand(cmd);
-}
-
-void VKCommandBuffer::record(const std::span<const DeviceCommand>& cmds) {
-    for (const auto& cmd : cmds) record(cmd);
 }
 
 void VKCommandBuffer::end() { VK_TRACE(vkEndCommandBuffer(m_handle)); }

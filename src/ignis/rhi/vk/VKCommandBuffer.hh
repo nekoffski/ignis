@@ -26,16 +26,23 @@ class VKCommandBuffer : public NonCopyable, public NonMovable {
     ~VKCommandBuffer();
 
     void begin(BeginFlags flags = BeginFlags::none);
-    void record(const DeviceCommand& cmd);
-    void record(const std::span<const DeviceCommand>& cmds);
     void end();
 
-    template <typename Callable>
-        requires std::invocable<Callable>
-    void with(Callable&& fn, BeginFlags flags = BeginFlags::none) {
+    template <typename Callback>
+        requires Callable<Callback, Opt<Error>(VkCommandBuffer, DeviceQueue)>
+    Opt<Error> with(Callback&& fn, BeginFlags flags = BeginFlags::none) {
         begin(flags);
-        std::invoke(std::forward<Callable>(fn));
+
+        auto err =
+            std::invoke(std::forward<Callback>(fn), m_handle, m_targetQueue);
+
+        if (err) {
+            log::error("Failed to record command buffer: {}", err->message());
+            return err;
+        }
+
         end();
+        return Error::empty();
     }
 
     VkCommandBuffer handle();

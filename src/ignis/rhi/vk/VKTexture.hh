@@ -3,6 +3,7 @@
 #include "VK.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
+#include "ignis/core/Scope.hh"
 #include "ignis/rhi/DeviceQueue.hh"
 #include "ignis/rhi/DeviceTexture.hh"
 
@@ -15,14 +16,13 @@ class VKBuffer;
 class VKTexture : public NonCopyable {
    public:
     struct Transition {
-        VkImageLayout oldLayout;
         VkImageLayout newLayout;
         VkPipelineStageFlags srcStageMask;
         VkPipelineStageFlags dstStageMask;
         VkAccessFlags srcAccessMask;
         VkAccessFlags dstAccessMask;
-        DeviceQueue srcQueue;
-        DeviceQueue dstQueue;
+        DeviceQueue srcQueue{DeviceQueue::graphics};
+        DeviceQueue dstQueue{DeviceQueue::graphics};
     };
 
     explicit VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
@@ -43,14 +43,32 @@ class VKTexture : public NonCopyable {
 
     VkImageLayout& layout();
 
-    void transitionLayout(VKCommandBuffer& cmdBuffer,
-                          const Transition& transition);
+    template <typename Callback>
+        requires Callable<Callback, void(VkCommandBuffer)>
+    void withLayout(VkCommandBuffer cmdBuffer, VkImageLayout newLayout,
+                    Callback&& callback) {
+        auto fallback = transitionLayout(cmdBuffer, newLayout);
+        ON_SCOPE_EXIT {
+            if (fallback.newLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
+                fallback.newLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
+                [[likely]] {
+                return;
+            }
+            transitionLayout(cmdBuffer, fallback);
+        };
+        callback(cmdBuffer);
+    }
+
+    Transition transitionLayout(VkCommandBuffer cmdBuffer,
+                                const Transition& transition);
+    Transition transitionLayout(VkCommandBuffer cmdBuffer,
+                                VkImageLayout newLayout);
 
     VKTexture& operator=(VKTexture&& other) noexcept = delete;
     VKTexture(VKTexture&& other) noexcept;
 
-    void copyFrom(VKBuffer& buffer, VKCommandBuffer& cmdBuffer);
-    void copyTo(VKBuffer& buffer, VKCommandBuffer& cmdBuffer);
+    void copyFrom(VKBuffer& buffer, VkCommandBuffer cmdBuffer);
+    void copyTo(VKBuffer& buffer, VkCommandBuffer cmdBuffer);
 
    private:
     void bindMemory();

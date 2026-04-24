@@ -61,13 +61,13 @@ Str                  // std::string
 No exceptions. Use:
 
 - `Result<T>` (`std::expected<T, Error>`) for fallible functions that return a value
-- `OError` (`std::optional<Error>`) for fallible functions with no return value
+- `Opt<Error>` (`std::optional<Error>`) for fallible functions with no return value
 - `log::panic(...)` for unrecoverable states (aborts)
 - `log::expect(cond, ...)` for assertion-style checks
 
 ```cpp
 Result<Buffer> createBuffer(...);       // may fail, returns value
-OError         uploadData(...);         // may fail, no value
+Opt<Error>         uploadData(...);         // may fail, no value
 ```
 
 ## Resource Handles

@@ -40,7 +40,7 @@ If no `--focus` is given, default to **all areas**: code quality + design + arch
 Always read [project guidelines](../../copilot-instructions.md) before reviewing. Key rules to enforce:
 
 - **Layer isolation**: Vulkan (`VkXxx`) must never appear outside `rhi/vk/`
-- **Error handling**: No exceptions; use `Result<T>` / `OError`; `log::panic` for unrecoverable states
+- **Error handling**: No exceptions; use `Result<T>` / `Opt<Error>`; `log::panic` for unrecoverable states
 - **Type aliases**: `u32`, `f32`, `Str`, etc. — never raw `uint32_t` / `float` / `std::string` in new code
 - **Naming**: `m_camelCase` members, `camelCase()` methods, `PascalCase` classes, `.hh` headers
 - **Resource safety**: GPU resources via typed handles only; no raw Vulkan handles above `rhi/vk/`
@@ -56,7 +56,7 @@ Run only the requested focus areas (or all if none specified):
 - Correct use of type aliases and naming conventions
 - No redundant copies; prefer references / handles
 - Dead code, unreachable branches, unused variables
-- Proper use of `Result<T>` / `OError` — no swallowed errors
+- Proper use of `Result<T>` / `Opt<Error>` — no swallowed errors
 - Missing `NonCopyable` / `NonMovable` on owning types
 - Keeping good modern C++ practices in mind (e.g., RAII, smart pointers if needed, no raw `new`)
 - Consistent formatting and style
@@ -85,7 +85,7 @@ Run only the requested focus areas (or all if none specified):
 - New files placed in the correct layer
 - No platform-specific code above `rhi/vk/`
 - Proper use of handles to abstract GPU resources; no raw pointers to GPU resources outside `rhi/vk/`
-- Consistent use of `Result<T>` / `OError` for error handling across layers
+- Consistent use of `Result<T>` / `Opt<Error>` for error handling across layers
 
 #### Performance (`performance`)
 
@@ -107,7 +107,7 @@ Run only the requested focus areas (or all if none specified):
 - `log::expect` for precondition checks at system boundaries
 - Proper ownership and lifecycle management of resources (no leaks, no double-frees)
 - No raw pointers to GPU resources outside `rhi/vk/`
-- Proper error handling with `Result<T>` / `OError` — no ignored errors
+- Proper error handling with `Result<T>` / `Opt<Error>` — no ignored errors
 - No unsafe casts or reinterpretations without justification
 - Proper use of `const` to prevent unintended modifications
 - Thread-safety considerations for shared resources (e.g., mutexes, atomic operations)

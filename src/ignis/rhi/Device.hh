@@ -25,7 +25,7 @@ class Device : public NonCopyable, public NonMovable {
 
     virtual Result<DeviceWorkloadReceipt> submit(
         const DeviceWorkload& workload) = 0;
-    virtual OError wait(DeviceWorkloadReceipt receipt) = 0;
+    virtual Opt<Error> wait(DeviceWorkloadReceipt receipt) = 0;
 
     virtual Result<DeviceBufferHandle> createBuffer(
         const DeviceBufferDescription& desc) = 0;

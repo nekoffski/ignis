@@ -44,7 +44,7 @@ ImageWriter& ImageWriter::format(ImageFormat format) {
     return *this;
 }
 
-OError ImageWriter::write(const RawImageData& imageData) {
+Opt<Error> ImageWriter::write(const RawImageData& imageData) {
     if (m_format == ImageFormat::none)
         if (auto err = detectFormat(); err) return err;
 
@@ -54,7 +54,7 @@ OError ImageWriter::write(const RawImageData& imageData) {
     return Error::empty();
 }
 
-OError ImageWriter::detectFormat() {
+Opt<Error> ImageWriter::detectFormat() {
     if (const auto& pathStr = m_path.str(); pathStr.ends_with(".png"))
         m_format = ImageFormat::png;
     else if (pathStr.ends_with(".jpg") || pathStr.ends_with(".jpeg"))
@@ -67,6 +67,24 @@ OError ImageWriter::detectFormat() {
         return Error{Error::Code::invalidArgument, "Unsupported image format"};
 
     return Error::empty();
+}
+
+std::vector<u8> ImageUtils::chessboard(u32 width, u32 height, u32 channels,
+                                       u32 squareSize) {
+    std::vector<u8> data(width * height * channels);
+
+    for (u32 y = 0; y < height; ++y) {
+        for (u32 x = 0; x < width; ++x) {
+            u32 squareX = x / squareSize;
+            u32 squareY = y / squareSize;
+            bool isWhite = (squareX + squareY) % 2 == 0;
+
+            u8 color = isWhite ? 255 : 0;
+            for (u32 c = 0; c < channels; ++c)
+                data[(y * width + x) * channels + c] = c == 3 ? 255 : color;
+        }
+    }
+    return data;
 }
 
 }  // namespace ignis

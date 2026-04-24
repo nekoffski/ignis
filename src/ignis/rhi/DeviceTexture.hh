@@ -61,6 +61,7 @@ enum class DeviceTextureAspect : u32 {
 
 IGNIS_BIT_ENUM(DeviceTextureUsage);
 IGNIS_BIT_ENUM(DeviceTextureAspect);
+IGNIS_BIT_ENUM(DeviceTextureFlags);
 
 struct DeviceImageDimensions {
     u32 width;
@@ -99,5 +100,14 @@ Str toString(DeviceTextureFormat format);
 Str toString(DeviceTextureTiling tiling);
 Str toString(DeviceTextureUsage usage);
 Str toString(DeviceTextureAspect aspect);
+Str toString(DeviceTextureFlags flags);
+Str toString(DeviceTextureType type);
+Str toString(DeviceTextureFilter filter);
+Str toString(DeviceTextureRepeat repeat);
+Str toString(DeviceTextureOrientation orientation);
+
+Str toString(const DeviceImageDimensions& dim);
+Str toString(const DeviceTextureMetadata& metadata);
+Str toString(const DeviceSamplerProperties& samplerProps);
 
 }  // namespace ignis

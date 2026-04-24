@@ -1,6 +1,7 @@
 #include "VKDevice.hh"
 
 #include "VKBootstrap.hh"
+#include "VKCommandDispatcher.hh"
 #include "VKQueue.hh"
 #include "ignis/core/Profiler.hh"
 
@@ -90,8 +91,15 @@ Result<DeviceWorkloadReceipt> VKDevice::submit(const DeviceWorkload& wl) {
         }
     }
 
-    auto& commandBuffer = workload->commandBuffer();
-    commandBuffer.with([&]() { commandBuffer.record(wl.commands()); });
+    auto err = workload->commandBuffer().with([&](auto handle, auto q) {
+        return VKCommandDispatcher{*this, handle, q}.dispatch(wl.commands());
+    });
+
+    if (err) {
+        log::error("Failed to record command buffer for workload submission");
+        m_pendingWorkloads.destroy(*slot);
+        return Error::unexpected(*err);
+    }
 
     auto q = m_queues.at(wl.targetQueue());
 
@@ -104,7 +112,7 @@ Result<DeviceWorkloadReceipt> VKDevice::submit(const DeviceWorkload& wl) {
     return slot.value();
 }
 
-OError VKDevice::wait(DeviceWorkloadReceipt receipt) {
+Opt<Error> VKDevice::wait(DeviceWorkloadReceipt receipt) {
     auto* workload = m_pendingWorkloads.get(receipt);
 
     if (not workload)
@@ -186,21 +194,23 @@ void VKDevice::destroyTexture(DeviceTextureHandle handle) {
     m_texturePool.destroy(handle.id);
 }
 
-// OError VKDevice::transfer(HostToBufferTransfer copy) {
-//     auto bufferWrapper = m_bufferPool.get(copy.to.id);
-//     if (not bufferWrapper)
-//         return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
+VKTexture* VKDevice::findTexture(DeviceTextureHandle handle) {
+    if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper)
+        return &textureWrapper->resource;
+    log::warn("Failed to get texture proxy: invalid texture handle: {}",
+              static_cast<u32>(handle.id));
+    return nullptr;
+}
 
-//     auto& buffer = bufferWrapper->resource;
-//     buffer.copyTo(copy.from, {0, copy.size});
-//     return Error::empty();
-// }
+VKBuffer* VKDevice::findBuffer(DeviceBufferHandle handle) {
+    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
+        return &bufferWrapper->resource;
+    log::warn("Failed to get buffer proxy: invalid buffer handle: {}",
+              static_cast<u32>(handle.id));
+    return nullptr;
+}
 
-// OError VKDevice::transfer(BufferToTextureTransfer copy) {
-//     return Error::empty();
-// }
-
-// OError VKDevice::transfer(BufferToTextureTransfer copy,
+// Opt<Error> VKDevice::transfer(BufferToTextureTransfer copy,
 //                           DeviceWorkload& workload) {
 //     // auto bufferWrapper = m_bufferPool.get(copy.from.id);
 //     // if (not bufferWrapper)
@@ -219,26 +229,6 @@ void VKDevice::destroyTexture(DeviceTextureHandle handle) {
 //     // if (not workload)
 
 //     // texture.copyFrom(buffer, *workload.);
-
-//     return Error::empty();
-// }
-
-// OError VKDevice::transfer(TextureToBufferTransfer copy,
-//                           DeviceWorkload& workload) {
-//     return Error::empty();
-// }
-
-// OError VKDevice::transfer(TextureToBufferTransfer copy) {
-//     return Error::empty();
-// }
-
-// OError VKDevice::transfer(BufferToHostTransfer copy) {
-//     auto bufferWrapper = m_bufferPool.get(copy.from.id);
-//     if (not bufferWrapper)
-//         return Error{Error::Code::resourceMissing, "Invalid buffer handle"};
-
-//     auto& buffer = bufferWrapper->resource;
-//     buffer.copyFrom(copy.to, {0, copy.size});
 
 //     return Error::empty();
 // }

@@ -15,6 +15,7 @@ class Error {
         invalidArgument = 3,
         resourceMissing = 4,
         ioError = 5,
+        deviceQueueMismatch = 6,
     };
 
     explicit Error(Code code,
@@ -26,6 +27,8 @@ class Error {
     static std::unexpected<Error> unexpected(
         Code code, const std::string& message = "No details provided");
 
+    static std::unexpected<Error> unexpected(const Error& error);
+
     static std::optional<Error> empty();
 
    private:
@@ -35,7 +38,5 @@ class Error {
 
 template <typename T>
 using Result = std::expected<T, Error>;
-
-using OError = std::optional<Error>;
 
 }  // namespace ignis

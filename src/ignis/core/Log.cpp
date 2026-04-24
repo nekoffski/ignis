@@ -58,7 +58,7 @@ void setLogLevel(Level level) {
     }
 }
 
-void expect(const OError& e) {
+void expect(const Opt<Error>& e) {
     if (e.has_value()) [[unlikely]] {
         log::panic("Unexpected error ({}): {}", fmt::underlying(e->code()),
                    e->message());

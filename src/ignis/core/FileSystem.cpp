@@ -17,7 +17,7 @@ File::File(const Path& path) : m_path(path) {}
 
 const Path& File::path() const { return m_path; }
 
-OError File::append(const std::string& content) {
+Opt<Error> File::append(const std::string& content) {
     std::ofstream file(m_path.str(), std::ios::app);
     if (!file.is_open())
         return Error{Error::Code::noError, "Failed to open file for appending"};
@@ -25,7 +25,7 @@ OError File::append(const std::string& content) {
     return Error::empty();
 }
 
-OError File::write(const std::string& content) {
+Opt<Error> File::write(const std::string& content) {
     std::ofstream file(m_path.str(), std::ios::trunc);
     if (!file.is_open())
         return Error{Error::Code::noError, "Failed to open file for writing"};
@@ -56,7 +56,7 @@ Result<std::vector<std::string>> File::readLines() const {
     return lines;
 }
 
-OError File::remove() {
+Opt<Error> File::remove() {
     std::error_code ec;
     fs::remove(m_path.str(), ec);
     if (ec) return Error{Error::Code::noError, "Failed to remove file"};

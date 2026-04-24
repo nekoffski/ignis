@@ -31,7 +31,7 @@ class Renderer : public NonCopyable, public NonMovable {
         return {};
     }
 
-    [[nodiscard]] OError wait(const RenderFrame& frame) {
+    [[nodiscard]] Opt<Error> wait(const RenderFrame& frame) {
         return Error::empty();
     }
 

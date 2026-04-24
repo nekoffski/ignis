@@ -65,4 +65,85 @@ Str toString(DeviceTextureAspect aspect) {
     return result;
 }
 
+Str toString(DeviceTextureFlags flags) {
+    Str result;
+    if (flags == DeviceTextureFlags::none) return "none";
+    if (checkFlag(flags, DeviceTextureFlags::writable)) result += "writable|";
+    if (checkFlag(flags, DeviceTextureFlags::transparent))
+        result += "transparent|";
+    if (!result.empty()) result.pop_back();
+    return result;
+}
+
+Str toString(DeviceTextureType type) {
+    switch (type) {
+        case DeviceTextureType::flat:
+            return "flat";
+        case DeviceTextureType::cubemap:
+            return "cubemap";
+        default:
+            return fmt::format("Unknown({})", fmt::underlying(type));
+    }
+}
+
+Str toString(DeviceTextureFilter filter) {
+    switch (filter) {
+        case DeviceTextureFilter::nearest:
+            return "nearest";
+        case DeviceTextureFilter::linear:
+            return "linear";
+        default:
+            return fmt::format("Unknown({})", fmt::underlying(filter));
+    }
+}
+
+Str toString(DeviceTextureRepeat repeat) {
+    switch (repeat) {
+        case DeviceTextureRepeat::repeat:
+            return "repeat";
+        case DeviceTextureRepeat::mirroredRepeat:
+            return "mirroredRepeat";
+        case DeviceTextureRepeat::clampToEdge:
+            return "clampToEdge";
+        case DeviceTextureRepeat::clampToBorder:
+            return "clampToBorder";
+        default:
+            return fmt::format("Unknown({})", fmt::underlying(repeat));
+    }
+}
+
+Str toString(DeviceTextureOrientation orientation) {
+    switch (orientation) {
+        case DeviceTextureOrientation::normal:
+            return "normal";
+        case DeviceTextureOrientation::flipped:
+            return "flipped";
+        default:
+            return fmt::format("Unknown({})", fmt::underlying(orientation));
+    }
+}
+
+Str toString(const DeviceImageDimensions& dim) {
+    return fmt::format("{}x{}x{}", dim.width, dim.height, dim.channels);
+}
+
+Str toString(const DeviceTextureMetadata& metadata) {
+    return fmt::format(
+        "flags: {}, type: {}, format: {}, tiling: {}, usage: {}, aspect: {}, "
+        "mipLevels: {}, arrayLayers: {}",
+        toString(metadata.flags), toString(metadata.type),
+        toString(metadata.format), toString(metadata.tiling),
+        toString(metadata.usage), toString(metadata.aspect), metadata.mipLevels,
+        metadata.arrayLayers);
+}
+
+Str toString(const DeviceSamplerProperties& samplerProps) {
+    return fmt::format(
+        "minifyFilter: {}, magnifyFilter: {}, uRepeat: {}, vRepeat: {}, "
+        "wRepeat: {}",
+        toString(samplerProps.minifyFilter),
+        toString(samplerProps.magnifyFilter), toString(samplerProps.uRepeat),
+        toString(samplerProps.vRepeat), toString(samplerProps.wRepeat));
+}
+
 }  // namespace ignis

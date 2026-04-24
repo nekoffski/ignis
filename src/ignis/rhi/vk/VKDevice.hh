@@ -35,7 +35,7 @@ class VKDevice : public Device {
 
     Result<DeviceWorkloadReceipt> submit(
         const DeviceWorkload& workload) override;
-    OError wait(DeviceWorkloadReceipt receipt) override;
+    Opt<Error> wait(DeviceWorkloadReceipt receipt) override;
 
     Result<DeviceBufferHandle> createBuffer(
         const DeviceBufferDescription& desc) override;
@@ -53,6 +53,9 @@ class VKDevice : public Device {
 
     VkQueue queue(DeviceQueue type) const;
     u32 queueIndex(DeviceQueue type) const;
+
+    VKTexture* findTexture(DeviceTextureHandle handle);
+    VKBuffer* findBuffer(DeviceBufferHandle handle);
 
    private:
     DeviceBufferProxy::Impl* proxy(DeviceBufferHandle handle) override;

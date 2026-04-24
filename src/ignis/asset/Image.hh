@@ -29,13 +29,17 @@ class ImageWriter : public NonCopyable, public NonMovable {
     explicit ImageWriter(const Path& path);
     ImageWriter& format(ImageFormat format);
 
-    OError write(const RawImageData& imageData);
+    Opt<Error> write(const RawImageData& imageData);
 
    private:
     Path m_path;
     ImageFormat m_format{ImageFormat::none};
 
-    OError detectFormat();
+    Opt<Error> detectFormat();
+};
+
+struct ImageUtils {
+    static std::vector<u8> chessboard(u32 width, u32 height, u32 channels, u32 squareSize);
 };
 
 }  // namespace ignis

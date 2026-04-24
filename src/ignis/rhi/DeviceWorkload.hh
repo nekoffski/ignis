@@ -18,7 +18,7 @@ class DeviceWorkload : public NonCopyable, public NonMovable {
     explicit DeviceWorkload(DeviceQueue targetQueue);
 
     template <CommandConcept Command>
-    void addCommand(const Command& command) {
+    void enqueue(const Command& command) {
         log::expect(
             command.targetQueue() == m_targetQueue,
             "Command target queue does not match workload target queue");

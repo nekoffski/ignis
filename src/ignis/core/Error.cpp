@@ -14,6 +14,10 @@ std::unexpected<Error> Error::unexpected(Code code,
     return std::unexpected{Error{code, message}};
 }
 
+std::unexpected<Error> Error::unexpected(const Error& error) {
+    return std::unexpected{error};
+}
+
 std::optional<Error> Error::empty() { return {}; }
 
 }  // namespace ignis

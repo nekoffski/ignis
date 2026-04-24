@@ -9,20 +9,38 @@ namespace ignis {
 VKTexture::VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
                      const DeviceTextureMetadata& metadata,
                      const DeviceSamplerProperties& samplerProps)
-    : m_device(device), m_ownedBySwapchain(false) {
+    : m_device(device),
+      m_ownedBySwapchain(false),
+      m_dim(dim),
+      m_metadata(metadata),
+      m_samplerProps(samplerProps) {
     createImage(dim, metadata);
     bindMemory();
     createView(metadata);
     createSampler(samplerProps);
+
+    log::debug(
+        "Created texture with dimensions {}, metadata: {}, sampler "
+        "properties: {}",
+        toString(dim), toString(metadata), toString(samplerProps));
 }
 
 VKTexture::VKTexture(VKDevice& device, VkImage image,
                      const DeviceTextureMetadata& metadata,
                      const DeviceSamplerProperties& samplerProps)
-    : m_device(device), m_image(image), m_ownedBySwapchain(true) {
+    : m_device(device),
+      m_image(image),
+      m_ownedBySwapchain(true),
+      m_metadata(metadata),
+      m_samplerProps(samplerProps) {
     bindMemory();
     createView(metadata);
     createSampler(samplerProps);
+
+    log::debug(
+        "Created swapchain-owned texture with metadata: {}, sampler "
+        "properties: {}",
+        toString(metadata), toString(samplerProps));
 }
 
 VKTexture::~VKTexture() {
@@ -160,7 +178,7 @@ bool VKTexture::ownedBySwapchain() const { return m_ownedBySwapchain; }
 
 VkImageLayout& VKTexture::layout() { return m_layout; }
 
-void VKTexture::copyFrom(VKBuffer& buffer, VKCommandBuffer& cmdBuffer) {
+void VKTexture::copyFrom(VKBuffer& buffer, VkCommandBuffer cmdBuffer) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -172,11 +190,11 @@ void VKTexture::copyFrom(VKBuffer& buffer, VKCommandBuffer& cmdBuffer) {
     region.imageOffset = {0, 0, 0};
     region.imageExtent = {m_dim.width, m_dim.height, 1};
 
-    vkCmdCopyBufferToImage(cmdBuffer.handle(), buffer.handle(), m_image,
+    vkCmdCopyBufferToImage(cmdBuffer, buffer.handle(), m_image,
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 }
 
-void VKTexture::copyTo(VKBuffer& buffer, VKCommandBuffer& cmdBuffer) {
+void VKTexture::copyTo(VKBuffer& buffer, VkCommandBuffer cmdBuffer) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -188,21 +206,56 @@ void VKTexture::copyTo(VKBuffer& buffer, VKCommandBuffer& cmdBuffer) {
     region.imageOffset = {0, 0, 0};
     region.imageExtent = {m_dim.width, m_dim.height, 1};
 
-    vkCmdCopyImageToBuffer(cmdBuffer.handle(), m_image,
+    vkCmdCopyImageToBuffer(cmdBuffer, m_image,
                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                            buffer.handle(), 1, &region);
 }
 
-void VKTexture::transitionLayout(VKCommandBuffer& cmdBuffer,
-                                 const Transition& transition) {
+namespace {
+
+struct LayoutSyncInfo {
+    VkPipelineStageFlags stage;
+    VkAccessFlags access;
+};
+
+LayoutSyncInfo syncInfoForLayout(VkImageLayout layout) {
+    switch (layout) {
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+            return {VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0};
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+            return {VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    VK_ACCESS_TRANSFER_WRITE_BIT};
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+            return {VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    VK_ACCESS_TRANSFER_READ_BIT};
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+            return {VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_ACCESS_SHADER_READ_BIT};
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+            return {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT};
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+            return {VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
+        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+            return {VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0};
+        default:
+            return {VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                    VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT};
+    }
+}
+
+}  // namespace
+
+VKTexture::Transition VKTexture::transitionLayout(
+    VkCommandBuffer cmdBuffer, const Transition& transition) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.oldLayout = transition.oldLayout;
+    barrier.oldLayout = m_layout;
     barrier.newLayout = transition.newLayout;
     barrier.srcQueueFamilyIndex = m_device.queueIndex(transition.srcQueue);
     barrier.dstQueueFamilyIndex = m_device.queueIndex(transition.dstQueue);
     barrier.image = m_image;
-
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
@@ -211,9 +264,38 @@ void VKTexture::transitionLayout(VKCommandBuffer& cmdBuffer,
     barrier.srcAccessMask = transition.srcAccessMask;
     barrier.dstAccessMask = transition.dstAccessMask;
 
-    vkCmdPipelineBarrier(cmdBuffer.handle(), transition.srcStageMask,
+    vkCmdPipelineBarrier(cmdBuffer, transition.srcStageMask,
                          transition.dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
                          &barrier);
+
+    Transition reverse{
+        .newLayout = m_layout,
+        .srcStageMask = transition.dstStageMask,
+        .dstStageMask = transition.srcStageMask,
+        .srcAccessMask = transition.dstAccessMask,
+        .dstAccessMask = transition.srcAccessMask,
+        .srcQueue = transition.dstQueue,
+        .dstQueue = transition.srcQueue,
+    };
+
+    m_layout = transition.newLayout;
+    return reverse;
+}
+
+VKTexture::Transition VKTexture::transitionLayout(VkCommandBuffer cmdBuffer,
+                                                  VkImageLayout newLayout) {
+    auto src = syncInfoForLayout(m_layout);
+    auto dst = syncInfoForLayout(newLayout);
+
+    Transition transition{
+        .newLayout = newLayout,
+        .srcStageMask = src.stage,
+        .dstStageMask = dst.stage,
+        .srcAccessMask = src.access,
+        .dstAccessMask = dst.access,
+    };
+
+    return transitionLayout(cmdBuffer, transition);
 }
 
 VKTexture::VKTexture(VKTexture&& other) noexcept
@@ -223,7 +305,10 @@ VKTexture::VKTexture(VKTexture&& other) noexcept
       m_sampler(other.m_sampler),
       m_view(other.m_view),
       m_memory(other.m_memory),
-      m_layout(other.m_layout) {
+      m_layout(other.m_layout),
+      m_dim(other.m_dim),
+      m_metadata(other.m_metadata),
+      m_samplerProps(other.m_samplerProps) {
     other.m_image = VK_NULL_HANDLE;
     other.m_sampler = VK_NULL_HANDLE;
     other.m_view = VK_NULL_HANDLE;
