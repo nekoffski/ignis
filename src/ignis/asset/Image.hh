@@ -7,7 +7,7 @@
 #include "ignis/core/FileSystem.hh"
 #include "ignis/core/Math.hh"
 
-namespace ignis {
+namespace ignis::asset {
 
 enum class ImageFormat {
     none,
@@ -39,7 +39,8 @@ class ImageWriter : public NonCopyable, public NonMovable {
 };
 
 struct ImageUtils {
-    static std::vector<u8> chessboard(u32 width, u32 height, u32 channels, u32 squareSize);
+    static std::vector<u8> chessboard(u32 width, u32 height, u32 channels,
+                                      u32 squareSize);
 };
 
-}  // namespace ignis
+}  // namespace ignis::asset

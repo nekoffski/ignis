@@ -1,16 +1,16 @@
 #pragma once
 
-#include "DeviceResourceHandle.hh"
+#include "ResourceHandle.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Enum.hh"
 #include "ignis/core/Error.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-using DeviceBufferHandle = DeviceResourceHandle<DeviceResourceType::buffer>;
+using BufferHandle = ResourceHandle<ResourceType::buffer>;
 
-enum class DeviceBufferUsage : u64 {
+enum class BufferUsage : u64 {
     undefined = 0x0,
     transferSrc = 0x00000001,
     transferDst = 0x00000002,
@@ -39,7 +39,7 @@ enum class DeviceBufferUsage : u64 {
     flagBitsMaxEnum = 0x7FFFFFFF
 };
 
-enum class DeviceMemoryProperty : u64 {
+enum class MemoryProperty : u64 {
     undefined = 0x0,
     deviceLocal = 0x00000001,
     hostVisible = 0x00000002,
@@ -52,18 +52,18 @@ enum class DeviceMemoryProperty : u64 {
     rdmaCapableBitNv = 0x00000100,
 };
 
-struct DeviceBufferDescription {
+struct BufferDescription {
     u64 size;
-    DeviceBufferUsage usage;
-    DeviceMemoryProperty memoryProperty;
+    BufferUsage usage;
+    MemoryProperty memoryProperty;
     bool bindOnCreation;
 
-    static DeviceBufferDescription staging(u64 size);
+    static BufferDescription staging(u64 size);
 };
 
 class Device;
 
-class DeviceBufferProxy {
+class BufferProxy {
    public:
     class Impl : public virtual NonCopyable {
        public:
@@ -76,14 +76,14 @@ class DeviceBufferProxy {
     Opt<Error> write(const void* data, const Range& range);
     Opt<Error> read(void* data, const Range& range);
 
-    explicit DeviceBufferProxy(Device& device, DeviceBufferHandle handleDevice);
+    explicit BufferProxy(Device& device, BufferHandle handle);
 
    private:
     Device& m_device;
-    DeviceBufferHandle m_handle;
+    BufferHandle m_handle;
 };
 
-IGNIS_BIT_ENUM(DeviceBufferUsage);
-IGNIS_BIT_ENUM(DeviceMemoryProperty);
+IGNIS_BIT_ENUM(BufferUsage);
+IGNIS_BIT_ENUM(MemoryProperty);
 
-}  // namespace ignis
+}  // namespace ignis::rhi

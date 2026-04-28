@@ -1,0 +1,43 @@
+#include <fmt/format.h>
+
+#include "ignis/Engine.hh"
+#include "ignis/asset/Image.hh"
+#include "ignis/core/Config.hh"
+#include "ignis/core/Log.hh"
+#include "ignis/core/Profiler.hh"
+#include "ignis/core/Scope.hh"
+
+int main(int argc, char** argv) {
+    using namespace ignis;
+    using namespace ignis::rhi;
+    ON_SCOPE_EXIT { log::info("Cya!"); };
+
+    log::init(log::LoggerOptions{.enableColors = false});
+    log::expect(argc > 1, "No config file path provided");
+
+    IGNIS_PROFILE_REGISTER_THREAD();
+
+    // engine core
+    auto config = Config::fromFile(Path{argv[1]});
+    Engine engine{config};
+    auto& device = engine.device();
+
+    {
+        IGNIS_PROFILE_REGION("image-save");
+
+        // auto err = ImageWriter{"output.png"}.write({
+        //     .pixels = readback.data(),
+        //     .width = 128u,
+        //     .height = 128u,
+        //     .channels = 4u,
+        // });
+
+        // if (err.has_value()) {
+        //     log::info("Failed to save image: {}", err->message());
+        //     return -1;
+        // }
+    }
+
+    IGNIS_PROFILE_DUMP_SUMMARY();
+    return 0;
+}

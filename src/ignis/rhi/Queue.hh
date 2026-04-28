@@ -3,9 +3,9 @@
 #include "ignis/core/Core.hh"
 #include "ignis/core/Enum.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-enum class DeviceQueue : u8 {
+enum class Queue : u8 {
     none = 0,
     graphics = 1 << 0,
     compute = 1 << 1,
@@ -13,8 +13,8 @@ enum class DeviceQueue : u8 {
     present = 1 << 3
 };
 
-Str toString(DeviceQueue q);
+Str toString(Queue q);
 
-IGNIS_BIT_ENUM(DeviceQueue);
+IGNIS_BIT_ENUM(Queue);
 
-}  // namespace ignis
+}  // namespace ignis::rhi

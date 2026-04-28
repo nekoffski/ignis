@@ -2,9 +2,9 @@
 
 #include "VKDevice.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-VKBuffer::VKBuffer(VKDevice& device, const DeviceBufferDescription& description)
+VKBuffer::VKBuffer(VKDevice& device, const BufferDescription& description)
     : m_device(device), m_description(description) {
     create();
 }
@@ -85,4 +85,4 @@ void VKBuffer::create() {
     if (m_description.bindOnCreation) bind();
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

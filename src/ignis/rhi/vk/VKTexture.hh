@@ -4,10 +4,10 @@
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Scope.hh"
-#include "ignis/rhi/DeviceQueue.hh"
-#include "ignis/rhi/DeviceTexture.hh"
+#include "ignis/rhi/Queue.hh"
+#include "ignis/rhi/Texture.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKDevice;
 class VKCommandBuffer;
@@ -21,17 +21,17 @@ class VKTexture : public NonCopyable {
         VkPipelineStageFlags dstStageMask;
         VkAccessFlags srcAccessMask;
         VkAccessFlags dstAccessMask;
-        DeviceQueue srcQueue{DeviceQueue::graphics};
-        DeviceQueue dstQueue{DeviceQueue::graphics};
+        Queue srcQueue{Queue::graphics};
+        Queue dstQueue{Queue::graphics};
     };
 
-    explicit VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
-                       const DeviceTextureMetadata& metadata,
-                       const DeviceSamplerProperties& samplerProps);
+    explicit VKTexture(VKDevice& device, const ImageDimensions& dim,
+                       const TextureMetadata& metadata,
+                       const SamplerProperties& samplerProps);
 
     explicit VKTexture(VKDevice& device, VkImage image,
-                       const DeviceTextureMetadata& metadata,
-                       const DeviceSamplerProperties& samplerProps);
+                       const TextureMetadata& metadata,
+                       const SamplerProperties& samplerProps);
 
     ~VKTexture();
 
@@ -72,10 +72,10 @@ class VKTexture : public NonCopyable {
 
    private:
     void bindMemory();
-    void createImage(const DeviceImageDimensions& dim,
-                     const DeviceTextureMetadata& metadata);
-    void createView(const DeviceTextureMetadata& metadata);
-    void createSampler(const DeviceSamplerProperties& samplerProps);
+    void createImage(const ImageDimensions& dim,
+                     const TextureMetadata& metadata);
+    void createView(const TextureMetadata& metadata);
+    void createSampler(const SamplerProperties& samplerProps);
 
     bool m_ownedBySwapchain;
 
@@ -86,9 +86,9 @@ class VKTexture : public NonCopyable {
     VkDeviceMemory m_memory{VK_NULL_HANDLE};
     VkImageLayout m_layout{VK_IMAGE_LAYOUT_UNDEFINED};
 
-    DeviceImageDimensions m_dim;
-    DeviceTextureMetadata m_metadata;
-    DeviceSamplerProperties m_samplerProps;
+    ImageDimensions m_dim;
+    TextureMetadata m_metadata;
+    SamplerProperties m_samplerProps;
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

@@ -2,7 +2,7 @@
 
 #include "VKDevice.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 #define CHECK_QUEUE(cmd, expectedQueue)                                   \
     if (cmd.targetQueue() != expectedQueue) {                             \
@@ -13,15 +13,14 @@ namespace ignis {
 
 VKCommandDispatcher::VKCommandDispatcher(VKDevice& device,
                                          VkCommandBuffer cmdBuffer,
-                                         DeviceQueue targetQueue)
+                                         Queue targetQueue)
     : m_visitor(device, cmdBuffer, targetQueue) {}
 
-Opt<Error> VKCommandDispatcher::dispatch(const DeviceCommand& command) {
-    return dispatch(std::span<const DeviceCommand>{&command, 1});
+Opt<Error> VKCommandDispatcher::dispatch(const Command& command) {
+    return dispatch(std::span<const Command>{&command, 1});
 }
 
-Opt<Error> VKCommandDispatcher::dispatch(
-    std::span<const DeviceCommand> commands) {
+Opt<Error> VKCommandDispatcher::dispatch(std::span<const Command> commands) {
     u64 totalCommands = commands.size();
     u64 dispatchedCommands = 0;
 
@@ -41,7 +40,7 @@ Opt<Error> VKCommandDispatcher::dispatch(
 
 VKCommandDispatcher::Visitor::Visitor(VKDevice& device,
                                       VkCommandBuffer cmdBuffer,
-                                      DeviceQueue targetQueue)
+                                      Queue targetQueue)
     : m_device(device), m_cmdBuffer(cmdBuffer), m_targetQueue(targetQueue) {}
 
 Opt<Error> VKCommandDispatcher::Visitor::operator()(
@@ -87,4 +86,4 @@ Opt<Error> VKCommandDispatcher::Visitor::operator()(
     return Error::empty();
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

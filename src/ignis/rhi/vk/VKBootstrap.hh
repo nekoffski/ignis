@@ -6,15 +6,15 @@
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Config.hh"
 #include "ignis/core/Core.hh"
-#include "ignis/rhi/DeviceQueue.hh"
+#include "ignis/rhi/Queue.hh"
 #include "ignis/rhi/Window.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKBootstrap : public NonCopyable, public NonMovable {
    public:
     struct DeviceRequirements {
-        DeviceQueue queues;
+        Queue queues;
         bool supportSurface;
         bool isDiscrete;
         std::vector<const char*> extensions;
@@ -56,4 +56,4 @@ class VKBootstrap : public NonCopyable, public NonMovable {
     VKQueueSet m_queues;
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

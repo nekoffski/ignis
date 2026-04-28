@@ -3,7 +3,7 @@
 #include "ignis/core/Log.hh"
 #include "vk/VKDevice.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 std::unique_ptr<Device> Device::create(const Config& config, Window* window) {
     const auto backend = config.renderer().backend;
@@ -16,4 +16,4 @@ std::unique_ptr<Device> Device::create(const Config& config, Window* window) {
     }
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

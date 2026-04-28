@@ -5,7 +5,7 @@
 #include "VKQueue.hh"
 #include "ignis/core/Profiler.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 static constexpr u32 maxPendingWorkloads = 16u;
 
@@ -65,7 +65,7 @@ VKDevice::VKDevice(const Config& config, Window* window)
     m_queues = bootstrap.queues();
 }
 
-Result<DeviceWorkloadReceipt> VKDevice::submit(const DeviceWorkload& wl) {
+Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
     log::debug("Submitting workload with {} commands to queue '{}'",
                wl.commands().size(), toString(wl.targetQueue()));
     log::expect(m_queues.contains(wl.targetQueue()),
@@ -112,7 +112,7 @@ Result<DeviceWorkloadReceipt> VKDevice::submit(const DeviceWorkload& wl) {
     return slot.value();
 }
 
-Opt<Error> VKDevice::wait(DeviceWorkloadReceipt receipt) {
+Opt<Error> VKDevice::wait(WorkloadReceipt receipt) {
     auto* workload = m_pendingWorkloads.get(receipt);
 
     if (not workload)
@@ -144,15 +144,14 @@ VKDeviceInfo VKDevice::deviceInfo() const { return m_deviceInfo; }
 
 const VKCommandPools& VKDevice::commandPools() const { return *m_commandPools; }
 
-Result<DeviceBufferHandle> VKDevice::createBuffer(
-    const DeviceBufferDescription& desc) {
+Result<BufferHandle> VKDevice::createBuffer(const BufferDescription& desc) {
     auto id = m_bufferPool.create([&](u32 slot) {
-        return DeviceResourceWrapper{
+        return ResourceWrapper{
             VKBuffer{
                 *this,
                 desc,
             },
-            DeviceBufferHandle{slot},
+            BufferHandle{slot},
         };
     });
 
@@ -164,21 +163,21 @@ Result<DeviceBufferHandle> VKDevice::createBuffer(
     return m_bufferPool.get(*id)->handle;
 }
 
-void VKDevice::destroyBuffer(DeviceBufferHandle handle) {
+void VKDevice::destroyBuffer(BufferHandle handle) {
     m_bufferPool.destroy(handle.id);
 }
 
-Result<DeviceTextureHandle> VKDevice::createTexture(
-    const DeviceTextureDefinition& definition) {
+Result<TextureHandle> VKDevice::createTexture(
+    const TextureDefinition& definition) {
     auto id = m_texturePool.create([&](u32 slot) {
-        return DeviceResourceWrapper{
+        return ResourceWrapper{
             VKTexture{
                 *this,
                 definition.image,
                 definition.metadata,
                 definition.sampler,
             },
-            DeviceTextureHandle{slot},
+            TextureHandle{slot},
         };
     });
 
@@ -190,11 +189,11 @@ Result<DeviceTextureHandle> VKDevice::createTexture(
     return m_texturePool.get(*id)->handle;
 }
 
-void VKDevice::destroyTexture(DeviceTextureHandle handle) {
+void VKDevice::destroyTexture(TextureHandle handle) {
     m_texturePool.destroy(handle.id);
 }
 
-VKTexture* VKDevice::findTexture(DeviceTextureHandle handle) {
+VKTexture* VKDevice::findTexture(TextureHandle handle) {
     if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper)
         return &textureWrapper->resource;
     log::warn("Failed to get texture proxy: invalid texture handle: {}",
@@ -202,7 +201,7 @@ VKTexture* VKDevice::findTexture(DeviceTextureHandle handle) {
     return nullptr;
 }
 
-VKBuffer* VKDevice::findBuffer(DeviceBufferHandle handle) {
+VKBuffer* VKDevice::findBuffer(BufferHandle handle) {
     if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
         return &bufferWrapper->resource;
     log::warn("Failed to get buffer proxy: invalid buffer handle: {}",
@@ -211,7 +210,7 @@ VKBuffer* VKDevice::findBuffer(DeviceBufferHandle handle) {
 }
 
 // Opt<Error> VKDevice::transfer(BufferToTextureTransfer copy,
-//                           DeviceWorkload& workload) {
+//                           Workload& workload) {
 //     // auto bufferWrapper = m_bufferPool.get(copy.from.id);
 //     // if (not bufferWrapper)
 //     //     return Error{Error::Code::resourceMissing, "Invalid buffer
@@ -234,7 +233,7 @@ VKBuffer* VKDevice::findBuffer(DeviceBufferHandle handle) {
 // }
 
 Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
-                                   DeviceMemoryProperty memoryProperty) {
+                                   MemoryProperty memoryProperty) {
     auto vkMemoryProperty = toVk(memoryProperty);
     const auto& props = m_deviceInfo.memoryProperties;
     for (u32 i = 0; i < props.memoryTypeCount; ++i) {
@@ -248,27 +247,25 @@ Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
     return {};
 }
 
-bool VKDevice::supportsFormat(DeviceTextureFormat format,
-                              DeviceTextureTiling tiling,
-                              DeviceTextureUsage usage) {
+bool VKDevice::supportsFormat(TextureFormat format, TextureTiling tiling,
+                              TextureUsage usage) {
     static constexpr struct {
-        DeviceTextureUsage usage;
+        TextureUsage usage;
         VkFormatFeatureFlags feature;
     } usageToFeature[] = {
-        {DeviceTextureUsage::transferSrc, VK_FORMAT_FEATURE_TRANSFER_SRC_BIT},
-        {DeviceTextureUsage::transferDest, VK_FORMAT_FEATURE_TRANSFER_DST_BIT},
-        {DeviceTextureUsage::sampled, VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT},
-        {DeviceTextureUsage::storage, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT},
-        {DeviceTextureUsage::colorAttachment,
-         VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT},
-        {DeviceTextureUsage::depthStencilAttachment,
+        {TextureUsage::transferSrc, VK_FORMAT_FEATURE_TRANSFER_SRC_BIT},
+        {TextureUsage::transferDest, VK_FORMAT_FEATURE_TRANSFER_DST_BIT},
+        {TextureUsage::sampled, VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT},
+        {TextureUsage::storage, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT},
+        {TextureUsage::colorAttachment, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT},
+        {TextureUsage::depthStencilAttachment,
          VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT},
     };
 
     VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(m_physicalDevice, toVk(format), &props);
 
-    const VkFormatFeatureFlags available = tiling == DeviceTextureTiling::linear
+    const VkFormatFeatureFlags available = tiling == TextureTiling::linear
                                                ? props.linearTilingFeatures
                                                : props.optimalTilingFeatures;
 
@@ -277,22 +274,22 @@ bool VKDevice::supportsFormat(DeviceTextureFormat format,
     return true;
 }
 
-VkQueue VKDevice::queue(DeviceQueue type) const {
+VkQueue VKDevice::queue(Queue type) const {
     log::expect(m_queues.contains(type), "Requested queue type is not valid");
     return m_queues.at(type);
 }
 
-u32 VKDevice::queueIndex(DeviceQueue type) const {
+u32 VKDevice::queueIndex(Queue type) const {
     log::expect(m_deviceInfo.queueIndices.contains(type),
                 "Requested queue type is not valid");
     return m_deviceInfo.queueIndices.at(type);
 }
 
-DeviceBufferProxy::Impl* VKDevice::proxy(DeviceBufferHandle handle) {
+BufferProxy::Impl* VKDevice::proxy(BufferHandle handle) {
     if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
         return &bufferWrapper->resource;
     log::error("Failed to get buffer proxy: invalid buffer handle");
     return nullptr;
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

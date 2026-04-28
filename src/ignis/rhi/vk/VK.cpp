@@ -1,26 +1,26 @@
 #include "VK.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-VkCommandBufferUsageFlags toVk(DeviceBufferUsage usage) {
+VkCommandBufferUsageFlags toVk(BufferUsage usage) {
     return static_cast<VkCommandBufferUsageFlags>(usage);
 }
 
-VkMemoryPropertyFlags toVk(DeviceMemoryProperty memoryProperty) {
+VkMemoryPropertyFlags toVk(MemoryProperty memoryProperty) {
     return static_cast<VkMemoryPropertyFlags>(memoryProperty);
 }
 
-VkFormat toVk(DeviceTextureFormat format) {
+VkFormat toVk(TextureFormat format) {
     switch (format) {
-        case DeviceTextureFormat::undefined:
+        case TextureFormat::undefined:
             return VK_FORMAT_UNDEFINED;
-        case DeviceTextureFormat::r8unorm:
+        case TextureFormat::r8unorm:
             return VK_FORMAT_R8_UNORM;
-        case DeviceTextureFormat::r8g8unorm:
+        case TextureFormat::r8g8unorm:
             return VK_FORMAT_R8G8_UNORM;
-        case DeviceTextureFormat::r8g8b8unorm:
+        case TextureFormat::r8g8b8unorm:
             return VK_FORMAT_R8G8B8_UNORM;
-        case DeviceTextureFormat::r8g8b8a8unorm:
+        case TextureFormat::r8g8b8a8unorm:
             return VK_FORMAT_R8G8B8A8_UNORM;
         default:
             log::error("Unsupported texture format: {}",
@@ -29,11 +29,11 @@ VkFormat toVk(DeviceTextureFormat format) {
     }
 }
 
-VkImageTiling toVk(DeviceTextureTiling tiling) {
+VkImageTiling toVk(TextureTiling tiling) {
     switch (tiling) {
-        case DeviceTextureTiling::optimal:
+        case TextureTiling::optimal:
             return VK_IMAGE_TILING_OPTIMAL;
-        case DeviceTextureTiling::linear:
+        case TextureTiling::linear:
             return VK_IMAGE_TILING_LINEAR;
         default:
             log::error("Unsupported texture tiling: {}",
@@ -42,19 +42,17 @@ VkImageTiling toVk(DeviceTextureTiling tiling) {
     }
 }
 
-VkImageUsageFlags toVk(DeviceTextureUsage usage) {
+VkImageUsageFlags toVk(TextureUsage usage) {
     return static_cast<VkImageUsageFlags>(usage);
 }
 
-VkImageAspectFlags toVk(DeviceTextureAspect aspect) {
+VkImageAspectFlags toVk(TextureAspect aspect) {
     return static_cast<VkImageAspectFlags>(aspect);
 }
 
-VkFilter toVk(DeviceTextureFilter filter) {
-    return static_cast<VkFilter>(filter);
-}
+VkFilter toVk(TextureFilter filter) { return static_cast<VkFilter>(filter); }
 
-VkSamplerAddressMode toVk(DeviceTextureRepeat repeat) {
+VkSamplerAddressMode toVk(TextureRepeat repeat) {
     return static_cast<VkSamplerAddressMode>(repeat);
 }
 
@@ -254,4 +252,4 @@ std::string toString(VkResult result, bool extended) {
     }
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

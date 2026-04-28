@@ -7,9 +7,9 @@
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Enum.hh"
-#include "ignis/rhi/DeviceCommand.hh"
+#include "ignis/rhi/Command.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKDevice;
 
@@ -22,14 +22,14 @@ class VKCommandBuffer : public NonCopyable, public NonMovable {
         simultaneousUse = 0x00000004,
     };
 
-    explicit VKCommandBuffer(VKDevice& device, DeviceQueue targetQueue);
+    explicit VKCommandBuffer(VKDevice& device, Queue targetQueue);
     ~VKCommandBuffer();
 
     void begin(BeginFlags flags = BeginFlags::none);
     void end();
 
     template <typename Callback>
-        requires Callable<Callback, Opt<Error>(VkCommandBuffer, DeviceQueue)>
+        requires Callable<Callback, Opt<Error>(VkCommandBuffer, Queue)>
     Opt<Error> with(Callback&& fn, BeginFlags flags = BeginFlags::none) {
         begin(flags);
 
@@ -49,13 +49,13 @@ class VKCommandBuffer : public NonCopyable, public NonMovable {
 
    private:
     VKDevice& m_device;
-    DeviceQueue m_targetQueue;
+    Queue m_targetQueue;
     VkCommandBuffer m_handle{VK_NULL_HANDLE};
 };
 
 class VKWorkload : public NonCopyable {
    public:
-    explicit VKWorkload(VKDevice& device, DeviceQueue targetQueue);
+    explicit VKWorkload(VKDevice& device, Queue targetQueue);
 
     void addDependency(std::shared_ptr<VKSemaphore> semaphore);
 
@@ -73,4 +73,4 @@ class VKWorkload : public NonCopyable {
 
 IGNIS_BIT_ENUM(VKCommandBuffer::BeginFlags)
 
-}  // namespace ignis
+}  // namespace ignis::rhi

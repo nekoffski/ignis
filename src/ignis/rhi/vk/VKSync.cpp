@@ -2,7 +2,7 @@
 
 #include "VKDevice.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 namespace {
 
@@ -89,4 +89,4 @@ VKSemaphore::~VKSemaphore() {
 VkSemaphore VKSemaphore::handle() const { return m_handle; }
 VkSemaphore* VKSemaphore::handlePtr() { return &m_handle; }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

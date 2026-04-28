@@ -4,11 +4,11 @@
 #include "VKCommandBuffer.hh"
 #include "VKDevice.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-VKTexture::VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
-                     const DeviceTextureMetadata& metadata,
-                     const DeviceSamplerProperties& samplerProps)
+VKTexture::VKTexture(VKDevice& device, const ImageDimensions& dim,
+                     const TextureMetadata& metadata,
+                     const SamplerProperties& samplerProps)
     : m_device(device),
       m_ownedBySwapchain(false),
       m_dim(dim),
@@ -26,8 +26,8 @@ VKTexture::VKTexture(VKDevice& device, const DeviceImageDimensions& dim,
 }
 
 VKTexture::VKTexture(VKDevice& device, VkImage image,
-                     const DeviceTextureMetadata& metadata,
-                     const DeviceSamplerProperties& samplerProps)
+                     const TextureMetadata& metadata,
+                     const SamplerProperties& samplerProps)
     : m_device(device),
       m_image(image),
       m_ownedBySwapchain(true),
@@ -67,7 +67,7 @@ void VKTexture::bindMemory() {
                                           &memoryRequirements));
 
     auto memoryType = m_device.findMemoryIndex(
-        memoryRequirements.memoryTypeBits, DeviceMemoryProperty::deviceLocal);
+        memoryRequirements.memoryTypeBits, MemoryProperty::deviceLocal);
 
     if (not memoryType)
         log::error("Required memory type not found. VKImage not valid.");
@@ -83,8 +83,8 @@ void VKTexture::bindMemory() {
     VK_ASSERT(vkBindImageMemory(m_device.device(), m_image, m_memory, 0));
 }
 
-void VKTexture::createImage(const DeviceImageDimensions& dim,
-                            const DeviceTextureMetadata& metadata) {
+void VKTexture::createImage(const ImageDimensions& dim,
+                            const TextureMetadata& metadata) {
     log::expect(
         m_device.supportsFormat(metadata.format, metadata.tiling,
                                 metadata.usage),
@@ -108,18 +108,18 @@ void VKTexture::createImage(const DeviceImageDimensions& dim,
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (metadata.type == DeviceTextureType::cubemap)
+    if (metadata.type == TextureType::cubemap)
         imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
     VK_ASSERT(vkCreateImage(m_device.device(), &imageCreateInfo,
                             m_device.allocator(), &m_image));
 }
 
-void VKTexture::createView(const DeviceTextureMetadata& metadata) {
+void VKTexture::createView(const TextureMetadata& metadata) {
     VkImageViewCreateInfo viewCreateInfo{};
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
-    viewCreateInfo.viewType = metadata.type == DeviceTextureType::cubemap
+    viewCreateInfo.viewType = metadata.type == TextureType::cubemap
                                   ? VK_IMAGE_VIEW_TYPE_CUBE
                                   : VK_IMAGE_VIEW_TYPE_2D;
 
@@ -133,20 +133,17 @@ void VKTexture::createView(const DeviceTextureMetadata& metadata) {
                                 m_device.allocator(), &m_view));
 }
 
-void VKTexture::createSampler(const DeviceSamplerProperties& samplerProps) {
-    static std::unordered_map<DeviceTextureRepeat, VkSamplerAddressMode>
-        vkRepeat{
-            {DeviceTextureRepeat::repeat, VK_SAMPLER_ADDRESS_MODE_REPEAT},
-            {DeviceTextureRepeat::mirroredRepeat,
-             VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT},
-            {DeviceTextureRepeat::clampToEdge,
-             VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE},
-            {DeviceTextureRepeat::clampToBorder,
-             VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER},
-        };
-    static std::unordered_map<DeviceTextureFilter, VkFilter> vkFilter{
-        {DeviceTextureFilter::nearest, VK_FILTER_NEAREST},
-        {DeviceTextureFilter::linear, VK_FILTER_LINEAR},
+void VKTexture::createSampler(const SamplerProperties& samplerProps) {
+    static std::unordered_map<TextureRepeat, VkSamplerAddressMode> vkRepeat{
+        {TextureRepeat::repeat, VK_SAMPLER_ADDRESS_MODE_REPEAT},
+        {TextureRepeat::mirroredRepeat,
+         VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT},
+        {TextureRepeat::clampToEdge, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE},
+        {TextureRepeat::clampToBorder, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER},
+    };
+    static std::unordered_map<TextureFilter, VkFilter> vkFilter{
+        {TextureFilter::nearest, VK_FILTER_NEAREST},
+        {TextureFilter::linear, VK_FILTER_LINEAR},
     };
 
     VkSamplerCreateInfo samplerInfo{};
@@ -316,4 +313,4 @@ VKTexture::VKTexture(VKTexture&& other) noexcept
     other.m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

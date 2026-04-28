@@ -3,7 +3,7 @@
 #include "ignis/core/Profiler.hh"
 #include "vulkan/vulkan.hpp"
 
-namespace ignis {
+namespace ignis::rhi {
 
 namespace {
 
@@ -198,7 +198,7 @@ void VKBootstrap::createDebugMessenger() {
                                    &m_debugMessenger));
 }
 
-std::pair<std::unordered_map<DeviceQueue, u32>, DeviceQueue> discoverQueues(
+std::pair<std::unordered_map<Queue, u32>, Queue> discoverQueues(
     VkPhysicalDevice physicalDevice) {
     u32 queueFamilyCount = 0;
     VK_TRACE(vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice,
@@ -208,30 +208,27 @@ std::pair<std::unordered_map<DeviceQueue, u32>, DeviceQueue> discoverQueues(
     VK_TRACE(vkGetPhysicalDeviceQueueFamilyProperties(
         physicalDevice, &queueFamilyCount, queueFamilies.data()));
 
-    DeviceQueue foundQueues = DeviceQueue::none;
-    std::unordered_map<DeviceQueue, u32> indices;
+    Queue foundQueues = Queue::none;
+    std::unordered_map<Queue, u32> indices;
 
-    const auto markIndex = [&](DeviceQueue type, u32 index) {
+    const auto markIndex = [&](Queue type, u32 index) {
         indices[type] = index;
         foundQueues |= type;
     };
 
     for (u32 i = 0; i < queueFamilyCount; ++i) {
         const auto& queueFlags = queueFamilies[i].queueFlags;
-        if (queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            markIndex(DeviceQueue::graphics, i);
-        if (queueFlags & VK_QUEUE_COMPUTE_BIT)
-            markIndex(DeviceQueue::compute, i);
-        if (queueFlags & VK_QUEUE_TRANSFER_BIT)
-            markIndex(DeviceQueue::transfer, i);
+        if (queueFlags & VK_QUEUE_GRAPHICS_BIT) markIndex(Queue::graphics, i);
+        if (queueFlags & VK_QUEUE_COMPUTE_BIT) markIndex(Queue::compute, i);
+        if (queueFlags & VK_QUEUE_TRANSFER_BIT) markIndex(Queue::transfer, i);
 
         // TODO:
         // VkBool32 supportsPresent = false;
-        // log::vkExpect(vkGetPhysicalDeviceSurfaceSupportKHR(device, i,
+        // logExpect(vkGetPhysicalDeviceSurfaceSupportKHR(device, i,
         // surface,
         // &supportsPresent));
 
-        // if (supportsPresent) markIndex(DeviceQueue::present, i);
+        // if (supportsPresent) markIndex(Queue::present, i);
     }
     return {indices, foundQueues};
 }
@@ -275,11 +272,11 @@ void VKBootstrap::pickPhysicalDevice() {
     DeviceRequirements req;
     req.supportSurface = false;
     req.isDiscrete = true;
-    req.queues = DeviceQueue::graphics | DeviceQueue::transfer;
+    req.queues = Queue::graphics | Queue::transfer;
 
     if (m_window) {
         req.supportSurface = true;
-        req.queues |= DeviceQueue::present;
+        req.queues |= Queue::present;
         req.extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
@@ -302,21 +299,18 @@ void VKBootstrap::createLogicalDevice() {
     indices.reserve(maximumExpectedQueuesCount);
     auto& queueIndices = m_deviceInfo.queueIndices;
 
-    indices.push_back(queueIndices.at(DeviceQueue::graphics));
+    indices.push_back(queueIndices.at(Queue::graphics));
 
     if (m_window)
-        if (queueIndices.at(DeviceQueue::graphics) !=
-            queueIndices.at(DeviceQueue::present))
-            indices.push_back(queueIndices.at(DeviceQueue::present));
+        if (queueIndices.at(Queue::graphics) != queueIndices.at(Queue::present))
+            indices.push_back(queueIndices.at(Queue::present));
 
-    if (queueIndices.at(DeviceQueue::graphics) !=
-        queueIndices.at(DeviceQueue::transfer))
-        indices.push_back(queueIndices.at(DeviceQueue::transfer));
+    if (queueIndices.at(Queue::graphics) != queueIndices.at(Queue::transfer))
+        indices.push_back(queueIndices.at(Queue::transfer));
 
-    if (queueIndices.contains(DeviceQueue::compute) &&
-        queueIndices.at(DeviceQueue::graphics) !=
-            queueIndices.at(DeviceQueue::compute)) {
-        indices.push_back(queueIndices.at(DeviceQueue::compute));
+    if (queueIndices.contains(Queue::compute) &&
+        queueIndices.at(Queue::graphics) != queueIndices.at(Queue::compute)) {
+        indices.push_back(queueIndices.at(Queue::compute));
     }
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -363,7 +357,7 @@ void VKBootstrap::createCommandPools() {
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 
     poolCreateInfo.queueFamilyIndex =
-        m_deviceInfo.queueIndices.at(DeviceQueue::graphics);
+        m_deviceInfo.queueIndices.at(Queue::graphics);
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
@@ -372,7 +366,7 @@ void VKBootstrap::createCommandPools() {
                static_cast<void*>(m_commandPools.graphics));
 
     poolCreateInfo.queueFamilyIndex =
-        m_deviceInfo.queueIndices.at(DeviceQueue::transfer);
+        m_deviceInfo.queueIndices.at(Queue::transfer);
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
                                   &m_commandPools.transfer));
@@ -392,4 +386,4 @@ VKCommandPools& VKBootstrap::commandPools() { return m_commandPools; }
 
 VKQueueSet VKBootstrap::queues() const { return m_queues; }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

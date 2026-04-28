@@ -5,7 +5,7 @@
 #include "ignis/core/Core.hh"
 #include "ignis/core/Time.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKDevice;
 
@@ -45,4 +45,4 @@ class VKSemaphore : public NonCopyable, public NonMovable {
     VkSemaphore m_handle{VK_NULL_HANDLE};
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

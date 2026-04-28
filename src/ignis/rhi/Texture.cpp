@@ -1,133 +1,133 @@
-#include "DeviceTexture.hh"
+#include "Texture.hh"
 
 #include <fmt/format.h>
 
-namespace ignis {
+namespace ignis::rhi {
 
-Str toString(DeviceTextureFormat format) {
+Str toString(TextureFormat format) {
     switch (format) {
-        case DeviceTextureFormat::undefined:
+        case TextureFormat::undefined:
             return "undefined";
-        case DeviceTextureFormat::r8unorm:
+        case TextureFormat::r8unorm:
             return "r8unorm";
-        case DeviceTextureFormat::r8g8unorm:
+        case TextureFormat::r8g8unorm:
             return "r8g8unorm";
-        case DeviceTextureFormat::r8g8b8unorm:
+        case TextureFormat::r8g8b8unorm:
             return "r8g8b8unorm";
-        case DeviceTextureFormat::r8g8b8a8unorm:
+        case TextureFormat::r8g8b8a8unorm:
             return "r8g8b8a8unorm";
         default:
             return fmt::format("Unknown({})", fmt::underlying(format));
     }
 }
 
-Str toString(DeviceTextureTiling tiling) {
+Str toString(TextureTiling tiling) {
     switch (tiling) {
-        case DeviceTextureTiling::optimal:
+        case TextureTiling::optimal:
             return "optimal";
-        case DeviceTextureTiling::linear:
+        case TextureTiling::linear:
             return "linear";
         default:
             return fmt::format("Unknown({})", fmt::underlying(tiling));
     }
 }
 
-Str toString(DeviceTextureUsage usage) {
+Str toString(TextureUsage usage) {
     Str result;
-    if (usage == DeviceTextureUsage::none) return "none";
-    if (checkFlag(usage, DeviceTextureUsage::transferSrc))
+    if (usage == TextureUsage::none) return "none";
+    if (checkFlag(usage, TextureUsage::transferSrc))
         result += "transferSrc|";
-    if (checkFlag(usage, DeviceTextureUsage::transferDest))
+    if (checkFlag(usage, TextureUsage::transferDest))
         result += "transferDest|";
-    if (checkFlag(usage, DeviceTextureUsage::sampled)) result += "sampled|";
-    if (checkFlag(usage, DeviceTextureUsage::storage)) result += "storage|";
-    if (checkFlag(usage, DeviceTextureUsage::colorAttachment))
+    if (checkFlag(usage, TextureUsage::sampled)) result += "sampled|";
+    if (checkFlag(usage, TextureUsage::storage)) result += "storage|";
+    if (checkFlag(usage, TextureUsage::colorAttachment))
         result += "colorAttachment|";
-    if (checkFlag(usage, DeviceTextureUsage::depthStencilAttachment))
+    if (checkFlag(usage, TextureUsage::depthStencilAttachment))
         result += "depthStencilAttachment|";
-    if (checkFlag(usage, DeviceTextureUsage::transientAttachment))
+    if (checkFlag(usage, TextureUsage::transientAttachment))
         result += "transientAttachment|";
-    if (checkFlag(usage, DeviceTextureUsage::inputAttachment))
+    if (checkFlag(usage, TextureUsage::inputAttachment))
         result += "inputAttachment|";
 
     if (!result.empty()) result.pop_back();
     return result;
 }
 
-Str toString(DeviceTextureAspect aspect) {
+Str toString(TextureAspect aspect) {
     Str result;
-    if (aspect == DeviceTextureAspect::none) return "none";
-    if (checkFlag(aspect, DeviceTextureAspect::color)) result += "color|";
-    if (checkFlag(aspect, DeviceTextureAspect::depth)) result += "depth|";
-    if (checkFlag(aspect, DeviceTextureAspect::stencil)) result += "stencil|";
-    if (checkFlag(aspect, DeviceTextureAspect::metadata)) result += "metadata|";
+    if (aspect == TextureAspect::none) return "none";
+    if (checkFlag(aspect, TextureAspect::color)) result += "color|";
+    if (checkFlag(aspect, TextureAspect::depth)) result += "depth|";
+    if (checkFlag(aspect, TextureAspect::stencil)) result += "stencil|";
+    if (checkFlag(aspect, TextureAspect::metadata)) result += "metadata|";
     if (!result.empty()) result.pop_back();
     return result;
 }
 
-Str toString(DeviceTextureFlags flags) {
+Str toString(TextureFlags flags) {
     Str result;
-    if (flags == DeviceTextureFlags::none) return "none";
-    if (checkFlag(flags, DeviceTextureFlags::writable)) result += "writable|";
-    if (checkFlag(flags, DeviceTextureFlags::transparent))
+    if (flags == TextureFlags::none) return "none";
+    if (checkFlag(flags, TextureFlags::writable)) result += "writable|";
+    if (checkFlag(flags, TextureFlags::transparent))
         result += "transparent|";
     if (!result.empty()) result.pop_back();
     return result;
 }
 
-Str toString(DeviceTextureType type) {
+Str toString(TextureType type) {
     switch (type) {
-        case DeviceTextureType::flat:
+        case TextureType::flat:
             return "flat";
-        case DeviceTextureType::cubemap:
+        case TextureType::cubemap:
             return "cubemap";
         default:
             return fmt::format("Unknown({})", fmt::underlying(type));
     }
 }
 
-Str toString(DeviceTextureFilter filter) {
+Str toString(TextureFilter filter) {
     switch (filter) {
-        case DeviceTextureFilter::nearest:
+        case TextureFilter::nearest:
             return "nearest";
-        case DeviceTextureFilter::linear:
+        case TextureFilter::linear:
             return "linear";
         default:
             return fmt::format("Unknown({})", fmt::underlying(filter));
     }
 }
 
-Str toString(DeviceTextureRepeat repeat) {
+Str toString(TextureRepeat repeat) {
     switch (repeat) {
-        case DeviceTextureRepeat::repeat:
+        case TextureRepeat::repeat:
             return "repeat";
-        case DeviceTextureRepeat::mirroredRepeat:
+        case TextureRepeat::mirroredRepeat:
             return "mirroredRepeat";
-        case DeviceTextureRepeat::clampToEdge:
+        case TextureRepeat::clampToEdge:
             return "clampToEdge";
-        case DeviceTextureRepeat::clampToBorder:
+        case TextureRepeat::clampToBorder:
             return "clampToBorder";
         default:
             return fmt::format("Unknown({})", fmt::underlying(repeat));
     }
 }
 
-Str toString(DeviceTextureOrientation orientation) {
+Str toString(TextureOrientation orientation) {
     switch (orientation) {
-        case DeviceTextureOrientation::normal:
+        case TextureOrientation::normal:
             return "normal";
-        case DeviceTextureOrientation::flipped:
+        case TextureOrientation::flipped:
             return "flipped";
         default:
             return fmt::format("Unknown({})", fmt::underlying(orientation));
     }
 }
 
-Str toString(const DeviceImageDimensions& dim) {
+Str toString(const ImageDimensions& dim) {
     return fmt::format("{}x{}x{}", dim.width, dim.height, dim.channels);
 }
 
-Str toString(const DeviceTextureMetadata& metadata) {
+Str toString(const TextureMetadata& metadata) {
     return fmt::format(
         "flags: {}, type: {}, format: {}, tiling: {}, usage: {}, aspect: {}, "
         "mipLevels: {}, arrayLayers: {}",
@@ -137,7 +137,7 @@ Str toString(const DeviceTextureMetadata& metadata) {
         metadata.arrayLayers);
 }
 
-Str toString(const DeviceSamplerProperties& samplerProps) {
+Str toString(const SamplerProperties& samplerProps) {
     return fmt::format(
         "minifyFilter: {}, magnifyFilter: {}, uRepeat: {}, vRepeat: {}, "
         "wRepeat: {}",
@@ -146,4 +146,4 @@ Str toString(const DeviceSamplerProperties& samplerProps) {
         toString(samplerProps.vRepeat), toString(samplerProps.wRepeat));
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

@@ -1,6 +1,6 @@
 #include "VKQueue.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 VKQueueSubmitter::VKQueueSubmitter(VkQueue q, VKWorkload& workload)
     : m_q(q), m_workload(workload) {}
@@ -44,4 +44,4 @@ bool VKQueueSubmitter::submit() {
     return true;
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

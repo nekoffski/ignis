@@ -1,3 +1,3 @@
 #include "Window.hh"
 
-namespace ignis {}  // namespace ignis
+namespace ignis::rhi {}  // namespace ignis::rhi

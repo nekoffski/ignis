@@ -5,15 +5,15 @@
 
 #include "VK.hh"
 #include "ignis/core/Core.hh"
-#include "ignis/rhi/DeviceQueue.hh"
+#include "ignis/rhi/Queue.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 struct VKDeviceInfo {
     VkPhysicalDeviceProperties coreProperties;
     VkPhysicalDeviceMemoryProperties memoryProperties;
     VkPhysicalDeviceFeatures features;
-    std::unordered_map<DeviceQueue, u32> queueIndices;
+    std::unordered_map<Queue, u32> queueIndices;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     std::vector<VkSurfaceFormatKHR> surfaceFormats;
     std::vector<VkPresentModeKHR> presentModes;
@@ -29,4 +29,4 @@ struct VKCommandPools {
     VkCommandPool transfer{VK_NULL_HANDLE};
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

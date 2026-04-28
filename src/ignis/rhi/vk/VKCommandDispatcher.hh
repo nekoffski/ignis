@@ -5,9 +5,9 @@
 #include "VK.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Error.hh"
-#include "ignis/rhi/DeviceCommand.hh"
+#include "ignis/rhi/Command.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKDevice;
 
@@ -15,7 +15,7 @@ class VKCommandDispatcher : public NonCopyable, public NonMovable {
     class Visitor : public NonCopyable, public NonMovable {
        public:
         explicit Visitor(VKDevice& device, VkCommandBuffer cmdBuffer,
-                         DeviceQueue targetQueue);
+                         Queue targetQueue);
 
         Opt<Error> operator()(const CmdUploadBufferToTexture& cmd);
         Opt<Error> operator()(const CmdDownloadTextureToBuffer& cmd);
@@ -23,18 +23,18 @@ class VKCommandDispatcher : public NonCopyable, public NonMovable {
        private:
         VKDevice& m_device;
         VkCommandBuffer m_cmdBuffer;
-        DeviceQueue m_targetQueue;
+        Queue m_targetQueue;
     };
 
    public:
     explicit VKCommandDispatcher(VKDevice& device, VkCommandBuffer cmdBuffer,
-                                 DeviceQueue targetQueue);
+                                 Queue targetQueue);
 
-    Opt<Error> dispatch(const DeviceCommand& command);
-    Opt<Error> dispatch(std::span<const DeviceCommand> commands);
+    Opt<Error> dispatch(const Command& command);
+    Opt<Error> dispatch(std::span<const Command> commands);
 
    private:
     Visitor m_visitor;
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

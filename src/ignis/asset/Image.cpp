@@ -2,7 +2,7 @@
 
 #include <stb_image_write.h>
 
-namespace ignis {
+namespace ignis::asset {
 
 namespace {
 
@@ -87,4 +87,4 @@ std::vector<u8> ImageUtils::chessboard(u32 width, u32 height, u32 channels,
     return data;
 }
 
-}  // namespace ignis
+}  // namespace ignis::asset

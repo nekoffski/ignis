@@ -4,16 +4,15 @@
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Scope.hh"
-#include "ignis/rhi/DeviceBuffer.hh"
+#include "ignis/rhi/Buffer.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKDevice;
 
-class VKBuffer : public DeviceBufferProxy::Impl {
+class VKBuffer : public BufferProxy::Impl {
    public:
-    explicit VKBuffer(VKDevice& device,
-                      const DeviceBufferDescription& description);
+    explicit VKBuffer(VKDevice& device, const BufferDescription& description);
     ~VKBuffer();
 
     VkBuffer handle() const;
@@ -40,7 +39,7 @@ class VKBuffer : public DeviceBufferProxy::Impl {
     }
 
     VKDevice& m_device;
-    DeviceBufferDescription m_description;
+    BufferDescription m_description;
     VkBuffer m_handle{VK_NULL_HANDLE};
     VkDeviceMemory m_memory{VK_NULL_HANDLE};
     bool m_locked{false};
@@ -48,4 +47,4 @@ class VKBuffer : public DeviceBufferProxy::Impl {
     i32 m_memoryIndex{-1};
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

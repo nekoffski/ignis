@@ -9,6 +9,9 @@
 
 int main(int argc, char** argv) {
     using namespace ignis;
+    using namespace ignis::rhi;
+    using namespace ignis::asset;
+
     ON_SCOPE_EXIT { log::info("Cya!"); };
 
     log::init(log::LoggerOptions{.enableColors = false});
@@ -25,23 +28,22 @@ int main(int argc, char** argv) {
     auto pixels = ImageUtils::chessboard(128, 128, 4, 16);
     u64 size = pixels.size() * sizeof(u8);
 
-    DeviceTextureDefinition td{};
+    TextureDefinition td{};
     td.image.width = 128;
     td.image.height = 128;
     td.image.channels = 4;
-    td.metadata.format = DeviceTextureFormat::r8g8b8a8unorm;
+    td.metadata.format = TextureFormat::r8g8b8a8unorm;
 
     auto texture = device.createTexture(td);
 
     // create staging buffer
-    auto bd = DeviceBufferDescription::staging(size);
+    auto bd = BufferDescription::staging(size);
     auto writeBuffer = device.createBuffer(bd);
     auto readBuffer = device.createBuffer(bd);
 
-    DeviceBufferProxy{device, *writeBuffer}.write(
-        pixels.data(), Range{.offset = 0, .size = size});
+    BufferProxy{device, *writeBuffer}.write(pixels.data(), Range{0, size});
 
-    DeviceWorkload workload{DeviceQueue::transfer};
+    Workload workload{Queue::transfer};
 
     // buffer -> texture
     workload.enqueue(CmdUploadBufferToTexture{
@@ -71,8 +73,7 @@ int main(int argc, char** argv) {
     // read back data from buffer
     std::vector<u8> readback(size, 255u);
 
-    DeviceBufferProxy{device, *readBuffer}.read(
-        readback.data(), Range{.offset = 0, .size = size});
+    BufferProxy{device, *readBuffer}.read(readback.data(), Range{0, size});
 
     {
         IGNIS_PROFILE_REGION("image-save");

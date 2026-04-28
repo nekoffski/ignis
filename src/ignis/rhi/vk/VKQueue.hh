@@ -6,11 +6,11 @@
 #include "VKCommandBuffer.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
-#include "ignis/rhi/DeviceQueue.hh"
+#include "ignis/rhi/Queue.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-using VKQueueSet = std::unordered_map<DeviceQueue, VkQueue>;
+using VKQueueSet = std::unordered_map<Queue, VkQueue>;
 
 class VKQueueSubmitter : public NonCopyable, public NonMovable {
    public:
@@ -23,4 +23,4 @@ class VKQueueSubmitter : public NonCopyable, public NonMovable {
     VKWorkload& m_workload;
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

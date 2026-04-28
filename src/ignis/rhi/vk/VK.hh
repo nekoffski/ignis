@@ -3,10 +3,10 @@
 #include <vulkan/vulkan.h>
 
 #include "ignis/core/Log.hh"
-#include "ignis/rhi/DeviceBuffer.hh"
-#include "ignis/rhi/DeviceTexture.hh"
+#include "ignis/rhi/Buffer.hh"
+#include "ignis/rhi/Texture.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 using Allocator = const VkAllocationCallbacks*;
 
@@ -28,13 +28,13 @@ using Allocator = const VkAllocationCallbacks*;
 
 std::string toString(VkResult result, bool extended = true);
 
-VkCommandBufferUsageFlags toVk(DeviceBufferUsage usage);
-VkMemoryPropertyFlags toVk(DeviceMemoryProperty memoryProperty);
-VkFormat toVk(DeviceTextureFormat format);
-VkImageTiling toVk(DeviceTextureTiling tiling);
-VkImageUsageFlags toVk(DeviceTextureUsage usage);
-VkImageAspectFlags toVk(DeviceTextureAspect aspect);
-VkFilter toVk(DeviceTextureFilter filter);
-VkSamplerAddressMode toVk(DeviceTextureRepeat repeat);
+VkCommandBufferUsageFlags toVk(BufferUsage usage);
+VkMemoryPropertyFlags toVk(MemoryProperty memoryProperty);
+VkFormat toVk(TextureFormat format);
+VkImageTiling toVk(TextureTiling tiling);
+VkImageUsageFlags toVk(TextureUsage usage);
+VkImageAspectFlags toVk(TextureAspect aspect);
+VkFilter toVk(TextureFilter filter);
+VkSamplerAddressMode toVk(TextureRepeat repeat);
 
-}  // namespace ignis
+}  // namespace ignis::rhi

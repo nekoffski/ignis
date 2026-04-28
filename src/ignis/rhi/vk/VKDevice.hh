@@ -10,15 +10,13 @@
 #include "ignis/core/Scoped.hh"
 #include "ignis/rhi/Device.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
 class VKDevice : public Device {
-    using BufferPool =
-        Pool<DeviceResourceWrapper<VKBuffer, DeviceResourceType::buffer>>;
-    using TexturePool =
-        Pool<DeviceResourceWrapper<VKTexture, DeviceResourceType::texture>>;
+    using BufferPool = Pool<ResourceWrapper<VKBuffer, ResourceType::buffer>>;
+    using TexturePool = Pool<ResourceWrapper<VKTexture, ResourceType::texture>>;
 
-    friend class DeviceBufferProxy;
+    friend class BufferProxy;
 
    public:
     explicit VKDevice(const Config& config, Window* window);
@@ -33,32 +31,29 @@ class VKDevice : public Device {
     VKDeviceInfo deviceInfo() const;
     const VKCommandPools& commandPools() const;
 
-    Result<DeviceWorkloadReceipt> submit(
-        const DeviceWorkload& workload) override;
-    Opt<Error> wait(DeviceWorkloadReceipt receipt) override;
+    Result<WorkloadReceipt> submit(const Workload& workload) override;
+    Opt<Error> wait(WorkloadReceipt receipt) override;
 
-    Result<DeviceBufferHandle> createBuffer(
-        const DeviceBufferDescription& desc) override;
-    void destroyBuffer(DeviceBufferHandle handle) override;
+    Result<BufferHandle> createBuffer(const BufferDescription& desc) override;
+    void destroyBuffer(BufferHandle handle) override;
 
-    Result<DeviceTextureHandle> createTexture(
-        const DeviceTextureDefinition& definition) override;
-    void destroyTexture(DeviceTextureHandle handle) override;
+    Result<TextureHandle> createTexture(
+        const TextureDefinition& definition) override;
+    void destroyTexture(TextureHandle handle) override;
 
-    Opt<i32> findMemoryIndex(u32 typeFilter,
-                             DeviceMemoryProperty memoryProperty);
+    Opt<i32> findMemoryIndex(u32 typeFilter, MemoryProperty memoryProperty);
 
-    bool supportsFormat(DeviceTextureFormat format, DeviceTextureTiling tiling,
-                        DeviceTextureUsage usage);
+    bool supportsFormat(TextureFormat format, TextureTiling tiling,
+                        TextureUsage usage);
 
-    VkQueue queue(DeviceQueue type) const;
-    u32 queueIndex(DeviceQueue type) const;
+    VkQueue queue(Queue type) const;
+    u32 queueIndex(Queue type) const;
 
-    VKTexture* findTexture(DeviceTextureHandle handle);
-    VKBuffer* findBuffer(DeviceBufferHandle handle);
+    VKTexture* findTexture(TextureHandle handle);
+    VKBuffer* findBuffer(BufferHandle handle);
 
    private:
-    DeviceBufferProxy::Impl* proxy(DeviceBufferHandle handle) override;
+    BufferProxy::Impl* proxy(BufferHandle handle) override;
 
     const Config& m_cfg;
     Window* m_window;
@@ -78,4 +73,4 @@ class VKDevice : public Device {
     TexturePool m_texturePool;
 };
 
-}  // namespace ignis
+}  // namespace ignis::rhi

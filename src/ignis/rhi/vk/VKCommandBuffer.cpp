@@ -2,17 +2,16 @@
 
 #include "VKDevice.hh"
 
-namespace ignis {
+namespace ignis::rhi {
 
-VKCommandBuffer::VKCommandBuffer(VKDevice& device, DeviceQueue targetQueue)
+VKCommandBuffer::VKCommandBuffer(VKDevice& device, Queue targetQueue)
     : m_device(device), m_targetQueue(targetQueue) {
     const auto& commandPools = m_device.commandPools();
 
     VkCommandBufferAllocateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    info.commandPool = targetQueue == DeviceQueue::graphics
-                           ? commandPools.graphics
-                           : commandPools.transfer;
+    info.commandPool = targetQueue == Queue::graphics ? commandPools.graphics
+                                                      : commandPools.transfer;
     info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;  // for now good enough
     info.commandBufferCount = 1;
 
@@ -22,9 +21,8 @@ VKCommandBuffer::VKCommandBuffer(VKDevice& device, DeviceQueue targetQueue)
 VKCommandBuffer::~VKCommandBuffer() {
     if (m_handle != VK_NULL_HANDLE) {
         const auto& commandPools = m_device.commandPools();
-        auto pool = m_targetQueue == DeviceQueue::graphics
-                        ? commandPools.graphics
-                        : commandPools.transfer;
+        auto pool = m_targetQueue == Queue::graphics ? commandPools.graphics
+                                                     : commandPools.transfer;
         VK_TRACE(vkFreeCommandBuffers(m_device.device(), pool, 1, &m_handle));
     }
 }
@@ -40,7 +38,7 @@ void VKCommandBuffer::end() { VK_TRACE(vkEndCommandBuffer(m_handle)); }
 
 VkCommandBuffer VKCommandBuffer::handle() { return m_handle; }
 
-VKWorkload::VKWorkload(VKDevice& device, DeviceQueue targetQueue)
+VKWorkload::VKWorkload(VKDevice& device, Queue targetQueue)
     : m_cmdBuffer(std::make_unique<VKCommandBuffer>(device, targetQueue)),
       m_fence(std::make_shared<VKFence>(device)),
       m_semaphore(std::make_shared<VKSemaphore>(device)) {}
@@ -59,4 +57,4 @@ std::span<std::shared_ptr<VKSemaphore>> VKWorkload::waitSemaphores() {
     return m_waitSemaphores;
 }
 
-}  // namespace ignis
+}  // namespace ignis::rhi

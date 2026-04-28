@@ -1,3 +1,3 @@
 #include "RenderPass.hh"
 
-namespace ignis {}
+namespace ignis::rhi {}
