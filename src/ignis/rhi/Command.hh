@@ -6,11 +6,17 @@
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/rhi/Buffer.hh"
+#include "ignis/rhi/RenderPass.hh"
 #include "ignis/rhi/Texture.hh"
 
 namespace ignis::rhi {
 
-enum class CommandType : u8 { bufferToTextureUpload, textureToBufferDownload };
+enum class CommandType : u8 {
+    bufferToTextureUpload,
+    textureToBufferDownload,
+    beginRenderPass,
+    endRenderPass
+};
 
 template <CommandType Type, Queue TargetQueue>
 struct CommandBase {
@@ -31,8 +37,22 @@ struct CmdDownloadTextureToBuffer
     BufferHandle to;
 };
 
+struct CmdBeginRenderPass
+    : public CommandBase<CommandType::beginRenderPass, Queue::graphics> {
+    RenderPassHandle renderPass;
+    std::vector<TextureHandle> attachments;
+    Rect<f32> renderArea;
+    Vec4 clearColor;
+};
+
+struct CmdEndRenderPass
+    : public CommandBase<CommandType::endRenderPass, Queue::graphics> {
+    RenderPassHandle renderPass;
+};
+
 using Command =
-    std::variant<CmdUploadBufferToTexture, CmdDownloadTextureToBuffer>;
+    std::variant<CmdUploadBufferToTexture, CmdDownloadTextureToBuffer,
+                 CmdBeginRenderPass, CmdEndRenderPass>;
 
 template <typename T>
 concept CommandConcept = requires {

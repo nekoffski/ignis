@@ -10,7 +10,7 @@
 
 namespace ignis::rhi {
 
-enum class TextureFormat : u32 {
+enum class Format {
     undefined = 0,
     r8unorm,
     r8g8unorm,
@@ -18,24 +18,33 @@ enum class TextureFormat : u32 {
     r8g8b8a8unorm
 };
 
-using TextureHandle = ResourceHandle<ResourceType::texture>;
-
-enum class TextureType : u8 { flat, cubemap };
-enum class TextureFilter : u8 { nearest, linear };
-enum class TextureOrientation : u8 { normal, flipped };
-
-enum class TextureFlags : u8 { none = 0x0, writable = 0x1, transparent = 0x2 };
-
-enum class TextureTiling : u8 { optimal = 0x0, linear = 0x1 };
-
-enum class TextureRepeat : u8 {
-    repeat,
-    mirroredRepeat,
-    clampToEdge,
-    clampToBorder
+enum class Layout {
+    undefined = 0,
+    general,
+    colorAttachment,
+    depthStencilAttachment,
+    depthStencilReadOnly,
+    shaderReadOnly,
+    transferSrc,
+    transferDst,
+    presentSrc
 };
 
-enum class TextureUsage : u32 {
+using TextureHandle = ResourceHandle<ResourceType::texture>;
+
+enum class TextureType { flat, cubemap };
+
+enum class Filter { nearest, linear };
+
+enum class Orientation { normal, flipped };
+
+enum class TextureFlags { none = 0x0, writable = 0x1, transparent = 0x2 };
+
+enum class Tiling { optimal = 0x0, linear = 0x1 };
+
+enum class Repeat { repeat, mirroredRepeat, clampToEdge, clampToBorder };
+
+enum class TextureUsage {
     none = 0x0,
     transferSrc = 0x00000001,
     transferDest = 0x00000002,
@@ -68,8 +77,8 @@ struct ImageDimensions {
 struct TextureMetadata {
     TextureFlags flags{TextureFlags::none};
     TextureType type{TextureType::flat};
-    TextureFormat format{TextureFormat::undefined};
-    TextureTiling tiling{TextureTiling::optimal};
+    Format format{Format::undefined};
+    Tiling tiling{Tiling::optimal};
     TextureUsage usage{TextureUsage::transferSrc | TextureUsage::transferDest |
                        TextureUsage::sampled};
     TextureAspect aspect{TextureAspect::color};
@@ -78,28 +87,28 @@ struct TextureMetadata {
 };
 
 struct SamplerProperties {
-    TextureFilter minifyFilter{TextureFilter::nearest};
-    TextureFilter magnifyFilter{TextureFilter::nearest};
-    TextureRepeat uRepeat{TextureRepeat::repeat};
-    TextureRepeat vRepeat{TextureRepeat::repeat};
-    TextureRepeat wRepeat{TextureRepeat::repeat};
+    Filter minifyFilter{Filter::nearest};
+    Filter magnifyFilter{Filter::nearest};
+    Repeat uRepeat{Repeat::repeat};
+    Repeat vRepeat{Repeat::repeat};
+    Repeat wRepeat{Repeat::repeat};
 };
 
-struct TextureDefinition {
+struct TextureDescription {
     ImageDimensions image;
     TextureMetadata metadata;
     SamplerProperties sampler;
 };
 
-Str toString(TextureFormat format);
-Str toString(TextureTiling tiling);
+Str toString(Format format);
+Str toString(Tiling tiling);
 Str toString(TextureUsage usage);
 Str toString(TextureAspect aspect);
 Str toString(TextureFlags flags);
 Str toString(TextureType type);
-Str toString(TextureFilter filter);
-Str toString(TextureRepeat repeat);
-Str toString(TextureOrientation orientation);
+Str toString(Filter filter);
+Str toString(Repeat repeat);
+Str toString(Orientation orientation);
 
 Str toString(const ImageDimensions& dim);
 Str toString(const TextureMetadata& metadata);

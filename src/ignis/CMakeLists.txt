@@ -37,6 +37,7 @@ add_library(ignis SHARED
     "rhi/vk/VKCommandDispatcher.cpp"
     "rhi/vk/VKSync.cpp"
     "rhi/vk/VKTexture.cpp"
+    "rhi/vk/VKRenderPass.cpp"
 )
 
 target_include_directories(ignis

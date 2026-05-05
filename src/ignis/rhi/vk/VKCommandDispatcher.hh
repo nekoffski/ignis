@@ -19,6 +19,8 @@ class VKCommandDispatcher : public NonCopyable, public NonMovable {
 
         Opt<Error> operator()(const CmdUploadBufferToTexture& cmd);
         Opt<Error> operator()(const CmdDownloadTextureToBuffer& cmd);
+        Opt<Error> operator()(const CmdBeginRenderPass& cmd);
+        Opt<Error> operator()(const CmdEndRenderPass& cmd);
 
        private:
         VKDevice& m_device;

@@ -28,11 +28,11 @@ int main(int argc, char** argv) {
     auto pixels = ImageUtils::chessboard(128, 128, 4, 16);
     u64 size = pixels.size() * sizeof(u8);
 
-    TextureDefinition td{};
+    TextureDescription td{};
     td.image.width = 128;
     td.image.height = 128;
     td.image.channels = 4;
-    td.metadata.format = TextureFormat::r8g8b8a8unorm;
+    td.metadata.format = Format::r8g8b8a8unorm;
 
     auto texture = device.createTexture(td);
 

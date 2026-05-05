@@ -30,11 +30,14 @@ std::string toString(VkResult result, bool extended = true);
 
 VkCommandBufferUsageFlags toVk(BufferUsage usage);
 VkMemoryPropertyFlags toVk(MemoryProperty memoryProperty);
-VkFormat toVk(TextureFormat format);
-VkImageTiling toVk(TextureTiling tiling);
+VkFormat toVk(Format format);
+VkImageTiling toVk(Tiling tiling);
 VkImageUsageFlags toVk(TextureUsage usage);
 VkImageAspectFlags toVk(TextureAspect aspect);
-VkFilter toVk(TextureFilter filter);
-VkSamplerAddressMode toVk(TextureRepeat repeat);
+VkFilter toVk(Filter filter);
+VkSamplerAddressMode toVk(Repeat repeat);
+VkImageLayout toVk(Layout layout);
+
+Format fromVk(VkFormat format);
 
 }  // namespace ignis::rhi

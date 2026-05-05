@@ -14,7 +14,8 @@ VKDevice::VKDevice(const Config& config, Window* window)
       m_window(window),
       m_pendingWorkloads(maxPendingWorkloads),
       m_bufferPool(64u),
-      m_texturePool(64u) {
+      m_texturePool(64u),
+      m_renderPassPool(64u) {
     IGNIS_PROFILE_FUNCTION();
 
     VKBootstrap bootstrap{config, window};
@@ -132,6 +133,10 @@ Opt<Error> VKDevice::wait(WorkloadReceipt receipt) {
 
 bool VKDevice::headless() const { return m_window == nullptr; }
 
+Format VKDevice::depthFormat() const {
+    return fromVk(m_deviceInfo.depthFormat);
+}
+
 VkInstance VKDevice::instance() const { return *m_instance; }
 
 VkPhysicalDevice VKDevice::physicalDevice() const { return m_physicalDevice; }
@@ -168,7 +173,7 @@ void VKDevice::destroyBuffer(BufferHandle handle) {
 }
 
 Result<TextureHandle> VKDevice::createTexture(
-    const TextureDefinition& definition) {
+    const TextureDescription& definition) {
     auto id = m_texturePool.create([&](u32 slot) {
         return ResourceWrapper{
             VKTexture{
@@ -180,13 +185,35 @@ Result<TextureHandle> VKDevice::createTexture(
             TextureHandle{slot},
         };
     });
-
     if (not id) {
         return Error::unexpected(
             Error::Code::poolFull,
             "Failed to create texture: texture pool is full");
     }
     return m_texturePool.get(*id)->handle;
+}
+
+Result<RenderPassHandle> VKDevice::createRenderPass(
+    const RenderPassDescription& desc) {
+    auto id = m_renderPassPool.create([&](u32 slot) {
+        return ResourceWrapper{
+            VKRenderPass{
+                *this,
+                desc,
+            },
+            RenderPassHandle{slot},
+        };
+    });
+    if (not id) {
+        return Error::unexpected(
+            Error::Code::poolFull,
+            "Failed to create render pass: render pass pool is full");
+    }
+    return m_renderPassPool.get(*id)->handle;
+}
+
+void VKDevice::destroyRenderPass(RenderPassHandle handle) {
+    m_renderPassPool.destroy(handle.id);
 }
 
 void VKDevice::destroyTexture(TextureHandle handle) {
@@ -209,28 +236,14 @@ VKBuffer* VKDevice::findBuffer(BufferHandle handle) {
     return nullptr;
 }
 
-// Opt<Error> VKDevice::transfer(BufferToTextureTransfer copy,
-//                           Workload& workload) {
-//     // auto bufferWrapper = m_bufferPool.get(copy.from.id);
-//     // if (not bufferWrapper)
-//     //     return Error{Error::Code::resourceMissing, "Invalid buffer
-//     handle"};
-
-//     // auto textureWrapper = m_texturePool.get(copy.to.id);
-//     // if (not textureWrapper)
-//     //     return Error{Error::Code::resourceMissing, "Invalid texture
-//     handle"};
-
-//     // auto& buffer = bufferWrapper->resource;
-//     // auto& texture = textureWrapper->resource;
-
-//     // auto& workload = m_pendingWorkloads.get(workloadReceipt);
-//     // if (not workload)
-
-//     // texture.copyFrom(buffer, *workload.);
-
-//     return Error::empty();
-// }
+VKRenderPass* VKDevice::findRenderPass(RenderPassHandle handle) {
+    if (auto renderPassWrapper = m_renderPassPool.get(handle.id);
+        renderPassWrapper)
+        return &renderPassWrapper->resource;
+    log::warn("Failed to get render pass proxy: invalid render pass handle: {}",
+              static_cast<u32>(handle.id));
+    return nullptr;
+}
 
 Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
                                    MemoryProperty memoryProperty) {
@@ -247,7 +260,7 @@ Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
     return {};
 }
 
-bool VKDevice::supportsFormat(TextureFormat format, TextureTiling tiling,
+bool VKDevice::supportsFormat(Format format, Tiling tiling,
                               TextureUsage usage) {
     static constexpr struct {
         TextureUsage usage;
@@ -265,7 +278,7 @@ bool VKDevice::supportsFormat(TextureFormat format, TextureTiling tiling,
     VkFormatProperties props{};
     vkGetPhysicalDeviceFormatProperties(m_physicalDevice, toVk(format), &props);
 
-    const VkFormatFeatureFlags available = tiling == TextureTiling::linear
+    const VkFormatFeatureFlags available = tiling == Tiling::linear
                                                ? props.linearTilingFeatures
                                                : props.optimalTilingFeatures;
 

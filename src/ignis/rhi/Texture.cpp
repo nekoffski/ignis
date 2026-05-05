@@ -4,28 +4,28 @@
 
 namespace ignis::rhi {
 
-Str toString(TextureFormat format) {
+Str toString(Format format) {
     switch (format) {
-        case TextureFormat::undefined:
+        case Format::undefined:
             return "undefined";
-        case TextureFormat::r8unorm:
+        case Format::r8unorm:
             return "r8unorm";
-        case TextureFormat::r8g8unorm:
+        case Format::r8g8unorm:
             return "r8g8unorm";
-        case TextureFormat::r8g8b8unorm:
+        case Format::r8g8b8unorm:
             return "r8g8b8unorm";
-        case TextureFormat::r8g8b8a8unorm:
+        case Format::r8g8b8a8unorm:
             return "r8g8b8a8unorm";
         default:
             return fmt::format("Unknown({})", fmt::underlying(format));
     }
 }
 
-Str toString(TextureTiling tiling) {
+Str toString(Tiling tiling) {
     switch (tiling) {
-        case TextureTiling::optimal:
+        case Tiling::optimal:
             return "optimal";
-        case TextureTiling::linear:
+        case Tiling::linear:
             return "linear";
         default:
             return fmt::format("Unknown({})", fmt::underlying(tiling));
@@ -35,10 +35,8 @@ Str toString(TextureTiling tiling) {
 Str toString(TextureUsage usage) {
     Str result;
     if (usage == TextureUsage::none) return "none";
-    if (checkFlag(usage, TextureUsage::transferSrc))
-        result += "transferSrc|";
-    if (checkFlag(usage, TextureUsage::transferDest))
-        result += "transferDest|";
+    if (checkFlag(usage, TextureUsage::transferSrc)) result += "transferSrc|";
+    if (checkFlag(usage, TextureUsage::transferDest)) result += "transferDest|";
     if (checkFlag(usage, TextureUsage::sampled)) result += "sampled|";
     if (checkFlag(usage, TextureUsage::storage)) result += "storage|";
     if (checkFlag(usage, TextureUsage::colorAttachment))
@@ -69,8 +67,7 @@ Str toString(TextureFlags flags) {
     Str result;
     if (flags == TextureFlags::none) return "none";
     if (checkFlag(flags, TextureFlags::writable)) result += "writable|";
-    if (checkFlag(flags, TextureFlags::transparent))
-        result += "transparent|";
+    if (checkFlag(flags, TextureFlags::transparent)) result += "transparent|";
     if (!result.empty()) result.pop_back();
     return result;
 }
@@ -86,37 +83,37 @@ Str toString(TextureType type) {
     }
 }
 
-Str toString(TextureFilter filter) {
+Str toString(Filter filter) {
     switch (filter) {
-        case TextureFilter::nearest:
+        case Filter::nearest:
             return "nearest";
-        case TextureFilter::linear:
+        case Filter::linear:
             return "linear";
         default:
             return fmt::format("Unknown({})", fmt::underlying(filter));
     }
 }
 
-Str toString(TextureRepeat repeat) {
+Str toString(Repeat repeat) {
     switch (repeat) {
-        case TextureRepeat::repeat:
+        case Repeat::repeat:
             return "repeat";
-        case TextureRepeat::mirroredRepeat:
+        case Repeat::mirroredRepeat:
             return "mirroredRepeat";
-        case TextureRepeat::clampToEdge:
+        case Repeat::clampToEdge:
             return "clampToEdge";
-        case TextureRepeat::clampToBorder:
+        case Repeat::clampToBorder:
             return "clampToBorder";
         default:
             return fmt::format("Unknown({})", fmt::underlying(repeat));
     }
 }
 
-Str toString(TextureOrientation orientation) {
+Str toString(Orientation orientation) {
     switch (orientation) {
-        case TextureOrientation::normal:
+        case Orientation::normal:
             return "normal";
-        case TextureOrientation::flipped:
+        case Orientation::flipped:
             return "flipped";
         default:
             return fmt::format("Unknown({})", fmt::underlying(orientation));

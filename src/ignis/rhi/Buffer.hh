@@ -56,7 +56,7 @@ struct BufferDescription {
     u64 size;
     BufferUsage usage;
     MemoryProperty memoryProperty;
-    bool bindOnCreation;
+    bool bindOnCreation{true};
 
     static BufferDescription staging(u64 size);
 };

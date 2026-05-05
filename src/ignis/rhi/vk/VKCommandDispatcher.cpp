@@ -86,4 +86,49 @@ Opt<Error> VKCommandDispatcher::Visitor::operator()(
     return Error::empty();
 }
 
+Opt<Error> VKCommandDispatcher::Visitor::operator()(
+    const CmdBeginRenderPass& cmd) {
+    CHECK_QUEUE(cmd, m_targetQueue);
+
+    auto renderPass = m_device.findRenderPass(cmd.renderPass);
+    if (not renderPass)
+        return Error{Error::Code::resourceMissing, "render pass not found"};
+
+    std::vector<VkImageView> attachmentViews;
+    attachmentViews.reserve(cmd.attachments.size());
+
+    for (const auto& attachmentHandle : cmd.attachments) {
+        auto texture = m_device.findTexture(attachmentHandle);
+        if (not texture)
+            return Error{
+                Error::Code::resourceMissing,
+                fmt::format("texture not found for attachment handle {}",
+                            static_cast<u32>(attachmentHandle.id))};
+        attachmentViews.push_back(texture->view());
+    }
+
+    u64 attachmentHash = 0;
+    for (const auto& view : attachmentViews) {
+        attachmentHash ^= std::hash<VkImageView>{}(view) + 0x9e3779b9 +
+                          (attachmentHash << 6) + (attachmentHash >> 2);
+    }
+
+    renderPass->begin(m_cmdBuffer, cmd.renderArea, attachmentViews,
+                      attachmentHash);
+    return Error::empty();
+}
+
+Opt<Error> VKCommandDispatcher::Visitor::operator()(
+    const CmdEndRenderPass& cmd) {
+    CHECK_QUEUE(cmd, m_targetQueue);
+
+    auto renderPass = m_device.findRenderPass(cmd.renderPass);
+
+    if (not renderPass)
+        return Error{Error::Code::resourceMissing, "render pass not found"};
+
+    renderPass->end(m_cmdBuffer);
+    return Error::empty();
+}
+
 }  // namespace ignis::rhi

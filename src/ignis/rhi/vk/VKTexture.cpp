@@ -134,16 +134,15 @@ void VKTexture::createView(const TextureMetadata& metadata) {
 }
 
 void VKTexture::createSampler(const SamplerProperties& samplerProps) {
-    static std::unordered_map<TextureRepeat, VkSamplerAddressMode> vkRepeat{
-        {TextureRepeat::repeat, VK_SAMPLER_ADDRESS_MODE_REPEAT},
-        {TextureRepeat::mirroredRepeat,
-         VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT},
-        {TextureRepeat::clampToEdge, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE},
-        {TextureRepeat::clampToBorder, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER},
+    static std::unordered_map<Repeat, VkSamplerAddressMode> vkRepeat{
+        {Repeat::repeat, VK_SAMPLER_ADDRESS_MODE_REPEAT},
+        {Repeat::mirroredRepeat, VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT},
+        {Repeat::clampToEdge, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE},
+        {Repeat::clampToBorder, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER},
     };
-    static std::unordered_map<TextureFilter, VkFilter> vkFilter{
-        {TextureFilter::nearest, VK_FILTER_NEAREST},
-        {TextureFilter::linear, VK_FILTER_LINEAR},
+    static std::unordered_map<Filter, VkFilter> vkFilter{
+        {Filter::nearest, VK_FILTER_NEAREST},
+        {Filter::linear, VK_FILTER_LINEAR},
     };
 
     VkSamplerCreateInfo samplerInfo{};

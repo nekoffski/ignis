@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Buffer.hh"
+#include "RenderPass.hh"
 #include "Texture.hh"
 #include "Window.hh"
 #include "Workload.hh"
@@ -22,6 +23,7 @@ class Device : public NonCopyable, public NonMovable {
     virtual ~Device() = default;
 
     virtual bool headless() const = 0;
+    virtual Format depthFormat() const = 0;
 
     virtual Result<WorkloadReceipt> submit(const Workload& workload) = 0;
     virtual Opt<Error> wait(WorkloadReceipt receipt) = 0;
@@ -31,8 +33,12 @@ class Device : public NonCopyable, public NonMovable {
     virtual void destroyBuffer(BufferHandle handle) = 0;
 
     virtual Result<TextureHandle> createTexture(
-        const TextureDefinition& metadata) = 0;
+        const TextureDescription& metadata) = 0;
     virtual void destroyTexture(TextureHandle handle) = 0;
+
+    virtual Result<RenderPassHandle> createRenderPass(
+        const RenderPassDescription& desc) = 0;
+    virtual void destroyRenderPass(RenderPassHandle handle) = 0;
 
    private:
     virtual BufferProxy::Impl* proxy(BufferHandle handle) = 0;

@@ -68,6 +68,14 @@ class Wrapper {
     T m_value;
 };
 
+template <typename T>
+struct Rect {
+    T x;
+    T y;
+    T w;
+    T h;
+};
+
 using Name = Wrapper<Str>;
 
 template <typename T>

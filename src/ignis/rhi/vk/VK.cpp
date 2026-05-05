@@ -10,17 +10,17 @@ VkMemoryPropertyFlags toVk(MemoryProperty memoryProperty) {
     return static_cast<VkMemoryPropertyFlags>(memoryProperty);
 }
 
-VkFormat toVk(TextureFormat format) {
+VkFormat toVk(Format format) {
     switch (format) {
-        case TextureFormat::undefined:
+        case Format::undefined:
             return VK_FORMAT_UNDEFINED;
-        case TextureFormat::r8unorm:
+        case Format::r8unorm:
             return VK_FORMAT_R8_UNORM;
-        case TextureFormat::r8g8unorm:
+        case Format::r8g8unorm:
             return VK_FORMAT_R8G8_UNORM;
-        case TextureFormat::r8g8b8unorm:
+        case Format::r8g8b8unorm:
             return VK_FORMAT_R8G8B8_UNORM;
-        case TextureFormat::r8g8b8a8unorm:
+        case Format::r8g8b8a8unorm:
             return VK_FORMAT_R8G8B8A8_UNORM;
         default:
             log::error("Unsupported texture format: {}",
@@ -29,11 +29,11 @@ VkFormat toVk(TextureFormat format) {
     }
 }
 
-VkImageTiling toVk(TextureTiling tiling) {
+VkImageTiling toVk(Tiling tiling) {
     switch (tiling) {
-        case TextureTiling::optimal:
+        case Tiling::optimal:
             return VK_IMAGE_TILING_OPTIMAL;
-        case TextureTiling::linear:
+        case Tiling::linear:
             return VK_IMAGE_TILING_LINEAR;
         default:
             log::error("Unsupported texture tiling: {}",
@@ -50,10 +50,55 @@ VkImageAspectFlags toVk(TextureAspect aspect) {
     return static_cast<VkImageAspectFlags>(aspect);
 }
 
-VkFilter toVk(TextureFilter filter) { return static_cast<VkFilter>(filter); }
+VkFilter toVk(Filter filter) { return static_cast<VkFilter>(filter); }
 
-VkSamplerAddressMode toVk(TextureRepeat repeat) {
+VkSamplerAddressMode toVk(Repeat repeat) {
     return static_cast<VkSamplerAddressMode>(repeat);
+}
+
+VkImageLayout toVk(Layout layout) {
+    switch (layout) {
+        case Layout::undefined:
+            return VK_IMAGE_LAYOUT_UNDEFINED;
+        case Layout::general:
+            return VK_IMAGE_LAYOUT_GENERAL;
+        case Layout::colorAttachment:
+            return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        case Layout::depthStencilAttachment:
+            return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        case Layout::depthStencilReadOnly:
+            return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        case Layout::shaderReadOnly:
+            return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        case Layout::transferSrc:
+            return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        case Layout::transferDst:
+            return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        case Layout::presentSrc:
+            return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        default:
+            log::error("Unsupported image layout: {}", fmt::underlying(layout));
+            return VK_IMAGE_LAYOUT_UNDEFINED;
+    }
+}
+
+Format fromVk(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_UNDEFINED:
+            return Format::undefined;
+        case VK_FORMAT_R8_UNORM:
+            return Format::r8unorm;
+        case VK_FORMAT_R8G8_UNORM:
+            return Format::r8g8unorm;
+        case VK_FORMAT_R8G8B8_UNORM:
+            return Format::r8g8b8unorm;
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return Format::r8g8b8a8unorm;
+        default:
+            log::error("Unsupported Vulkan format: {}",
+                       fmt::underlying(format));
+            return Format::undefined;
+    }
 }
 
 std::string toString(VkResult result, bool extended) {
