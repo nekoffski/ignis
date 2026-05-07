@@ -23,10 +23,10 @@ struct CreateInfoHelper {
     VkAttachmentReference depthAttachmentReference{};
 };
 
-VKRenderPass::VKFramebuffer::VKFramebuffer(VKDevice& device,
-                                           VkRenderPass renderPass,
-                                           std::span<VkImageView> attachments,
-                                           const UVec2& size)
+VKRenderPass::VKFramebuffer::VKFramebuffer(
+    VKDevice& device, VkRenderPass renderPass,
+    std::span<VkImageView> attachments, const UVec2& size
+)
     : m_device(device) {
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -37,8 +37,9 @@ VKRenderPass::VKFramebuffer::VKFramebuffer(VKDevice& device,
     framebufferInfo.height = size.y;
     framebufferInfo.layers = 1;
 
-    VK_ASSERT(vkCreateFramebuffer(m_device.device(), &framebufferInfo,
-                                  m_device.allocator(), &m_handle));
+    VK_ASSERT(vkCreateFramebuffer(
+        m_device.device(), &framebufferInfo, m_device.allocator(), &m_handle
+    ));
 }
 
 VKRenderPass::VKFramebuffer::VKFramebuffer(VKFramebuffer&& other) noexcept
@@ -48,8 +49,9 @@ VKRenderPass::VKFramebuffer::VKFramebuffer(VKFramebuffer&& other) noexcept
 
 VKRenderPass::VKFramebuffer::~VKFramebuffer() {
     if (m_handle) {
-        VK_TRACE(vkDestroyFramebuffer(m_device.device(), m_handle,
-                                      m_device.allocator()));
+        VK_TRACE(vkDestroyFramebuffer(
+            m_device.device(), m_handle, m_device.allocator()
+        ));
     }
 }
 
@@ -62,25 +64,30 @@ VKRenderPass::VKRenderPass(VKDevice& device, const RenderPassDescription& desc)
 
 VKRenderPass::~VKRenderPass() {
     if (m_handle) {
-        VK_TRACE(vkDestroyRenderPass(m_device.device(), m_handle,
-                                     m_device.allocator()));
+        VK_TRACE(vkDestroyRenderPass(
+            m_device.device(), m_handle, m_device.allocator()
+        ));
     }
 }
 
-void VKRenderPass::begin(VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-                         std::span<VkImageView> attachments,
-                         u64 framebufferHash) {
+void VKRenderPass::begin(
+    VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
+    std::span<VkImageView> attachments, u64 framebufferHash
+) {
     VkRenderPassBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     beginInfo.renderPass = m_handle;
 
     beginInfo.framebuffer = getOrCreateFramebuffer(
-        attachments, {renderArea.w, renderArea.h}, framebufferHash);
+        attachments, {renderArea.w, renderArea.h}, framebufferHash
+    );
 
-    beginInfo.renderArea.offset = {static_cast<i32>(renderArea.x),
-                                   static_cast<i32>(renderArea.y)};
-    beginInfo.renderArea.extent = {static_cast<u32>(renderArea.w),
-                                   static_cast<u32>(renderArea.h)};
+    beginInfo.renderArea.offset = {
+        static_cast<i32>(renderArea.x), static_cast<i32>(renderArea.y)
+    };
+    beginInfo.renderArea.extent = {
+        static_cast<u32>(renderArea.w), static_cast<u32>(renderArea.h)
+    };
 
     std::vector<VkClearValue> clearValues;
     for (const auto& attachment : m_desc.colorAttachments) {
@@ -109,15 +116,16 @@ void VKRenderPass::end(VkCommandBuffer cmdBuffer) {
 }
 
 VkFramebuffer VKRenderPass::getOrCreateFramebuffer(
-    std::span<VkImageView> attachments, const UVec2& size,
-    u64 framebufferHash) {
+    std::span<VkImageView> attachments, const UVec2& size, u64 framebufferHash
+) {
     if (auto it = m_framebuffers.find(framebufferHash);
         it != m_framebuffers.end()) {
         return it->second.handle();
     }
 
     auto [it, inserted] = m_framebuffers.emplace(
-        framebufferHash, VKFramebuffer{m_device, m_handle, attachments, size});
+        framebufferHash, VKFramebuffer{m_device, m_handle, attachments, size}
+    );
     return it->second.handle();
 }
 
@@ -125,9 +133,10 @@ VkRenderPass VKRenderPass::handle() const { return m_handle; }
 
 void VKRenderPass::create() {
     CreateInfoHelper createInfoHelper{m_desc};
-    VK_ASSERT(vkCreateRenderPass(m_device.device(),
-                                 &createInfoHelper.createInfo,
-                                 m_device.allocator(), &m_handle));
+    VK_ASSERT(vkCreateRenderPass(
+        m_device.device(), &createInfoHelper.createInfo, m_device.allocator(),
+        &m_handle
+    ));
 }
 
 VKRenderPass::VKRenderPass(VKRenderPass&& other) noexcept
@@ -140,8 +149,9 @@ VKRenderPass::VKRenderPass(VKRenderPass&& other) noexcept
 VKRenderPass& VKRenderPass::operator=(VKRenderPass&& other) noexcept {
     if (this != &other) {
         if (m_handle) {
-            VK_TRACE(vkDestroyRenderPass(m_device.device(), m_handle,
-                                         m_device.allocator()));
+            VK_TRACE(vkDestroyRenderPass(
+                m_device.device(), m_handle, m_device.allocator()
+            ));
         }
         m_desc = std::move(other.m_desc);
         m_handle = other.m_handle;

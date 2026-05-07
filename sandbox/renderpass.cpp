@@ -82,8 +82,9 @@ int main(int argc, char** argv) {
         auto wlReceipt = device.submit(*workload);
 
         if (not wlReceipt) {
-            log::info("Failed to submit workload: {}",
-                      wlReceipt.error().message());
+            log::info(
+                "Failed to submit workload: {}", wlReceipt.error().message()
+            );
             return -1;
         }
 

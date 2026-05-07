@@ -1,134 +1,204 @@
 #include "VKCommandDispatcher.hh"
 
+#include "VKCommands.hh"
 #include "VKDevice.hh"
+#include "ignis/core/Functional.hh"
 
 namespace ignis::rhi {
 
 #define CHECK_QUEUE(cmd, expectedQueue)                                   \
     if (cmd.targetQueue() != expectedQueue) {                             \
-        log::error("Command {} is not meant for the target queue", #cmd); \
-        return Error{Error::Code::deviceQueueMismatch,                    \
-                     "Command is not meant for the target queue"};        \
+        log::panic("Command {} is not meant for the target queue", #cmd); \
     }
 
-VKCommandDispatcher::VKCommandDispatcher(VKDevice& device,
-                                         VkCommandBuffer cmdBuffer,
-                                         Queue targetQueue)
-    : m_visitor(device, cmdBuffer, targetQueue) {}
+VKCommandManifest& VKCommandManifest::add(RenderPassHandle handle) {
+    m_renderPasses.insert(handle);
+    return *this;
+}
+VKCommandManifest& VKCommandManifest::add(TextureHandle handle) {
+    m_textures.insert(handle);
+    return *this;
+}
+
+VKCommandManifest& VKCommandManifest::add(BufferHandle handle) {
+    m_buffers.insert(handle);
+    return *this;
+}
+
+const std::unordered_set<RenderPassHandle>& VKCommandManifest::renderPasses(
+) const {
+    return m_renderPasses;
+}
+
+const std::unordered_set<TextureHandle>& VKCommandManifest::textures() const {
+    return m_textures;
+}
+
+const std::unordered_set<BufferHandle>& VKCommandManifest::buffers() const {
+    return m_buffers;
+}
+
+VKCommandDispatcher::VKCommandDispatcher(
+    VKDevice& device, VkCommandBuffer cmdBuffer, Queue targetQueue
+)
+    : m_device(device),
+      m_cmdBuffer(cmdBuffer),
+      m_targetQueue(targetQueue),
+      m_context(cmdBuffer) {}
 
 Opt<Error> VKCommandDispatcher::dispatch(const Command& command) {
     return dispatch(std::span<const Command>{&command, 1});
 }
 
 Opt<Error> VKCommandDispatcher::dispatch(std::span<const Command> commands) {
-    u64 totalCommands = commands.size();
-    u64 dispatchedCommands = 0;
+    if (auto err = preprocessCommands(commands); err) return err;
+    return recordCommands(commands);
+}
 
-    Opt<Error> err = Error::empty();
+Opt<Error> VKCommandDispatcher::recordCommands(std::span<const Command> commands
+) {
+    for (const auto& command : commands) {
+        if (auto err = recordCommand(command); err) {
+            log::error("Failed to record command: {}", err->message());
+            return err;
+        }
+    }
+    log::debug("Successfully recorded {} commands", commands.size());
+    return Error::empty();
+}
 
-    for (const auto& cmd : commands) {
-        if (auto err = std::visit(m_visitor, cmd))
-            err = err;
-        else
-            ++dispatchedCommands;
+Opt<Error> VKCommandDispatcher::preprocessCommands(
+    std::span<const Command> commands
+) {
+    for (const auto& command : commands) preprocessCommand(command);
+
+    if (auto err = m_context.consume(m_manifest, m_device); err) {
+        log::error("Failed to preprocess commands: {}", err->message());
+        return err;
     }
 
-    log::debug("Dispatched {} out of {} commands", dispatchedCommands,
-               totalCommands);
-    return err;
-}
-
-VKCommandDispatcher::Visitor::Visitor(VKDevice& device,
-                                      VkCommandBuffer cmdBuffer,
-                                      Queue targetQueue)
-    : m_device(device), m_cmdBuffer(cmdBuffer), m_targetQueue(targetQueue) {}
-
-Opt<Error> VKCommandDispatcher::Visitor::operator()(
-    const CmdUploadBufferToTexture& cmd) {
-    CHECK_QUEUE(cmd, m_targetQueue);
-
-    auto buffer = m_device.findBuffer(cmd.from);
-
-    if (not buffer)
-        return Error{Error::Code::resourceMissing, "buffer not found"};
-
-    auto texture = m_device.findTexture(cmd.to);
-    if (not texture)
-        return Error{Error::Code::resourceMissing, "texture not found"};
-
-    texture->withLayout(m_cmdBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                        [&](VkCommandBuffer cmdBuffer) {
-                            texture->copyFrom(*buffer, cmdBuffer);
-                        });
-
+    log::debug("Successfully preprocessed {} commands", commands.size());
     return Error::empty();
 }
 
-Opt<Error> VKCommandDispatcher::Visitor::operator()(
-    const CmdDownloadTextureToBuffer& cmd) {
-    CHECK_QUEUE(cmd, m_targetQueue);
+VKCommandContext::VKCommandContext(VkCommandBuffer cmdBuffer)
+    : m_cmdBuffer(cmdBuffer) {}
 
-    auto buffer = m_device.findBuffer(cmd.to);
-
-    if (not buffer)
-        return Error{Error::Code::resourceMissing, "buffer not found"};
-
-    auto texture = m_device.findTexture(cmd.from);
-
-    if (not texture)
-        return Error{Error::Code::resourceMissing, "texture not found"};
-
-    texture->withLayout(m_cmdBuffer, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                        [&](VkCommandBuffer cmdBuffer) {
-                            texture->copyTo(*buffer, cmdBuffer);
-                        });
-
-    return Error::empty();
+VKRenderPass& VKCommandContext::resource(RenderPassHandle handle) const {
+    auto it = m_renderPasses.find(handle);
+    log::expect(
+        it != m_renderPasses.end(), "Render pass with handle {} not found",
+        static_cast<u32>(handle.id)
+    );
+    return *it->second;
 }
 
-Opt<Error> VKCommandDispatcher::Visitor::operator()(
-    const CmdBeginRenderPass& cmd) {
-    CHECK_QUEUE(cmd, m_targetQueue);
+VKTexture& VKCommandContext::resource(TextureHandle handle) const {
+    auto it = m_textures.find(handle);
+    log::expect(
+        it != m_textures.end(), "Texture with handle {} not found",
+        static_cast<u32>(handle.id)
+    );
+    return *it->second;
+}
 
-    auto renderPass = m_device.findRenderPass(cmd.renderPass);
-    if (not renderPass)
-        return Error{Error::Code::resourceMissing, "render pass not found"};
+VKBuffer& VKCommandContext::resource(BufferHandle handle) const {
+    auto it = m_buffers.find(handle);
+    log::expect(
+        it != m_buffers.end(), "Buffer with handle {} not found",
+        static_cast<u32>(handle.id)
+    );
+    return *it->second;
+}
 
-    std::vector<VkImageView> attachmentViews;
-    attachmentViews.reserve(cmd.attachments.size());
+VkCommandBuffer VKCommandContext::cmdBuffer() const { return m_cmdBuffer; }
 
-    for (const auto& attachmentHandle : cmd.attachments) {
-        auto texture = m_device.findTexture(attachmentHandle);
-        if (not texture)
+Opt<Error> VKCommandContext::consume(
+    const VKCommandManifest& manifest, VKDevice& device
+) {
+    for (const auto& renderPassHandle : manifest.renderPasses()) {
+        auto renderPass = device.findRenderPass(renderPassHandle);
+        if (not renderPass) {
             return Error{
                 Error::Code::resourceMissing,
-                fmt::format("texture not found for attachment handle {}",
-                            static_cast<u32>(attachmentHandle.id))};
-        attachmentViews.push_back(texture->view());
+                fmt::format(
+                    "Render pass with handle {} not found",
+                    static_cast<u32>(renderPassHandle.id)
+                )
+            };
+        }
+        m_renderPasses[renderPassHandle] = renderPass;
     }
 
-    u64 attachmentHash = 0;
-    for (const auto& view : attachmentViews) {
-        attachmentHash ^= std::hash<VkImageView>{}(view) + 0x9e3779b9 +
-                          (attachmentHash << 6) + (attachmentHash >> 2);
+    for (const auto& textureHandle : manifest.textures()) {
+        auto texture = device.findTexture(textureHandle);
+        if (not texture) {
+            return Error{
+                Error::Code::resourceMissing,
+                fmt::format(
+                    "Texture with handle {} not found",
+                    static_cast<u32>(textureHandle.id)
+                )
+            };
+        }
+        m_textures[textureHandle] = texture;
     }
 
-    renderPass->begin(m_cmdBuffer, cmd.renderArea, attachmentViews,
-                      attachmentHash);
+    for (const auto& bufferHandle : manifest.buffers()) {
+        auto buffer = device.findBuffer(bufferHandle);
+        if (not buffer) {
+            return Error{
+                Error::Code::resourceMissing,
+                fmt::format(
+                    "Buffer with handle {} not found",
+                    static_cast<u32>(bufferHandle.id)
+                )
+            };
+        }
+        m_buffers[bufferHandle] = buffer;
+    }
+
     return Error::empty();
 }
 
-Opt<Error> VKCommandDispatcher::Visitor::operator()(
-    const CmdEndRenderPass& cmd) {
-    CHECK_QUEUE(cmd, m_targetQueue);
+Opt<Error> VKCommandDispatcher::recordCommand(const Command& command) {
+    Overloader visitor{
+        [&](const CmdUploadBufferToTexture& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdDownloadTextureToBuffer& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdBeginRenderPass& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdEndRenderPass& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+    };
+    return std::visit(std::move(visitor), command);
+}
 
-    auto renderPass = m_device.findRenderPass(cmd.renderPass);
-
-    if (not renderPass)
-        return Error{Error::Code::resourceMissing, "render pass not found"};
-
-    renderPass->end(m_cmdBuffer);
-    return Error::empty();
+void VKCommandDispatcher::preprocessCommand(const Command& command) {
+    Overloader visitor{
+        [&](const CmdUploadBufferToTexture& cmd) -> void {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdDownloadTextureToBuffer& cmd) -> void {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdBeginRenderPass& cmd) -> void {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdEndRenderPass& cmd) -> void {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            rhi::preprocessCommand(m_manifest, cmd);
+        },
+    };
+    std::visit(std::move(visitor), command);
 }
 
 }  // namespace ignis::rhi

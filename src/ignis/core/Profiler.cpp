@@ -70,8 +70,9 @@ void ProfilerSummary::generateSummary(const ProfilerEventsPerThread& events) {
     }
 }
 
-void ProfilerSummary::processThread(SummaryGraphNode& root,
-                                    const ProfilerEvents& events) {
+void ProfilerSummary::processThread(
+    SummaryGraphNode& root, const ProfilerEvents& events
+) {
     auto* current = &root;
     for (const auto& [type, name, timestamp] : events) {
         if (type == ProfilerEvent::Type::begin) {
@@ -89,8 +90,9 @@ void ProfilerSummary::processThread(SummaryGraphNode& root,
     }
 }
 
-void ProfilerSummary::printGraph(const SummaryGraphNode& node,
-                                 const std::string& prefix) const {
+void ProfilerSummary::printGraph(
+    const SummaryGraphNode& node, const std::string& prefix
+) const {
     const auto& children = node.children;
     for (auto it = children.begin(); it != children.end(); ++it) {
         const bool isLast = std::next(it) == children.end();
@@ -101,26 +103,31 @@ void ProfilerSummary::printGraph(const SummaryGraphNode& node,
         const auto* stem = isLast ? "   " : "│  ";
 
         if (stats.count > 1) {
-            log::debug("{}{}{}  x{}  {:.3f}ms  (avg {:.3f}ms)", prefix, branch,
-                       child.name, stats.count, toMS(stats.totalTime),
-                       toMS(stats.averageTime));
+            log::debug(
+                "{}{}{}  x{}  {:.3f}ms  (avg {:.3f}ms)", prefix, branch,
+                child.name, stats.count, toMS(stats.totalTime),
+                toMS(stats.averageTime)
+            );
         } else {
-            log::debug("{}{}{}  {:.3f}ms", prefix, branch, child.name,
-                       toMS(stats.totalTime));
+            log::debug(
+                "{}{}{}  {:.3f}ms", prefix, branch, child.name,
+                toMS(stats.totalTime)
+            );
         }
         printGraph(child, prefix + stem);
     }
 }
 
 void ProfilerSummary::forEachNode(
-    const std::function<void(const CallStatistics&, u64, std::thread::id)>& fn)
-    const {
+    const std::function<void(const CallStatistics&, u64, std::thread::id)>& fn
+) const {
     for (const auto& [threadId, graph] : m_summaryGraphs)
         forEachNodeImpl(graph, "", fn, 0, threadId);
 }
 
 ProfilerSummary::CallStatistics ProfilerSummary::computeStats(
-    const SummaryGraphNode& node, const std::string& fullName) {
+    const SummaryGraphNode& node, const std::string& fullName
+) {
     const u64 total =
         std::accumulate(node.times.begin(), node.times.end(), u64{0});
     const u64 count = node.times.size();
@@ -136,7 +143,8 @@ ProfilerSummary::CallStatistics ProfilerSummary::computeStats(
 void ProfilerSummary::forEachNodeImpl(
     const SummaryGraphNode& node, const std::string& parentName,
     const std::function<void(const CallStatistics&, u64, std::thread::id)>& fn,
-    u64 indent, std::thread::id threadId) const {
+    u64 indent, std::thread::id threadId
+) const {
     const bool isRoot = node.parent == nullptr;
 
     if (not isRoot) {

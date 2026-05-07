@@ -21,8 +21,10 @@ Opt<Error> BufferProxy::write(const void* data, const Range& range) {
         impl->write(data, range);
         return Error::empty();
     }
-    return Error{Error::Code::invalidArgument,
-                 "Failed to get buffer proxy: invalid buffer handle"};
+    return Error{
+        Error::Code::invalidArgument,
+        "Failed to get buffer proxy: invalid buffer handle"
+    };
 }
 
 Opt<Error> BufferProxy::read(void* data, const Range& range) {
@@ -30,8 +32,10 @@ Opt<Error> BufferProxy::read(void* data, const Range& range) {
         impl->read(data, range);
         return Error::empty();
     }
-    return Error{Error::Code::invalidArgument,
-                 "Failed to get buffer proxy: invalid buffer handle"};
+    return Error{
+        Error::Code::invalidArgument,
+        "Failed to get buffer proxy: invalid buffer handle"
+    };
 }
 
 BufferProxy::BufferProxy(Device& device, BufferHandle handle)

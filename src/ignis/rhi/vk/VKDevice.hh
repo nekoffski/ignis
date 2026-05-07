@@ -41,12 +41,12 @@ class VKDevice : public Device {
     Result<BufferHandle> createBuffer(const BufferDescription& desc) override;
     void destroyBuffer(BufferHandle handle) override;
 
-    Result<TextureHandle> createTexture(
-        const TextureDescription& definition) override;
+    Result<TextureHandle> createTexture(const TextureDescription& definition
+    ) override;
     void destroyTexture(TextureHandle handle) override;
 
-    Result<RenderPassHandle> createRenderPass(
-        const RenderPassDescription& desc) override;
+    Result<RenderPassHandle> createRenderPass(const RenderPassDescription& desc
+    ) override;
     void destroyRenderPass(RenderPassHandle handle) override;
 
     Opt<i32> findMemoryIndex(u32 typeFilter, MemoryProperty memoryProperty);

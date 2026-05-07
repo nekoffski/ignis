@@ -57,20 +57,25 @@ class ProfilerSummary {
    private:
     void generateSummary(const ProfilerEventsPerThread& events);
     void processThread(SummaryGraphNode& node, const ProfilerEvents& events);
-    void printGraph(const SummaryGraphNode& node,
-                    const std::string& prefix = {}) const;
+    void printGraph(
+        const SummaryGraphNode& node, const std::string& prefix = {}
+    ) const;
 
-    static CallStatistics computeStats(const SummaryGraphNode& node,
-                                       const std::string& fullName);
+    static CallStatistics computeStats(
+        const SummaryGraphNode& node, const std::string& fullName
+    );
 
-    void forEachNode(const std::function<void(const CallStatistics&, u64,
-                                              std::thread::id)>& fn) const;
+    void forEachNode(
+        const std::function<void(const CallStatistics&, u64, std::thread::id)>&
+            fn
+    ) const;
 
-    void forEachNodeImpl(const SummaryGraphNode& node,
-                         const std::string& parentName,
-                         const std::function<void(const CallStatistics&, u64,
-                                                  std::thread::id)>& fn,
-                         u64 indent, std::thread::id threadId) const;
+    void forEachNodeImpl(
+        const SummaryGraphNode& node, const std::string& parentName,
+        const std::function<void(const CallStatistics&, u64, std::thread::id)>&
+            fn,
+        u64 indent, std::thread::id threadId
+    ) const;
 
     std::unordered_map<std::thread::id, SummaryGraphNode> m_summaryGraphs;
 };

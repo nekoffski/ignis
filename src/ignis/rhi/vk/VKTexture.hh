@@ -25,13 +25,15 @@ class VKTexture : public NonCopyable {
         Queue dstQueue{Queue::graphics};
     };
 
-    explicit VKTexture(VKDevice& device, const ImageDimensions& dim,
-                       const TextureMetadata& metadata,
-                       const SamplerProperties& samplerProps);
+    explicit VKTexture(
+        VKDevice& device, const ImageDimensions& dim,
+        const TextureMetadata& metadata, const SamplerProperties& samplerProps
+    );
 
-    explicit VKTexture(VKDevice& device, VkImage image,
-                       const TextureMetadata& metadata,
-                       const SamplerProperties& samplerProps);
+    explicit VKTexture(
+        VKDevice& device, VkImage image, const TextureMetadata& metadata,
+        const SamplerProperties& samplerProps
+    );
 
     ~VKTexture();
 
@@ -45,8 +47,9 @@ class VKTexture : public NonCopyable {
 
     template <typename Callback>
         requires Callable<Callback, void(VkCommandBuffer)>
-    void withLayout(VkCommandBuffer cmdBuffer, VkImageLayout newLayout,
-                    Callback&& callback) {
+    void withLayout(
+        VkCommandBuffer cmdBuffer, VkImageLayout newLayout, Callback&& callback
+    ) {
         auto fallback = transitionLayout(cmdBuffer, newLayout);
         ON_SCOPE_EXIT {
             if (fallback.newLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
@@ -59,10 +62,12 @@ class VKTexture : public NonCopyable {
         callback(cmdBuffer);
     }
 
-    Transition transitionLayout(VkCommandBuffer cmdBuffer,
-                                const Transition& transition);
-    Transition transitionLayout(VkCommandBuffer cmdBuffer,
-                                VkImageLayout newLayout);
+    Transition transitionLayout(
+        VkCommandBuffer cmdBuffer, const Transition& transition
+    );
+    Transition transitionLayout(
+        VkCommandBuffer cmdBuffer, VkImageLayout newLayout
+    );
 
     VKTexture& operator=(VKTexture&& other) noexcept = delete;
     VKTexture(VKTexture&& other) noexcept;
@@ -72,8 +77,9 @@ class VKTexture : public NonCopyable {
 
    private:
     void bindMemory();
-    void createImage(const ImageDimensions& dim,
-                     const TextureMetadata& metadata);
+    void createImage(
+        const ImageDimensions& dim, const TextureMetadata& metadata
+    );
     void createView(const TextureMetadata& metadata);
     void createSampler(const SamplerProperties& samplerProps);
 

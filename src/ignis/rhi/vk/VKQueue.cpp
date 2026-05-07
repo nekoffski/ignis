@@ -30,7 +30,8 @@ bool VKQueueSubmitter::submit() {
     submitInfo.pCommandBuffers = commandBufferHandles.data();
 
     VkPipelineStageFlags flags[1] = {
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
     submitInfo.pWaitDstStageMask = flags;
 
     const auto result =

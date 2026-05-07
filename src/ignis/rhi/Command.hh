@@ -31,8 +31,8 @@ struct CmdUploadBufferToTexture
 };
 
 struct CmdDownloadTextureToBuffer
-    : public CommandBase<CommandType::textureToBufferDownload,
-                         Queue::transfer> {
+    : public CommandBase<
+          CommandType::textureToBufferDownload, Queue::transfer> {
     TextureHandle from;
     BufferHandle to;
 };
@@ -50,9 +50,9 @@ struct CmdEndRenderPass
     RenderPassHandle renderPass;
 };
 
-using Command =
-    std::variant<CmdUploadBufferToTexture, CmdDownloadTextureToBuffer,
-                 CmdBeginRenderPass, CmdEndRenderPass>;
+using Command = std::variant<
+    CmdUploadBufferToTexture, CmdDownloadTextureToBuffer, CmdBeginRenderPass,
+    CmdEndRenderPass>;
 
 template <typename T>
 concept CommandConcept = requires {

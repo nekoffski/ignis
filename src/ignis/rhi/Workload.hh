@@ -21,7 +21,8 @@ class Workload : public NonCopyable, public NonMovable {
     void enqueue(const Cmd& command) {
         log::expect(
             command.targetQueue() == m_targetQueue,
-            "Command target queue does not match workload target queue");
+            "Command target queue does not match workload target queue"
+        );
         m_commands.push_back(command);
     }
 

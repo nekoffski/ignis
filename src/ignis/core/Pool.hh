@@ -21,8 +21,9 @@ class Pool : public NonCopyable, public NonMovable {
             m_pool[slot.value()].emplace(std::forward<Args>(args)...);
             return slot.value();
         }
-        return Error::unexpected(Error::Code::poolFull,
-                                 "No free slots available in pool");
+        return Error::unexpected(
+            Error::Code::poolFull, "No free slots available in pool"
+        );
     }
 
     template <typename Constructor>
@@ -32,8 +33,9 @@ class Pool : public NonCopyable, public NonMovable {
             m_pool[slot.value()].emplace(constructor(slot.value()));
             return slot.value();
         }
-        return Error::unexpected(Error::Code::poolFull,
-                                 "No free slots available in pool");
+        return Error::unexpected(
+            Error::Code::poolFull, "No free slots available in pool"
+        );
     }
 
     void destroy(u64 id) {

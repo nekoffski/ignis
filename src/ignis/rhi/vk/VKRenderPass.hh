@@ -13,9 +13,10 @@ class VKDevice;
 class VKRenderPass : public NonCopyable {
     class VKFramebuffer : public NonCopyable {
        public:
-        explicit VKFramebuffer(VKDevice& device, VkRenderPass renderPass,
-                               std::span<VkImageView> attachments,
-                               const UVec2& size);
+        explicit VKFramebuffer(
+            VKDevice& device, VkRenderPass renderPass,
+            std::span<VkImageView> attachments, const UVec2& size
+        );
         ~VKFramebuffer();
 
         VkFramebuffer handle() const;
@@ -37,14 +38,17 @@ class VKRenderPass : public NonCopyable {
     VKRenderPass(VKRenderPass&&) noexcept;
     VKRenderPass& operator=(VKRenderPass&&) noexcept;
 
-    void begin(VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-               std::span<VkImageView> attachments, u64 framebufferHash);
+    void begin(
+        VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
+        std::span<VkImageView> attachments, u64 framebufferHash
+    );
     void end(VkCommandBuffer cmdBuffer);
 
    private:
-    VkFramebuffer getOrCreateFramebuffer(std::span<VkImageView> attachments,
-                                         const UVec2& size,
-                                         u64 framebufferHash);
+    VkFramebuffer getOrCreateFramebuffer(
+        std::span<VkImageView> attachments, const UVec2& size,
+        u64 framebufferHash
+    );
 
     void create();
 

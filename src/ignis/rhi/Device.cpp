@@ -11,8 +11,9 @@ std::unique_ptr<Device> Device::create(const Config& config, Window* window) {
     if (backend == Config::Renderer::Backend::vulkan) {
         return std::make_unique<VKDevice>(config, window);
     } else {
-        log::panic("Unsupported renderer backend: {}",
-                   static_cast<int>(backend));
+        log::panic(
+            "Unsupported renderer backend: {}", static_cast<int>(backend)
+        );
     }
 }
 

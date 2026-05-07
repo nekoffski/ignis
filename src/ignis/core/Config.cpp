@@ -22,36 +22,45 @@ class Reader : public NonCopyable, public NonMovable {
 
     template <typename T>
     T read(const std::string& stanza, const std::string& key) const {
-        log::expect(m_tbl.contains(stanza),
-                    "Config file must contain a [{}] table", stanza);
+        log::expect(
+            m_tbl.contains(stanza), "Config file must contain a [{}] table",
+            stanza
+        );
         auto subTable = m_tbl.get(stanza)->as_table();
         log::expect(subTable, "Config file must contain a [{}] table", stanza);
-        log::expect(subTable->contains(key),
-                    "Config file must contain a {} field in the [{}] table",
-                    key, stanza);
+        log::expect(
+            subTable->contains(key),
+            "Config file must contain a {} field in the [{}] table", key, stanza
+        );
 
         auto raw = subTable->get(key);
 
         if constexpr (std::is_same_v<T, std::vector<std::string>>) {
-            log::expect(raw->is_array(),
-                        "Config file field {}.{} must be an array", stanza,
-                        key);
+            log::expect(
+                raw->is_array(), "Config file field {}.{} must be an array",
+                stanza, key
+            );
             std::vector<std::string> result;
             for (const auto& item : *raw->as_array()) {
                 log::expect(
                     item.is_string(),
                     "Config file field {}.{} must be an array of strings",
-                    stanza, key);
+                    stanza, key
+                );
                 result.push_back(item.value<std::string>().value_or(""));
             }
-            log::debug("Config: read {}.{} = [ {} ]", stanza, key,
-                       fmt::join(result, ","));
+            log::debug(
+                "Config: read {}.{} = [ {} ]", stanza, key,
+                fmt::join(result, ",")
+            );
             return result;
         } else {
             auto v = raw->value<T>();
-            log::expect(v.has_value(),
-                        "Config file must contain a {} field in the [{}] table",
-                        key, stanza);
+            log::expect(
+                v.has_value(),
+                "Config file must contain a {} field in the [{}] table", key,
+                stanza
+            );
             log::debug("Config: read {}.{} = {}", stanza, key, *v);
             return *v;
         }
@@ -66,8 +75,10 @@ class Reader : public NonCopyable, public NonMovable {
 Config Config::fromFile(const Path& path) {
     Config cfg;
 
-    log::expect(path.isFile(), "Config path {} does not exist or is not a file",
-                path.str());
+    log::expect(
+        path.isFile(), "Config path {} does not exist or is not a file",
+        path.str()
+    );
 
     try {
         cfg.parseFields(path);

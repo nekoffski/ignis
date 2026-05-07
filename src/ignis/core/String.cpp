@@ -2,8 +2,9 @@
 
 namespace ignis {
 
-std::vector<std::string> split(const std::string& input,
-                               const std::string& separator) {
+std::vector<std::string> split(
+    const std::string& input, const std::string& separator
+) {
     std::vector<std::string> result;
     u64 start = 0;
     u64 end;
@@ -26,8 +27,9 @@ std::string nameFromPath(const std::string& path, NameExtractionMode mode) {
     return path.substr(begin, end - begin);
 }
 
-std::optional<std::string> extensionFromPath(const std::string& path,
-                                             ExtensionExtractionMode mode) {
+std::optional<std::string> extensionFromPath(
+    const std::string& path, ExtensionExtractionMode mode
+) {
     const auto name = nameFromPath(path, NameExtractionMode::withExtension);
     const auto begin = mode == ExtensionExtractionMode::full
                            ? name.find_first_of('.')

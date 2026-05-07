@@ -36,8 +36,9 @@ Opt<Error> File::write(const std::string& content) {
 Result<std::string> File::read() const {
     std::ifstream file(m_path.str());
     if (!file.is_open()) {
-        return Error::unexpected(Error::Code::noError,
-                                 "Failed to open file for reading");
+        return Error::unexpected(
+            Error::Code::noError, "Failed to open file for reading"
+        );
     }
     std::stringstream buffer;
     buffer << file.rdbuf();
@@ -47,8 +48,9 @@ Result<std::string> File::read() const {
 Result<std::vector<std::string>> File::readLines() const {
     std::ifstream file(m_path.str());
     if (!file.is_open()) {
-        return Error::unexpected(Error::Code::noError,
-                                 "Failed to open file for reading");
+        return Error::unexpected(
+            Error::Code::noError, "Failed to open file for reading"
+        );
     }
     std::vector<std::string> lines;
     std::string line;

@@ -79,8 +79,10 @@ struct TextureMetadata {
     TextureType type{TextureType::flat};
     Format format{Format::undefined};
     Tiling tiling{Tiling::optimal};
-    TextureUsage usage{TextureUsage::transferSrc | TextureUsage::transferDest |
-                       TextureUsage::sampled};
+    TextureUsage usage{
+        TextureUsage::transferSrc | TextureUsage::transferDest |
+        TextureUsage::sampled
+    };
     TextureAspect aspect{TextureAspect::color};
     u64 mipLevels{1u};
     u64 arrayLayers{1u};

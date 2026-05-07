@@ -6,8 +6,10 @@ namespace ignis::asset {
 
 namespace {
 
-bool writeImpl(const Path& path, ImageFormat format,
-               const ImageWriter::RawImageData& imageData) {
+bool writeImpl(
+    const Path& path, ImageFormat format,
+    const ImageWriter::RawImageData& imageData
+) {
     const auto* pathStr = path.str().c_str();
     const auto* data = imageData.pixels;
     const i32 w = static_cast<i32>(imageData.width);
@@ -69,8 +71,9 @@ Opt<Error> ImageWriter::detectFormat() {
     return Error::empty();
 }
 
-std::vector<u8> ImageUtils::chessboard(u32 width, u32 height, u32 channels,
-                                       u32 squareSize) {
+std::vector<u8> ImageUtils::chessboard(
+    u32 width, u32 height, u32 channels, u32 squareSize
+) {
     std::vector<u8> data(width * height * channels);
 
     for (u32 y = 0; y < height; ++y) {

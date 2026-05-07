@@ -23,8 +23,9 @@ VkFormat toVk(Format format) {
         case Format::r8g8b8a8unorm:
             return VK_FORMAT_R8G8B8A8_UNORM;
         default:
-            log::error("Unsupported texture format: {}",
-                       fmt::underlying(format));
+            log::error(
+                "Unsupported texture format: {}", fmt::underlying(format)
+            );
             return VK_FORMAT_UNDEFINED;
     }
 }
@@ -36,8 +37,9 @@ VkImageTiling toVk(Tiling tiling) {
         case Tiling::linear:
             return VK_IMAGE_TILING_LINEAR;
         default:
-            log::error("Unsupported texture tiling: {}",
-                       fmt::underlying(tiling));
+            log::error(
+                "Unsupported texture tiling: {}", fmt::underlying(tiling)
+            );
             return VK_IMAGE_TILING_OPTIMAL;
     }
 }
@@ -95,8 +97,9 @@ Format fromVk(VkFormat format) {
         case VK_FORMAT_R8G8B8A8_UNORM:
             return Format::r8g8b8a8unorm;
         default:
-            log::error("Unsupported Vulkan format: {}",
-                       fmt::underlying(format));
+            log::error(
+                "Unsupported Vulkan format: {}", fmt::underlying(format)
+            );
             return Format::undefined;
     }
 }

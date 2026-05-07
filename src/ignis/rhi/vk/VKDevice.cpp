@@ -34,11 +34,14 @@ VKDevice::VKDevice(const Config& config, Window* window)
 
                 auto destroyDebugMessenger =
                     reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
-                        vkGetInstanceProcAddr(*m_instance,
-                                              debugDestructorFunctionName));
+                        vkGetInstanceProcAddr(
+                            *m_instance, debugDestructorFunctionName
+                        )
+                    );
                 destroyDebugMessenger(*m_instance, messenger, m_allocator);
             }
-        });
+        }
+    );
 
     m_physicalDevice = bootstrap.physicalDevice();
 
@@ -53,12 +56,14 @@ VKDevice::VKDevice(const Config& config, Window* window)
     m_commandPools =
         Scoped(bootstrap.commandPools(), [this](VKCommandPools& pools) {
             if (pools.graphics != VK_NULL_HANDLE) {
-                VK_TRACE(vkDestroyCommandPool(*m_device, pools.graphics,
-                                              m_allocator));
+                VK_TRACE(
+                    vkDestroyCommandPool(*m_device, pools.graphics, m_allocator)
+                );
             }
             if (pools.transfer != VK_NULL_HANDLE) {
-                VK_TRACE(vkDestroyCommandPool(*m_device, pools.transfer,
-                                              m_allocator));
+                VK_TRACE(
+                    vkDestroyCommandPool(*m_device, pools.transfer, m_allocator)
+                );
             }
         });
 
@@ -67,17 +72,22 @@ VKDevice::VKDevice(const Config& config, Window* window)
 }
 
 Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
-    log::debug("Submitting workload with {} commands to queue '{}'",
-               wl.commands().size(), toString(wl.targetQueue()));
-    log::expect(m_queues.contains(wl.targetQueue()),
-                "Workload target queue is not valid");
+    log::debug(
+        "Submitting workload with {} commands to queue '{}'",
+        wl.commands().size(), toString(wl.targetQueue())
+    );
+    log::expect(
+        m_queues.contains(wl.targetQueue()),
+        "Workload target queue is not valid"
+    );
 
     auto slot = m_pendingWorkloads.create(*this, wl.targetQueue());
 
     if (not slot) {
         return Error::unexpected(
             Error::Code::poolFull,
-            "Failed to submit workload: pending workload pool is full");
+            "Failed to submit workload: pending workload pool is full"
+        );
     }
 
     auto* workload = m_pendingWorkloads.get(*slot);
@@ -88,7 +98,8 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
         } else {
             log::error(
                 "Failed to find dependency for workload submission: invalid "
-                "receipt");
+                "receipt"
+            );
         }
     }
 
@@ -107,8 +118,10 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
     if (not VKQueueSubmitter{q, *workload}.submit()) {
         log::error("Failed to submit workload to queue");
         m_pendingWorkloads.destroy(*slot);
-        return Error::unexpected(Error::Code::queueSubmissionFailed,
-                                 "Failed to submit workload to queue");
+        return Error::unexpected(
+            Error::Code::queueSubmissionFailed,
+            "Failed to submit workload to queue"
+        );
     }
     return slot.value();
 }
@@ -123,8 +136,10 @@ Opt<Error> VKDevice::wait(WorkloadReceipt receipt) {
 
     if (not success) {
         log::error("Failed to wait for workload completion");
-        return Error{Error::Code::queueSubmissionFailed,
-                     "Failed to wait for workload completion"};
+        return Error{
+            Error::Code::queueSubmissionFailed,
+            "Failed to wait for workload completion"
+        };
     }
 
     m_pendingWorkloads.destroy(receipt);
@@ -163,7 +178,8 @@ Result<BufferHandle> VKDevice::createBuffer(const BufferDescription& desc) {
     if (not id) {
         return Error::unexpected(
             Error::Code::poolFull,
-            "Failed to create buffer: buffer pool is full");
+            "Failed to create buffer: buffer pool is full"
+        );
     }
     return m_bufferPool.get(*id)->handle;
 }
@@ -173,7 +189,8 @@ void VKDevice::destroyBuffer(BufferHandle handle) {
 }
 
 Result<TextureHandle> VKDevice::createTexture(
-    const TextureDescription& definition) {
+    const TextureDescription& definition
+) {
     auto id = m_texturePool.create([&](u32 slot) {
         return ResourceWrapper{
             VKTexture{
@@ -188,13 +205,15 @@ Result<TextureHandle> VKDevice::createTexture(
     if (not id) {
         return Error::unexpected(
             Error::Code::poolFull,
-            "Failed to create texture: texture pool is full");
+            "Failed to create texture: texture pool is full"
+        );
     }
     return m_texturePool.get(*id)->handle;
 }
 
 Result<RenderPassHandle> VKDevice::createRenderPass(
-    const RenderPassDescription& desc) {
+    const RenderPassDescription& desc
+) {
     auto id = m_renderPassPool.create([&](u32 slot) {
         return ResourceWrapper{
             VKRenderPass{
@@ -207,7 +226,8 @@ Result<RenderPassHandle> VKDevice::createRenderPass(
     if (not id) {
         return Error::unexpected(
             Error::Code::poolFull,
-            "Failed to create render pass: render pass pool is full");
+            "Failed to create render pass: render pass pool is full"
+        );
     }
     return m_renderPassPool.get(*id)->handle;
 }
@@ -223,16 +243,20 @@ void VKDevice::destroyTexture(TextureHandle handle) {
 VKTexture* VKDevice::findTexture(TextureHandle handle) {
     if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper)
         return &textureWrapper->resource;
-    log::warn("Failed to get texture proxy: invalid texture handle: {}",
-              static_cast<u32>(handle.id));
+    log::warn(
+        "Failed to get texture proxy: invalid texture handle: {}",
+        static_cast<u32>(handle.id)
+    );
     return nullptr;
 }
 
 VKBuffer* VKDevice::findBuffer(BufferHandle handle) {
     if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
         return &bufferWrapper->resource;
-    log::warn("Failed to get buffer proxy: invalid buffer handle: {}",
-              static_cast<u32>(handle.id));
+    log::warn(
+        "Failed to get buffer proxy: invalid buffer handle: {}",
+        static_cast<u32>(handle.id)
+    );
     return nullptr;
 }
 
@@ -240,28 +264,34 @@ VKRenderPass* VKDevice::findRenderPass(RenderPassHandle handle) {
     if (auto renderPassWrapper = m_renderPassPool.get(handle.id);
         renderPassWrapper)
         return &renderPassWrapper->resource;
-    log::warn("Failed to get render pass proxy: invalid render pass handle: {}",
-              static_cast<u32>(handle.id));
+    log::warn(
+        "Failed to get render pass proxy: invalid render pass handle: {}",
+        static_cast<u32>(handle.id)
+    );
     return nullptr;
 }
 
-Opt<i32> VKDevice::findMemoryIndex(u32 typeFilter,
-                                   MemoryProperty memoryProperty) {
+Opt<i32> VKDevice::findMemoryIndex(
+    u32 typeFilter, MemoryProperty memoryProperty
+) {
     auto vkMemoryProperty = toVk(memoryProperty);
     const auto& props = m_deviceInfo.memoryProperties;
     for (u32 i = 0; i < props.memoryTypeCount; ++i) {
-        bool isSuitable =
-            (typeFilter & (1 << i)) && (props.memoryTypes[i].propertyFlags &
-                                        vkMemoryProperty) == vkMemoryProperty;
+        bool isSuitable = (typeFilter & (1 << i)) &&
+                          (props.memoryTypes[i].propertyFlags & vkMemoryProperty
+                          ) == vkMemoryProperty;
         if (isSuitable) return i;
     }
-    log::warn("Unable to find suitable memory type: {}/{}", typeFilter,
-              vkMemoryProperty);
+    log::warn(
+        "Unable to find suitable memory type: {}/{}", typeFilter,
+        vkMemoryProperty
+    );
     return {};
 }
 
-bool VKDevice::supportsFormat(Format format, Tiling tiling,
-                              TextureUsage usage) {
+bool VKDevice::supportsFormat(
+    Format format, Tiling tiling, TextureUsage usage
+) {
     static constexpr struct {
         TextureUsage usage;
         VkFormatFeatureFlags feature;
@@ -293,8 +323,10 @@ VkQueue VKDevice::queue(Queue type) const {
 }
 
 u32 VKDevice::queueIndex(Queue type) const {
-    log::expect(m_deviceInfo.queueIndices.contains(type),
-                "Requested queue type is not valid");
+    log::expect(
+        m_deviceInfo.queueIndices.contains(type),
+        "Requested queue type is not valid"
+    );
     return m_deviceInfo.queueIndices.at(type);
 }
 

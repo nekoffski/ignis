@@ -31,16 +31,19 @@ struct FormatWithLocation {
 
     template <typename String>
         requires std::constructible_from<std::string_view, String>
-    FormatWithLocation(const String& s, const std::source_location& location =
-                                            std::source_location::current())
+    FormatWithLocation(
+        const String& s,
+        const std::source_location& location = std::source_location::current()
+    )
         : fmt(s),
           loc(location.file_name(), static_cast<int>(location.line()),
               location.function_name()) {}
 };
 
 template <typename... Args>
-[[noreturn]] constexpr inline void abort(const FormatWithLocation& formatString,
-                                         Args&&... args) {
+[[noreturn]] constexpr inline void abort(
+    const FormatWithLocation& formatString, Args&&... args
+) {
     fmt::println(fmt::runtime(formatString.fmt), std::forward<Args>(args)...);
     std::abort();
 }
@@ -56,51 +59,60 @@ void setLogLevel(Level level);
 
 template <typename... Args>
 void debug(details::FormatWithLocation fmt, Args&&... args) {
-    spdlog::default_logger_raw()->log(fmt.loc, spdlog::level::debug,
-                                      fmt::runtime(fmt.fmt),
-                                      std::forward<Args>(args)...);
+    spdlog::default_logger_raw()->log(
+        fmt.loc, spdlog::level::debug, fmt::runtime(fmt.fmt),
+        std::forward<Args>(args)...
+    );
 }
 
 template <typename... Args>
 void error(details::FormatWithLocation fmt, Args&&... args) {
-    spdlog::default_logger_raw()->log(fmt.loc, spdlog::level::err,
-                                      fmt::runtime(fmt.fmt),
-                                      std::forward<Args>(args)...);
+    spdlog::default_logger_raw()->log(
+        fmt.loc, spdlog::level::err, fmt::runtime(fmt.fmt),
+        std::forward<Args>(args)...
+    );
 }
 
 template <typename... Args>
 void info(details::FormatWithLocation fmt, Args&&... args) {
-    spdlog::default_logger_raw()->log(fmt.loc, spdlog::level::info,
-                                      fmt::runtime(fmt.fmt),
-                                      std::forward<Args>(args)...);
+    spdlog::default_logger_raw()->log(
+        fmt.loc, spdlog::level::info, fmt::runtime(fmt.fmt),
+        std::forward<Args>(args)...
+    );
 }
 
 template <typename... Args>
 void trace(details::FormatWithLocation fmt, Args&&... args) {
-    spdlog::default_logger_raw()->log(fmt.loc, spdlog::level::trace,
-                                      fmt::runtime(fmt.fmt),
-                                      std::forward<Args>(args)...);
+    spdlog::default_logger_raw()->log(
+        fmt.loc, spdlog::level::trace, fmt::runtime(fmt.fmt),
+        std::forward<Args>(args)...
+    );
 }
 
 template <typename... Args>
 void warn(details::FormatWithLocation fmt, Args&&... args) {
-    spdlog::default_logger_raw()->log(fmt.loc, spdlog::level::warn,
-                                      fmt::runtime(fmt.fmt),
-                                      std::forward<Args>(args)...);
+    spdlog::default_logger_raw()->log(
+        fmt.loc, spdlog::level::warn, fmt::runtime(fmt.fmt),
+        std::forward<Args>(args)...
+    );
 }
 
 template <typename... Args>
 [[noreturn]] void panic(details::FormatWithLocation fmt, Args&&... args) {
-    fmt::println("!! PANIC, unexpected path executed: {}:{} - {}",
-                 fmt.loc.filename, fmt.loc.line, fmt.loc.funcname);
+    fmt::println(
+        "!! PANIC, unexpected path executed: {}:{} - {}", fmt.loc.filename,
+        fmt.loc.line, fmt.loc.funcname
+    );
     details::abort(fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 void expect(bool condition, details::FormatWithLocation fmt, Args&&... args) {
     if (not condition) [[unlikely]] {
-        fmt::println("!! ASSERTION FAILED: {}:{} - {}", fmt.loc.filename,
-                     fmt.loc.line, fmt.loc.funcname);
+        fmt::println(
+            "!! ASSERTION FAILED: {}:{} - {}", fmt.loc.filename, fmt.loc.line,
+            fmt.loc.funcname
+        );
         details::abort(fmt, std::forward<Args>(args)...);
     }
 }

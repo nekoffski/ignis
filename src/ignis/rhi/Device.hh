@@ -17,8 +17,9 @@ class Device : public NonCopyable, public NonMovable {
     friend class BufferProxy;
 
    public:
-    static std::unique_ptr<Device> create(const Config& config,
-                                          Window* window = nullptr);
+    static std::unique_ptr<Device> create(
+        const Config& config, Window* window = nullptr
+    );
 
     virtual ~Device() = default;
 
@@ -28,16 +29,18 @@ class Device : public NonCopyable, public NonMovable {
     virtual Result<WorkloadReceipt> submit(const Workload& workload) = 0;
     virtual Opt<Error> wait(WorkloadReceipt receipt) = 0;
 
-    virtual Result<BufferHandle> createBuffer(
-        const BufferDescription& desc) = 0;
+    virtual Result<BufferHandle> createBuffer(const BufferDescription& desc
+    ) = 0;
     virtual void destroyBuffer(BufferHandle handle) = 0;
 
     virtual Result<TextureHandle> createTexture(
-        const TextureDescription& metadata) = 0;
+        const TextureDescription& metadata
+    ) = 0;
     virtual void destroyTexture(TextureHandle handle) = 0;
 
     virtual Result<RenderPassHandle> createRenderPass(
-        const RenderPassDescription& desc) = 0;
+        const RenderPassDescription& desc
+    ) = 0;
     virtual void destroyRenderPass(RenderPassHandle handle) = 0;
 
    private:

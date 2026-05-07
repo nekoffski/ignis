@@ -7,10 +7,8 @@ namespace ignis::rhi {
 
 namespace {
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT,
-    VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void*) {
+VKAPI_ATTR VkBool32 VKAPI_CALL
+debugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void*) {
     switch (messageSeverity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
             log::warn("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
@@ -52,8 +50,9 @@ std::vector<VkPhysicalDevice> getPhysicalDevices(VkInstance instance) {
     log::expect(deviceCount > 0, "Could not find any physical device");
 
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &deviceCount,
-                                         physicalDevices.data()));
+    VK_ASSERT(vkEnumeratePhysicalDevices(
+        instance, &deviceCount, physicalDevices.data()
+    ));
     return physicalDevices;
 }
 
@@ -95,9 +94,11 @@ void showDeviceInfo(const VKDeviceInfo& info) {
     for (u32 i = 0; i < mem.memoryHeapCount; ++i) {
         const auto& heap = mem.memoryHeaps[i];
         bool deviceLocal = (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) != 0;
-        log::debug("    Heap[{}]: {:.0f} MiB ({})", i,
-                   static_cast<float>(heap.size) / (1024.f * 1024.f),
-                   deviceLocal ? "device-local" : "host");
+        log::debug(
+            "    Heap[{}]: {:.0f} MiB ({})", i,
+            static_cast<float>(heap.size) / (1024.f * 1024.f),
+            deviceLocal ? "device-local" : "host"
+        );
     }
     log::debug("-------------------------------");
 }
@@ -147,16 +148,19 @@ void VKBootstrap::createInstance() {
     appInfo.apiVersion = apiVersion(m_cfg);
 
     std::vector<const char*> extensions;
-    std::transform(m_cfg.vulkan().extensions.begin(),
-                   m_cfg.vulkan().extensions.end(),
-                   std::back_inserter(extensions),
-                   [](const std::string& ext) { return ext.c_str(); });
+    std::transform(
+        m_cfg.vulkan().extensions.begin(), m_cfg.vulkan().extensions.end(),
+        std::back_inserter(extensions),
+        [](const std::string& ext) { return ext.c_str(); }
+    );
     assertExtensions(extensions);
 
     std::vector<const char*> layers;
-    std::transform(m_cfg.vulkan().layers.begin(), m_cfg.vulkan().layers.end(),
-                   std::back_inserter(layers),
-                   [](const std::string& layer) { return layer.c_str(); });
+    std::transform(
+        m_cfg.vulkan().layers.begin(), m_cfg.vulkan().layers.end(),
+        std::back_inserter(layers),
+        [](const std::string& layer) { return layer.c_str(); }
+    );
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -191,22 +195,28 @@ void VKBootstrap::createDebugMessenger() {
 
     auto createDebugMessenger =
         reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-            vkGetInstanceProcAddr(m_instance, debugFactoryFunctionName));
-    log::expect(createDebugMessenger,
-                "Failed to create debug messenger factory");
-    VK_ASSERT(createDebugMessenger(m_instance, &debugCreateInfo, allocator(),
-                                   &m_debugMessenger));
+            vkGetInstanceProcAddr(m_instance, debugFactoryFunctionName)
+        );
+    log::expect(
+        createDebugMessenger, "Failed to create debug messenger factory"
+    );
+    VK_ASSERT(createDebugMessenger(
+        m_instance, &debugCreateInfo, allocator(), &m_debugMessenger
+    ));
 }
 
 std::pair<std::unordered_map<Queue, u32>, Queue> discoverQueues(
-    VkPhysicalDevice physicalDevice) {
+    VkPhysicalDevice physicalDevice
+) {
     u32 queueFamilyCount = 0;
-    VK_TRACE(vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice,
-                                                      &queueFamilyCount, 0));
+    VK_TRACE(vkGetPhysicalDeviceQueueFamilyProperties(
+        physicalDevice, &queueFamilyCount, 0
+    ));
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     VK_TRACE(vkGetPhysicalDeviceQueueFamilyProperties(
-        physicalDevice, &queueFamilyCount, queueFamilies.data()));
+        physicalDevice, &queueFamilyCount, queueFamilies.data()
+    ));
 
     Queue foundQueues = Queue::none;
     std::unordered_map<Queue, u32> indices;
@@ -234,13 +244,14 @@ std::pair<std::unordered_map<Queue, u32>, Queue> discoverQueues(
 }
 
 std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
-    const VkPhysicalDevice& device) const {
+    const VkPhysicalDevice& device
+) const {
     IGNIS_PROFILE_FUNCTION();
     VKDeviceInfo info;
 
     VK_TRACE(vkGetPhysicalDeviceProperties(device, &info.coreProperties));
-    VK_TRACE(
-        vkGetPhysicalDeviceMemoryProperties(device, &info.memoryProperties));
+    VK_TRACE(vkGetPhysicalDeviceMemoryProperties(device, &info.memoryProperties)
+    );
     VK_TRACE(vkGetPhysicalDeviceFeatures(device, &info.features));
 
     if (isDiscrete && info.coreProperties.deviceType !=
@@ -256,7 +267,8 @@ std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
             "found: "
             "{}",
             info.coreProperties.deviceName, static_cast<u32>(queues),
-            static_cast<u32>(foundQueues));
+            static_cast<u32>(foundQueues)
+        );
         return {};
     }
 
@@ -347,8 +359,9 @@ void VKBootstrap::createLogicalDevice() {
     deviceCreateInfo.enabledExtensionCount = extensionNames.size();
     deviceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
 
-    VK_ASSERT(vkCreateDevice(m_physicalDevice, &deviceCreateInfo, m_allocator,
-                             &m_device));
+    VK_ASSERT(vkCreateDevice(
+        m_physicalDevice, &deviceCreateInfo, m_allocator, &m_device
+    ));
     log::trace("vkCreateDevice: {}", static_cast<void*>(m_device));
 }
 
@@ -360,18 +373,22 @@ void VKBootstrap::createCommandPools() {
         m_deviceInfo.queueIndices.at(Queue::graphics);
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
-                                  &m_commandPools.graphics));
-    log::trace("vkCreateCommandPool: {}",
-               static_cast<void*>(m_commandPools.graphics));
+    VK_ASSERT(vkCreateCommandPool(
+        m_device, &poolCreateInfo, m_allocator, &m_commandPools.graphics
+    ));
+    log::trace(
+        "vkCreateCommandPool: {}", static_cast<void*>(m_commandPools.graphics)
+    );
 
     poolCreateInfo.queueFamilyIndex =
         m_deviceInfo.queueIndices.at(Queue::transfer);
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    VK_ASSERT(vkCreateCommandPool(m_device, &poolCreateInfo, m_allocator,
-                                  &m_commandPools.transfer));
-    log::trace("vkCreateCommandPool: {}",
-               static_cast<void*>(m_commandPools.transfer));
+    VK_ASSERT(vkCreateCommandPool(
+        m_device, &poolCreateInfo, m_allocator, &m_commandPools.transfer
+    ));
+    log::trace(
+        "vkCreateCommandPool: {}", static_cast<void*>(m_commandPools.transfer)
+    );
 }
 
 void VKBootstrap::fetchQueues() {

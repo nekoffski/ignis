@@ -36,14 +36,16 @@ VKFence::VKFence(VKDevice& device, State initialState)
     if (initialState == State::signaled)
         info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    VK_TRACE(vkCreateFence(m_device.device(), &info, m_device.allocator(),
-                           &m_handle));
+    VK_TRACE(
+        vkCreateFence(m_device.device(), &info, m_device.allocator(), &m_handle)
+    );
 }
 
 VKFence::~VKFence() {
     if (m_handle != VK_NULL_HANDLE) {
         VK_TRACE(
-            vkDestroyFence(m_device.device(), m_handle, m_device.allocator()));
+            vkDestroyFence(m_device.device(), m_handle, m_device.allocator())
+        );
     }
 }
 
@@ -57,8 +59,9 @@ void VKFence::reset() {
 bool VKFence::wait(std::chrono::nanoseconds timeout) {
     if (m_state == State::signaled) return true;
 
-    auto result = vkWaitForFences(m_device.device(), 1, &m_handle, VK_TRUE,
-                                  timeout.count());
+    auto result = vkWaitForFences(
+        m_device.device(), 1, &m_handle, VK_TRUE, timeout.count()
+    );
     if (result == VK_SUCCESS) {
         m_state = State::signaled;
         return true;
@@ -75,14 +78,16 @@ VkFence VKFence::handle() { return m_handle; }
 VKSemaphore::VKSemaphore(VKDevice& device) : m_device(device) {
     VkSemaphoreCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    VK_TRACE(vkCreateSemaphore(m_device.device(), &info, m_device.allocator(),
-                               &m_handle));
+    VK_TRACE(vkCreateSemaphore(
+        m_device.device(), &info, m_device.allocator(), &m_handle
+    ));
 }
 
 VKSemaphore::~VKSemaphore() {
     if (m_handle != VK_NULL_HANDLE) {
-        VK_TRACE(vkDestroySemaphore(m_device.device(), m_handle,
-                                    m_device.allocator()));
+        VK_TRACE(vkDestroySemaphore(
+            m_device.device(), m_handle, m_device.allocator()
+        ));
     }
 }
 

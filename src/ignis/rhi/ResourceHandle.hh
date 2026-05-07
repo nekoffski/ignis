@@ -12,6 +12,11 @@ struct ResourceHandle {
     u32 generation : 8 {0u};
 
     static ResourceType type() { return T; }
+
+    bool operator==(const ResourceHandle&) const = default;
+    bool operator<(const ResourceHandle& o) const {
+        return (id << 8u | generation) < (o.id << 8u | o.generation);
+    }
 };
 
 template <typename T, ResourceType RT>
@@ -21,3 +26,10 @@ struct ResourceWrapper {
 };
 
 }  // namespace ignis::rhi
+
+template <ignis::rhi::ResourceType T>
+struct std::hash<ignis::rhi::ResourceHandle<T>> {
+    size_t operator()(const ignis::rhi::ResourceHandle<T>& h) const noexcept {
+        return std::hash<ignis::u32>{}(h.id << 8u | h.generation);
+    }
+};

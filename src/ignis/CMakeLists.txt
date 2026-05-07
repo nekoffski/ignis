@@ -35,6 +35,7 @@ add_library(ignis SHARED
     "rhi/vk/VKQueue.cpp"
     "rhi/vk/VKCommandBuffer.cpp"
     "rhi/vk/VKCommandDispatcher.cpp"
+    "rhi/vk/VKCommands.cpp"
     "rhi/vk/VKSync.cpp"
     "rhi/vk/VKTexture.cpp"
     "rhi/vk/VKRenderPass.cpp"

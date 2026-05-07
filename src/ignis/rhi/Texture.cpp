@@ -131,7 +131,8 @@ Str toString(const TextureMetadata& metadata) {
         toString(metadata.flags), toString(metadata.type),
         toString(metadata.format), toString(metadata.tiling),
         toString(metadata.usage), toString(metadata.aspect), metadata.mipLevels,
-        metadata.arrayLayers);
+        metadata.arrayLayers
+    );
 }
 
 Str toString(const SamplerProperties& samplerProps) {
@@ -140,7 +141,8 @@ Str toString(const SamplerProperties& samplerProps) {
         "wRepeat: {}",
         toString(samplerProps.minifyFilter),
         toString(samplerProps.magnifyFilter), toString(samplerProps.uRepeat),
-        toString(samplerProps.vRepeat), toString(samplerProps.wRepeat));
+        toString(samplerProps.vRepeat), toString(samplerProps.wRepeat)
+    );
 }
 
 }  // namespace ignis::rhi

@@ -18,14 +18,16 @@ class Error {
         deviceQueueMismatch = 6,
     };
 
-    explicit Error(Code code,
-                   const std::string& message = "No details provided");
+    explicit Error(
+        Code code, const std::string& message = "No details provided"
+    );
 
     Code code() const;
     const std::string& message() const;
 
     static std::unexpected<Error> unexpected(
-        Code code, const std::string& message = "No details provided");
+        Code code, const std::string& message = "No details provided"
+    );
 
     static std::unexpected<Error> unexpected(const Error& error);
 

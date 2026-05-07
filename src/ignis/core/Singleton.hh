@@ -26,8 +26,9 @@ class UniqueInstance : public virtual NonMovable, public virtual NonCopyable {
 
    public:
     explicit UniqueInstance() {
-        log::expect(not s_instanceExists, "Instance of {} already exists",
-                    className);
+        log::expect(
+            not s_instanceExists, "Instance of {} already exists", className
+        );
         s_instanceExists = true;
     }
 

@@ -21,7 +21,8 @@ class VKFence : public NonCopyable, public NonMovable {
 
     void reset();
     bool wait(
-        std::chrono::nanoseconds timeout = std::chrono::nanoseconds::max());
+        std::chrono::nanoseconds timeout = std::chrono::nanoseconds::max()
+    );
 
     State state() const;
     VkFence handle();

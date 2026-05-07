@@ -6,9 +6,10 @@
 
 namespace ignis::rhi {
 
-VKTexture::VKTexture(VKDevice& device, const ImageDimensions& dim,
-                     const TextureMetadata& metadata,
-                     const SamplerProperties& samplerProps)
+VKTexture::VKTexture(
+    VKDevice& device, const ImageDimensions& dim,
+    const TextureMetadata& metadata, const SamplerProperties& samplerProps
+)
     : m_device(device),
       m_ownedBySwapchain(false),
       m_dim(dim),
@@ -22,12 +23,14 @@ VKTexture::VKTexture(VKDevice& device, const ImageDimensions& dim,
     log::debug(
         "Created texture with dimensions {}, metadata: {}, sampler "
         "properties: {}",
-        toString(dim), toString(metadata), toString(samplerProps));
+        toString(dim), toString(metadata), toString(samplerProps)
+    );
 }
 
-VKTexture::VKTexture(VKDevice& device, VkImage image,
-                     const TextureMetadata& metadata,
-                     const SamplerProperties& samplerProps)
+VKTexture::VKTexture(
+    VKDevice& device, VkImage image, const TextureMetadata& metadata,
+    const SamplerProperties& samplerProps
+)
     : m_device(device),
       m_image(image),
       m_ownedBySwapchain(true),
@@ -40,7 +43,8 @@ VKTexture::VKTexture(VKDevice& device, VkImage image,
     log::debug(
         "Created swapchain-owned texture with metadata: {}, sampler "
         "properties: {}",
-        toString(metadata), toString(samplerProps));
+        toString(metadata), toString(samplerProps)
+    );
 }
 
 VKTexture::~VKTexture() {
@@ -63,11 +67,13 @@ VKTexture::~VKTexture() {
 
 void VKTexture::bindMemory() {
     VkMemoryRequirements memoryRequirements;
-    VK_TRACE(vkGetImageMemoryRequirements(m_device.device(), m_image,
-                                          &memoryRequirements));
+    VK_TRACE(vkGetImageMemoryRequirements(
+        m_device.device(), m_image, &memoryRequirements
+    ));
 
     auto memoryType = m_device.findMemoryIndex(
-        memoryRequirements.memoryTypeBits, MemoryProperty::deviceLocal);
+        memoryRequirements.memoryTypeBits, MemoryProperty::deviceLocal
+    );
 
     if (not memoryType)
         log::error("Required memory type not found. VKImage not valid.");
@@ -78,20 +84,24 @@ void VKTexture::bindMemory() {
     memoryAllocateInfo.allocationSize = memoryRequirements.size;
     memoryAllocateInfo.memoryTypeIndex = memoryType.value_or(-1);
 
-    VK_ASSERT(vkAllocateMemory(m_device.device(), &memoryAllocateInfo,
-                               m_device.allocator(), &m_memory));
+    VK_ASSERT(vkAllocateMemory(
+        m_device.device(), &memoryAllocateInfo, m_device.allocator(), &m_memory
+    ));
     VK_ASSERT(vkBindImageMemory(m_device.device(), m_image, m_memory, 0));
 }
 
-void VKTexture::createImage(const ImageDimensions& dim,
-                            const TextureMetadata& metadata) {
+void VKTexture::createImage(
+    const ImageDimensions& dim, const TextureMetadata& metadata
+) {
     log::expect(
-        m_device.supportsFormat(metadata.format, metadata.tiling,
-                                metadata.usage),
+        m_device.supportsFormat(
+            metadata.format, metadata.tiling, metadata.usage
+        ),
         "Device does not support the requested texture "
         "format/tiling/usage combination - format: {}, tiling: {}, usage: {}",
         toString(metadata.format), toString(metadata.tiling),
-        toString(metadata.usage));
+        toString(metadata.usage)
+    );
 
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -111,8 +121,9 @@ void VKTexture::createImage(const ImageDimensions& dim,
     if (metadata.type == TextureType::cubemap)
         imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
-    VK_ASSERT(vkCreateImage(m_device.device(), &imageCreateInfo,
-                            m_device.allocator(), &m_image));
+    VK_ASSERT(vkCreateImage(
+        m_device.device(), &imageCreateInfo, m_device.allocator(), &m_image
+    ));
 }
 
 void VKTexture::createView(const TextureMetadata& metadata) {
@@ -129,8 +140,9 @@ void VKTexture::createView(const TextureMetadata& metadata) {
     viewCreateInfo.subresourceRange.layerCount = metadata.arrayLayers;
     viewCreateInfo.image = m_image;
 
-    VK_ASSERT(vkCreateImageView(m_device.device(), &viewCreateInfo,
-                                m_device.allocator(), &m_view));
+    VK_ASSERT(vkCreateImageView(
+        m_device.device(), &viewCreateInfo, m_device.allocator(), &m_view
+    ));
 }
 
 void VKTexture::createSampler(const SamplerProperties& samplerProps) {
@@ -160,8 +172,9 @@ void VKTexture::createSampler(const SamplerProperties& samplerProps) {
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
-    VK_ASSERT(vkCreateSampler(m_device.device(), &samplerInfo,
-                              m_device.allocator(), &m_sampler));
+    VK_ASSERT(vkCreateSampler(
+        m_device.device(), &samplerInfo, m_device.allocator(), &m_sampler
+    ));
 }
 
 VkImage VKTexture::image() const { return m_image; }
@@ -186,8 +199,10 @@ void VKTexture::copyFrom(VKBuffer& buffer, VkCommandBuffer cmdBuffer) {
     region.imageOffset = {0, 0, 0};
     region.imageExtent = {m_dim.width, m_dim.height, 1};
 
-    vkCmdCopyBufferToImage(cmdBuffer, buffer.handle(), m_image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    vkCmdCopyBufferToImage(
+        cmdBuffer, buffer.handle(), m_image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region
+    );
 }
 
 void VKTexture::copyTo(VKBuffer& buffer, VkCommandBuffer cmdBuffer) {
@@ -202,9 +217,10 @@ void VKTexture::copyTo(VKBuffer& buffer, VkCommandBuffer cmdBuffer) {
     region.imageOffset = {0, 0, 0};
     region.imageExtent = {m_dim.width, m_dim.height, 1};
 
-    vkCmdCopyImageToBuffer(cmdBuffer, m_image,
-                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                           buffer.handle(), 1, &region);
+    vkCmdCopyImageToBuffer(
+        cmdBuffer, m_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        buffer.handle(), 1, &region
+    );
 }
 
 namespace {
@@ -219,32 +235,42 @@ LayoutSyncInfo syncInfoForLayout(VkImageLayout layout) {
         case VK_IMAGE_LAYOUT_UNDEFINED:
             return {VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0};
         case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-            return {VK_PIPELINE_STAGE_TRANSFER_BIT,
-                    VK_ACCESS_TRANSFER_WRITE_BIT};
+            return {
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT
+            };
         case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-            return {VK_PIPELINE_STAGE_TRANSFER_BIT,
-                    VK_ACCESS_TRANSFER_READ_BIT};
+            return {
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_READ_BIT
+            };
         case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-            return {VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    VK_ACCESS_SHADER_READ_BIT};
+            return {
+                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT
+            };
         case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-            return {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT};
+            return {
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+            };
         case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-            return {VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
+            return {
+                VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
+            };
         case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
             return {VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0};
         default:
-            return {VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                    VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT};
+            return {
+                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT
+            };
     }
 }
 
 }  // namespace
 
 VKTexture::Transition VKTexture::transitionLayout(
-    VkCommandBuffer cmdBuffer, const Transition& transition) {
+    VkCommandBuffer cmdBuffer, const Transition& transition
+) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = m_layout;
@@ -260,9 +286,10 @@ VKTexture::Transition VKTexture::transitionLayout(
     barrier.srcAccessMask = transition.srcAccessMask;
     barrier.dstAccessMask = transition.dstAccessMask;
 
-    vkCmdPipelineBarrier(cmdBuffer, transition.srcStageMask,
-                         transition.dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
-                         &barrier);
+    vkCmdPipelineBarrier(
+        cmdBuffer, transition.srcStageMask, transition.dstStageMask, 0, 0,
+        nullptr, 0, nullptr, 1, &barrier
+    );
 
     Transition reverse{
         .newLayout = m_layout,
@@ -278,8 +305,9 @@ VKTexture::Transition VKTexture::transitionLayout(
     return reverse;
 }
 
-VKTexture::Transition VKTexture::transitionLayout(VkCommandBuffer cmdBuffer,
-                                                  VkImageLayout newLayout) {
+VKTexture::Transition VKTexture::transitionLayout(
+    VkCommandBuffer cmdBuffer, VkImageLayout newLayout
+) {
     auto src = syncInfoForLayout(m_layout);
     auto dst = syncInfoForLayout(newLayout);
 
