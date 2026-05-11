@@ -4,16 +4,16 @@
 
 namespace ignis::rhi {
 
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdUploadBufferToTexture& cmd
 );
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdDownloadTextureToBuffer& cmd
 );
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdBeginRenderPass& cmd
 );
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdEndRenderPass& cmd
 );
 

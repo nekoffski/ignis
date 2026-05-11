@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
     auto renderPass = device.createRenderPass(renderPassDesc);
 
     Workload workload{Queue::graphics};
+    Workload downloadWorkload{Queue::transfer};
 
     workload.enqueue(CmdBeginRenderPass{
         .renderPass = *renderPass,
@@ -71,26 +72,29 @@ int main(int argc, char** argv) {
     auto bufferDesc = BufferDescription::staging(128u * 128u * 4u);
     auto buffer = device.createBuffer(bufferDesc);
 
-    Workload downloadWorkload{Queue::transfer};
     downloadWorkload.enqueue(CmdDownloadTextureToBuffer{
         .from = *texture,
         .to = *buffer,
     });
     workloads.push_back(&downloadWorkload);
 
-    for (const auto& workload : workloads) {
-        auto wlReceipt = device.submit(*workload);
+    {
+        IGNIS_PROFILE_REGION("workload-submission");
 
-        if (not wlReceipt) {
-            log::info(
-                "Failed to submit workload: {}", wlReceipt.error().message()
-            );
-            return -1;
-        }
+        for (const auto& workload : workloads) {
+            auto wlReceipt = device.submit(*workload);
 
-        if (auto err = device.wait(wlReceipt.value()); err) {
-            log::info("Failed to wait for workload: {}", err->message());
-            return -1;
+            if (not wlReceipt) {
+                log::info(
+                    "Failed to submit workload: {}", wlReceipt.error().message()
+                );
+                return -1;
+            }
+
+            if (auto err = device.wait(wlReceipt.value()); err) {
+                log::info("Failed to wait for workload: {}", err->message());
+                return -1;
+            }
         }
     }
 

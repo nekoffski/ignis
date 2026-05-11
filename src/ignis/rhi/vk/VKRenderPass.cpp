@@ -25,7 +25,7 @@ struct CreateInfoHelper {
 
 VKRenderPass::VKFramebuffer::VKFramebuffer(
     VKDevice& device, VkRenderPass renderPass,
-    std::span<VkImageView> attachments, const UVec2& size
+    std::span<const VkImageView> attachments, const UVec2& size
 )
     : m_device(device) {
     VkFramebufferCreateInfo framebufferInfo{};
@@ -72,15 +72,17 @@ VKRenderPass::~VKRenderPass() {
 
 void VKRenderPass::begin(
     VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-    std::span<VkImageView> attachments, u64 framebufferHash
+    const AttachmentHandles& attachments, u8 attachmentCount
 ) {
     VkRenderPassBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     beginInfo.renderPass = m_handle;
 
-    beginInfo.framebuffer = getOrCreateFramebuffer(
-        attachments, {renderArea.w, renderArea.h}, framebufferHash
-    );
+    UVec2 framebufferSize{
+        static_cast<u32>(renderArea.w), static_cast<u32>(renderArea.h)
+    };
+    beginInfo.framebuffer =
+        getFramebuffer(attachments, attachmentCount, framebufferSize);
 
     beginInfo.renderArea.offset = {
         static_cast<i32>(renderArea.x), static_cast<i32>(renderArea.y)
@@ -115,16 +117,23 @@ void VKRenderPass::end(VkCommandBuffer cmdBuffer) {
     vkCmdEndRenderPass(cmdBuffer);
 }
 
-VkFramebuffer VKRenderPass::getOrCreateFramebuffer(
-    std::span<VkImageView> attachments, const UVec2& size, u64 framebufferHash
+VkFramebuffer VKRenderPass::getFramebuffer(
+    const AttachmentHandles& attachments, u8 attachmentCount, const UVec2& size
 ) {
-    if (auto it = m_framebuffers.find(framebufferHash);
+    if (auto it = m_framebuffers.find(attachments);
         it != m_framebuffers.end()) {
         return it->second.handle();
     }
 
     auto [it, inserted] = m_framebuffers.emplace(
-        framebufferHash, VKFramebuffer{m_device, m_handle, attachments, size}
+        attachments,
+        VKFramebuffer{
+            m_device, m_handle,
+            std::span<const VkImageView>(
+                attachments.begin(), attachments.begin() + attachmentCount
+            ),
+            size
+        }
     );
     return it->second.handle();
 }

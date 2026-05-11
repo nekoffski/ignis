@@ -70,7 +70,12 @@ Opt<Error> VKCommandDispatcher::recordCommands(std::span<const Command> commands
 Opt<Error> VKCommandDispatcher::preprocessCommands(
     std::span<const Command> commands
 ) {
-    for (const auto& command : commands) preprocessCommand(command);
+    for (const auto& command : commands) {
+        if (auto err = preprocessCommand(command); err) {
+            log::error("Failed to preprocess command: {}", err->message());
+            return err;
+        }
+    }
 
     if (auto err = m_context.consume(m_manifest, m_device); err) {
         log::error("Failed to preprocess commands: {}", err->message());
@@ -179,26 +184,26 @@ Opt<Error> VKCommandDispatcher::recordCommand(const Command& command) {
     return std::visit(std::move(visitor), command);
 }
 
-void VKCommandDispatcher::preprocessCommand(const Command& command) {
+Opt<Error> VKCommandDispatcher::preprocessCommand(const Command& command) {
     Overloader visitor{
-        [&](const CmdUploadBufferToTexture& cmd) -> void {
+        [&](const CmdUploadBufferToTexture& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
-            rhi::preprocessCommand(m_manifest, cmd);
+            return rhi::preprocessCommand(m_manifest, cmd);
         },
-        [&](const CmdDownloadTextureToBuffer& cmd) -> void {
+        [&](const CmdDownloadTextureToBuffer& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
-            rhi::preprocessCommand(m_manifest, cmd);
+            return rhi::preprocessCommand(m_manifest, cmd);
         },
-        [&](const CmdBeginRenderPass& cmd) -> void {
+        [&](const CmdBeginRenderPass& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
-            rhi::preprocessCommand(m_manifest, cmd);
+            return rhi::preprocessCommand(m_manifest, cmd);
         },
-        [&](const CmdEndRenderPass& cmd) -> void {
+        [&](const CmdEndRenderPass& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
-            rhi::preprocessCommand(m_manifest, cmd);
+            return rhi::preprocessCommand(m_manifest, cmd);
         },
     };
-    std::visit(std::move(visitor), command);
+    return std::visit(std::move(visitor), command);
 }
 
 }  // namespace ignis::rhi

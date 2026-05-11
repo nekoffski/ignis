@@ -39,6 +39,8 @@ class ProfilerSummary {
         std::vector<u64> times;
         std::map<std::string, SummaryGraphNode> children;
         SummaryGraphNode* parent{nullptr};
+        u64 insertionIndex{0};
+        u64 nextChildIndex{0};
     };
 
     struct CallStatistics {

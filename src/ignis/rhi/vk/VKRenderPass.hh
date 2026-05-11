@@ -15,7 +15,7 @@ class VKRenderPass : public NonCopyable {
        public:
         explicit VKFramebuffer(
             VKDevice& device, VkRenderPass renderPass,
-            std::span<VkImageView> attachments, const UVec2& size
+            std::span<const VkImageView> attachments, const UVec2& size
         );
         ~VKFramebuffer();
 
@@ -30,6 +30,22 @@ class VKRenderPass : public NonCopyable {
     };
 
    public:
+    static constexpr u8 maxAttachments = 8;
+    using AttachmentHandles = std::array<VkImageView, maxAttachments>;
+
+   private:
+    struct AttachmentHandlesHash {
+        size_t operator()(const VKRenderPass::AttachmentHandles& a) const {
+            size_t seed = 0;
+            for (auto v : a) {
+                seed ^= std::hash<VkImageView>{}(v) + 0x9e3779b97f4a7c15ULL +
+                        (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
+
+   public:
     explicit VKRenderPass(VKDevice& device, const RenderPassDescription& desc);
     ~VKRenderPass();
 
@@ -40,14 +56,14 @@ class VKRenderPass : public NonCopyable {
 
     void begin(
         VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-        std::span<VkImageView> attachments, u64 framebufferHash
+        const AttachmentHandles& attachments, u8 attachmentCount
     );
     void end(VkCommandBuffer cmdBuffer);
 
    private:
-    VkFramebuffer getOrCreateFramebuffer(
-        std::span<VkImageView> attachments, const UVec2& size,
-        u64 framebufferHash
+    VkFramebuffer getFramebuffer(
+        const AttachmentHandles& attachments, u8 attachmentCount,
+        const UVec2& size
     );
 
     void create();
@@ -56,7 +72,8 @@ class VKRenderPass : public NonCopyable {
     RenderPassDescription m_desc;
     VkRenderPass m_handle{VK_NULL_HANDLE};
 
-    std::unordered_map<u64, VKFramebuffer> m_framebuffers;
+    std::unordered_map<AttachmentHandles, VKFramebuffer, AttachmentHandlesHash>
+        m_framebuffers;
 };
 
 }  // namespace ignis::rhi

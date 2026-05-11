@@ -76,9 +76,13 @@ void ProfilerSummary::processThread(
     auto* current = &root;
     for (const auto& [type, name, timestamp] : events) {
         if (type == ProfilerEvent::Type::begin) {
-            auto& child = current->children[name];
-            child.name = name;
-            child.parent = current;
+            auto [it, inserted] = current->children.try_emplace(name);
+            auto& child = it->second;
+            if (inserted) {
+                child.insertionIndex = current->nextChildIndex++;
+                child.name = name;
+                child.parent = current;
+            }
             child.times.push_back(timestamp.time_since_epoch().count());
             current = &child;
         } else {
@@ -93,10 +97,18 @@ void ProfilerSummary::processThread(
 void ProfilerSummary::printGraph(
     const SummaryGraphNode& node, const std::string& prefix
 ) const {
-    const auto& children = node.children;
-    for (auto it = children.begin(); it != children.end(); ++it) {
-        const bool isLast = std::next(it) == children.end();
-        const auto& child = it->second;
+    std::vector<const SummaryGraphNode*> ordered;
+    ordered.reserve(node.children.size());
+    for (const auto& [_, child] : node.children) ordered.push_back(&child);
+    std::sort(
+        ordered.begin(), ordered.end(),
+        [](const SummaryGraphNode* a, const SummaryGraphNode* b) {
+            return a->insertionIndex < b->insertionIndex;
+        }
+    );
+    for (size_t i = 0; i < ordered.size(); ++i) {
+        const bool isLast = i + 1 == ordered.size();
+        const auto& child = *ordered[i];
         const auto stats = computeStats(child, child.name);
 
         const auto* branch = isLast ? "└─ " : "├─ ";

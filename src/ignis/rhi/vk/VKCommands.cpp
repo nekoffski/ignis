@@ -2,29 +2,43 @@
 
 namespace ignis::rhi {
 
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdUploadBufferToTexture& cmd
 ) {
     manifest.add(cmd.from).add(cmd.to);
+    return Error::empty();
 }
 
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdDownloadTextureToBuffer& cmd
 ) {
     manifest.add(cmd.from).add(cmd.to);
+    return Error::empty();
 }
 
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdBeginRenderPass& cmd
 ) {
+    if (cmd.attachments.size() > VKRenderPass::maxAttachments) {
+        return Error{
+            Error::Code::invalidArgument,
+            fmt::format(
+                "Too many attachments: {} (max {})", cmd.attachments.size(),
+                VKRenderPass::maxAttachments
+            )
+        };
+    }
+
     manifest.add(cmd.renderPass);
     for (const auto& attachment : cmd.attachments) manifest.add(attachment);
+    return Error::empty();
 }
 
-void preprocessCommand(
+Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdEndRenderPass& cmd
 ) {
     manifest.add(cmd.renderPass);
+    return Error::empty();
 }
 
 Opt<Error> recordCommand(
@@ -57,65 +71,27 @@ Opt<Error> recordCommand(
 
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdBeginRenderPass& cmd
-) {}
-//     auto renderPass = m_device.findRenderPass(cmd.renderPass);
-//     if (not renderPass) return Error {
-//             Error::Code::resourceMissing, "render pass not
-//                 found "};
+) {
+    VKRenderPass::AttachmentHandles attachmentViews;
+    u8 attachmentCount = static_cast<u8>(cmd.attachments.size());
 
-//                 std::vector<VkImageView>
-//                     attachmentViews;
-//             attachmentViews.reserve(cmd.attachments.size());
+    for (u8 i = 0; i < attachmentCount; ++i)
+        attachmentViews[i] = ctx.resource(cmd.attachments[i]).view();
 
-//             for (const auto& attachmentHandle : cmd.attachments) {
-//                 auto texture = m_device.findTexture(attachmentHandle);
-//                 if (not texture)
-//                     return Error{
-//                         Error::Code::resourceMissing,
-//                         fmt::format(
-//                             "texture not found for attachment handle "
-//                             "{}",
-//                             static_cast<u32>(attachmentHandle.id)
-//                         )
-//                     };
-//                 attachmentViews.push_back(texture->view());
-//             }
+    auto& renderPass = ctx.resource(cmd.renderPass);
+    renderPass.begin(
+        ctx.cmdBuffer(), cmd.renderArea, attachmentViews, attachmentCount
+    );
 
-//             u64 attachmentHash = 0;
-//             for (const auto& view : attachmentViews) {
-//                 attachmentHash ^= std::hash<VkImageView>{}(view) + 0x9e3779b9
-//                 +
-//                                   (attachmentHash << 6) + (attachmentHash >>
-//                                   2);
-//             }
-
-//             renderPass->begin(
-//                 m_cmdBuffer, cmd.renderArea, attachmentViews, attachmentHash
-//             );
-//             return Error::empty();
-//         }
-// }
+    return Error::empty();
+}
 
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdEndRenderPass& cmd
-) {}
-
-// Opt<Error> VKCommandDispatcher::Visitor::operator()(
-
-// }
-
-// Opt<Error> VKCommandDispatcher::Visitor::operator()(
-//     const CmdEndRenderPass& cmd) {
-//     CHECK_QUEUE(cmd, m_targetQueue);
-
-//     auto renderPass = m_device.findRenderPass(cmd.renderPass);
-
-//     if (not renderPass)
-//         return Error{Error::Code::resourceMissing, "render pass
-//         not found"};
-
-//     renderPass->end(m_cmdBuffer);
-//     return Error::empty();
-// }
+) {
+    auto& renderPass = ctx.resource(cmd.renderPass);
+    renderPass.end(ctx.cmdBuffer());
+    return Error::empty();
+}
 
 }  // namespace ignis::rhi

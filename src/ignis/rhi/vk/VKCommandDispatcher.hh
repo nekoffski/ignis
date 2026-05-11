@@ -74,7 +74,7 @@ class VKCommandDispatcher : public NonCopyable, public NonMovable {
     Opt<Error> recordCommand(const Command& command);
 
     Opt<Error> preprocessCommands(std::span<const Command> commands);
-    void preprocessCommand(const Command& command);
+    Opt<Error> preprocessCommand(const Command& command);
 
     VKDevice& m_device;
     VkCommandBuffer m_cmdBuffer;
