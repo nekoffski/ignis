@@ -59,6 +59,12 @@ VkFramebuffer VKRenderPass::VKFramebuffer::handle() const { return m_handle; }
 
 VKRenderPass::VKRenderPass(VKDevice& device, const RenderPassDescription& desc)
     : m_device(device), m_desc(desc) {
+    for (const auto& colorAttachment : m_desc.colorAttachments)
+        m_attachmentDescriptions.push_back(&colorAttachment);
+
+    if (m_desc.depthAttachment.has_value())
+        m_attachmentDescriptions.push_back(&m_desc.depthAttachment.value());
+
     create();
 }
 
@@ -70,10 +76,28 @@ VKRenderPass::~VKRenderPass() {
     }
 }
 
-void VKRenderPass::begin(
+Opt<Error> VKRenderPass::begin(
     VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-    const AttachmentHandles& attachments, u8 attachmentCount
+    std::vector<VKTexture*>&& attachments
 ) {
+    if (attachments.size() != m_attachmentDescriptions.size()) {
+        return Error{
+            Error::Code::invalidArgument,
+            fmt::format(
+                "Number of attachments does not match render pass description "
+                "{} != {}",
+                attachments.size(), m_attachmentDescriptions.size()
+            )
+        };
+    }
+
+    if (m_currentAttachments.has_value()) {
+        return Error{
+            Error::Code::logicError,
+            "A render pass is already active on this command buffer"
+        };
+    }
+
     VkRenderPassBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     beginInfo.renderPass = m_handle;
@@ -81,8 +105,7 @@ void VKRenderPass::begin(
     UVec2 framebufferSize{
         static_cast<u32>(renderArea.w), static_cast<u32>(renderArea.h)
     };
-    beginInfo.framebuffer =
-        getFramebuffer(attachments, attachmentCount, framebufferSize);
+    beginInfo.framebuffer = getFramebuffer(attachments, framebufferSize);
 
     beginInfo.renderArea.offset = {
         static_cast<i32>(renderArea.x), static_cast<i32>(renderArea.y)
@@ -111,28 +134,60 @@ void VKRenderPass::begin(
     beginInfo.pClearValues = clearValues.data();
 
     vkCmdBeginRenderPass(cmdBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    m_currentAttachments.emplace(std::move(attachments));
+    return Error::empty();
 }
 
-void VKRenderPass::end(VkCommandBuffer cmdBuffer) {
+Opt<Error> VKRenderPass::end(VkCommandBuffer cmdBuffer) {
+    if (not m_currentAttachments.has_value()) {
+        return Error{
+            Error::Code::logicError,
+            "No active render pass on this command buffer to end"
+        };
+    }
+
     vkCmdEndRenderPass(cmdBuffer);
+
+    updateAttachmentLayouts();
+    m_currentAttachments.reset();
+
+    return Error::empty();
+}
+
+void VKRenderPass::updateAttachmentLayouts() {
+    if (m_currentAttachments.has_value()) {
+        for (int i = 0; i < m_currentAttachments->size(); ++i) {
+            auto* texture = (*m_currentAttachments)[i];
+            const auto* attachmentDesc = m_attachmentDescriptions[i];
+            texture->layout() = toVk(attachmentDesc->finalLayout);
+        }
+    }
 }
 
 VkFramebuffer VKRenderPass::getFramebuffer(
-    const AttachmentHandles& attachments, u8 attachmentCount, const UVec2& size
+    std::span<VKTexture*> attachments, const UVec2& size
 ) {
-    if (auto it = m_framebuffers.find(attachments);
-        it != m_framebuffers.end()) {
+    const auto attachmentCount = static_cast<u8>(attachments.size());
+
+    log::expect(
+        attachments.size() <= maxAttachments,
+        "Too many attachments for render pass"
+    );
+
+    AttachmentHandles handles{};
+    for (size_t i = 0; i < attachmentCount; ++i)
+        handles[i] = attachments[i]->view();
+
+    if (auto it = m_framebuffers.find(handles); it != m_framebuffers.end()) {
         return it->second.handle();
     }
 
     auto [it, inserted] = m_framebuffers.emplace(
-        attachments,
+        handles,
         VKFramebuffer{
             m_device, m_handle,
-            std::span<const VkImageView>(
-                attachments.begin(), attachments.begin() + attachmentCount
-            ),
-            size
+            std::span{handles.data(), handles.data() + attachmentCount}, size
         }
     );
     return it->second.handle();
@@ -151,8 +206,14 @@ void VKRenderPass::create() {
 VKRenderPass::VKRenderPass(VKRenderPass&& other) noexcept
     : m_device(other.m_device),
       m_desc(std::move(other.m_desc)),
-      m_handle(other.m_handle) {
+      m_handle(other.m_handle),
+      m_attachmentDescriptions(std::move(other.m_attachmentDescriptions)),
+      m_framebuffers(std::move(other.m_framebuffers)),
+      m_currentAttachments(std::move(other.m_currentAttachments)) {
     other.m_handle = VK_NULL_HANDLE;
+    other.m_attachmentDescriptions.clear();
+    other.m_framebuffers.clear();
+    other.m_currentAttachments.reset();
 }
 
 VKRenderPass& VKRenderPass::operator=(VKRenderPass&& other) noexcept {
@@ -164,6 +225,9 @@ VKRenderPass& VKRenderPass::operator=(VKRenderPass&& other) noexcept {
         }
         m_desc = std::move(other.m_desc);
         m_handle = other.m_handle;
+        m_attachmentDescriptions = std::move(other.m_attachmentDescriptions);
+        m_framebuffers = std::move(other.m_framebuffers);
+        m_currentAttachments = std::move(other.m_currentAttachments);
         other.m_handle = VK_NULL_HANDLE;
     }
     return *this;

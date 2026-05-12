@@ -16,6 +16,8 @@ class Error {
         resourceMissing = 4,
         ioError = 5,
         deviceQueueMismatch = 6,
+        resourceInUse = 7,
+        logicError = 8,
     };
 
     explicit Error(

@@ -8,6 +8,7 @@
 
 namespace ignis::rhi {
 
+class VKTexture;
 class VKDevice;
 
 class VKRenderPass : public NonCopyable {
@@ -31,9 +32,10 @@ class VKRenderPass : public NonCopyable {
 
    public:
     static constexpr u8 maxAttachments = 8;
-    using AttachmentHandles = std::array<VkImageView, maxAttachments>;
 
    private:
+    using AttachmentHandles = std::array<VkImageView, maxAttachments>;
+
     struct AttachmentHandlesHash {
         size_t operator()(const VKRenderPass::AttachmentHandles& a) const {
             size_t seed = 0;
@@ -47,6 +49,8 @@ class VKRenderPass : public NonCopyable {
 
    public:
     explicit VKRenderPass(VKDevice& device, const RenderPassDescription& desc);
+    void updateAttachmentLayouts();
+
     ~VKRenderPass();
 
     VkRenderPass handle() const;
@@ -54,16 +58,15 @@ class VKRenderPass : public NonCopyable {
     VKRenderPass(VKRenderPass&&) noexcept;
     VKRenderPass& operator=(VKRenderPass&&) noexcept;
 
-    void begin(
+    Opt<Error> begin(
         VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-        const AttachmentHandles& attachments, u8 attachmentCount
+        std::vector<VKTexture*>&& attachments
     );
-    void end(VkCommandBuffer cmdBuffer);
+    Opt<Error> end(VkCommandBuffer cmdBuffer);
 
    private:
     VkFramebuffer getFramebuffer(
-        const AttachmentHandles& attachments, u8 attachmentCount,
-        const UVec2& size
+        std::span<VKTexture*> attachments, const UVec2& size
     );
 
     void create();
@@ -72,8 +75,12 @@ class VKRenderPass : public NonCopyable {
     RenderPassDescription m_desc;
     VkRenderPass m_handle{VK_NULL_HANDLE};
 
+    std::vector<const Attachment*> m_attachmentDescriptions;
+
     std::unordered_map<AttachmentHandles, VKFramebuffer, AttachmentHandlesHash>
         m_framebuffers;
+
+    std::optional<std::vector<VKTexture*>> m_currentAttachments;
 };
 
 }  // namespace ignis::rhi

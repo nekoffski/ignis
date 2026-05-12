@@ -72,26 +72,26 @@ Opt<Error> recordCommand(
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdBeginRenderPass& cmd
 ) {
-    VKRenderPass::AttachmentHandles attachmentViews;
-    u8 attachmentCount = static_cast<u8>(cmd.attachments.size());
+    std::vector<VKTexture*> attachments;
+    attachments.reserve(cmd.attachments.size());
 
-    for (u8 i = 0; i < attachmentCount; ++i)
-        attachmentViews[i] = ctx.resource(cmd.attachments[i]).view();
-
-    auto& renderPass = ctx.resource(cmd.renderPass);
-    renderPass.begin(
-        ctx.cmdBuffer(), cmd.renderArea, attachmentViews, attachmentCount
+    std::transform(
+        cmd.attachments.begin(), cmd.attachments.end(),
+        std::back_inserter(attachments),
+        [&](TextureHandle handle) { return &ctx.resource(handle); }
     );
 
-    return Error::empty();
+    auto& renderPass = ctx.resource(cmd.renderPass);
+    return renderPass.begin(
+        ctx.cmdBuffer(), cmd.renderArea, std::move(attachments)
+    );
 }
 
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdEndRenderPass& cmd
 ) {
     auto& renderPass = ctx.resource(cmd.renderPass);
-    renderPass.end(ctx.cmdBuffer());
-    return Error::empty();
+    return renderPass.end(ctx.cmdBuffer());
 }
 
 }  // namespace ignis::rhi
