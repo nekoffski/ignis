@@ -126,10 +126,8 @@ Opt<Error> VKCommandContext::consume(
         if (not renderPass) {
             return Error{
                 Error::Code::resourceMissing,
-                fmt::format(
-                    "Render pass with handle {} not found",
-                    static_cast<u32>(renderPassHandle.id)
-                )
+                "Render pass with handle {} not found",
+                static_cast<u32>(renderPassHandle.id)
             };
         }
         m_renderPasses[renderPassHandle] = renderPass;
@@ -140,10 +138,8 @@ Opt<Error> VKCommandContext::consume(
         if (not texture) {
             return Error{
                 Error::Code::resourceMissing,
-                fmt::format(
-                    "Texture with handle {} not found",
-                    static_cast<u32>(textureHandle.id)
-                )
+                "Texture with handle {} not found",
+                static_cast<u32>(textureHandle.id)
             };
         }
         m_textures[textureHandle] = texture;
@@ -153,11 +149,8 @@ Opt<Error> VKCommandContext::consume(
         auto buffer = device.findBuffer(bufferHandle);
         if (not buffer) {
             return Error{
-                Error::Code::resourceMissing,
-                fmt::format(
-                    "Buffer with handle {} not found",
-                    static_cast<u32>(bufferHandle.id)
-                )
+                Error::Code::resourceMissing, "Buffer with handle {} not found",
+                static_cast<u32>(bufferHandle.id)
             };
         }
         m_buffers[bufferHandle] = buffer;

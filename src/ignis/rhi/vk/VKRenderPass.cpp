@@ -83,11 +83,9 @@ Opt<Error> VKRenderPass::begin(
     if (attachments.size() != m_attachmentDescriptions.size()) {
         return Error{
             Error::Code::invalidArgument,
-            fmt::format(
-                "Number of attachments does not match render pass description "
-                "{} != {}",
-                attachments.size(), m_attachmentDescriptions.size()
-            )
+            "Number of attachments does not match render pass description "
+            "{} != {}",
+            attachments.size(), m_attachmentDescriptions.size()
         };
     }
 

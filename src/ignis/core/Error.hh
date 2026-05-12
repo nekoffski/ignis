@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/core.h>
+
 #include <expected>
 #include <optional>
 #include <string>
@@ -23,6 +25,12 @@ class Error {
     explicit Error(
         Code code, const std::string& message = "No details provided"
     );
+
+    template <typename... Args>
+    explicit Error(Code code, const std::string& fmt, Args&&... args)
+        : m_code(code),
+          m_message(fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...)
+          ) {}
 
     Code code() const;
     const std::string& message() const;

@@ -21,11 +21,8 @@ Opt<Error> preprocessCommand(
 ) {
     if (cmd.attachments.size() > VKRenderPass::maxAttachments) {
         return Error{
-            Error::Code::invalidArgument,
-            fmt::format(
-                "Too many attachments: {} (max {})", cmd.attachments.size(),
-                VKRenderPass::maxAttachments
-            )
+            Error::Code::invalidArgument, "Too many attachments: {} (max {})",
+            cmd.attachments.size(), VKRenderPass::maxAttachments
         };
     }
 
