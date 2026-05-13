@@ -20,6 +20,7 @@ class Error {
         deviceQueueMismatch = 6,
         resourceInUse = 7,
         logicError = 8,
+        fileDoesNotExist = 9,
     };
 
     explicit Error(
@@ -35,9 +36,12 @@ class Error {
     Code code() const;
     const std::string& message() const;
 
+    template <typename... Args>
     static std::unexpected<Error> unexpected(
-        Code code, const std::string& message = "No details provided"
-    );
+        Code code, const std::string& fmt, Args&&... args
+    ) {
+        return std::unexpected{Error{code, fmt, std::forward<Args>(args)...}};
+    }
 
     static std::unexpected<Error> unexpected(const Error& error);
 

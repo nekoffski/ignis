@@ -118,6 +118,8 @@ void Config::parseFields(const Path& path) {
         m_vulkan->extensions = r.read<StrVec>("vulkan", "extensions");
         m_vulkan->layers = r.read<StrVec>("vulkan", "layers");
     }
+
+    m_asset.path = r.read<std::string>("asset", "path");
 }
 
 // -- getters
@@ -130,6 +132,8 @@ const Config::Vulkan& Config::vulkan() const {
     log::expect(m_vulkan.has_value(), "Vulkan config is not available");
     return m_vulkan.value();
 }
+
+const Config::Asset& Config::asset() const { return m_asset; }
 
 const Config::Core& Config::core() const { return m_core; }
 

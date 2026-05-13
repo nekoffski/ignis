@@ -13,6 +13,9 @@ maxRenderPassesInGraph = 16
 maxTextures = 128
 maxBuffers = 128
 
+[asset]
+assetPath = "./sandbox"
+
 [vulkan]
 apiVersion = "v1.3"
 extensions = ["VK_EXT_debug_utils"]

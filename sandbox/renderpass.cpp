@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     IGNIS_PROFILE_REGISTER_THREAD();
 
     // engine core
-    auto config = Config::fromFile(Path{argv[1]});
+    auto config = Config::fromFile(argv[1]);
     Engine engine{config};
     auto& device = engine.device();
 

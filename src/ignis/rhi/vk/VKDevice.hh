@@ -49,6 +49,10 @@ class VKDevice : public Device {
     ) override;
     void destroyRenderPass(RenderPassHandle handle) override;
 
+    Result<ShaderHandle> createShader(const ShaderDescription& shaderDescription
+    ) override;
+    void destroyShader(ShaderHandle handle) override;
+
     Opt<i32> findMemoryIndex(u32 typeFilter, MemoryProperty memoryProperty);
 
     bool supportsFormat(Format format, Tiling tiling, TextureUsage usage);

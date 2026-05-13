@@ -3,6 +3,7 @@ add_library(ignis SHARED
     # -- asset
     "asset/Image.cpp"
     "asset/Stb.cpp"
+    "asset/ShaderParser.cpp"
     # -- core
     "core/Config.cpp"
     "core/String.cpp"
@@ -27,6 +28,7 @@ add_library(ignis SHARED
     "rhi/Buffer.cpp"
     "rhi/Queue.cpp"
     "rhi/RenderPass.cpp"
+    "rhi/Shader.cpp"
     # -- rhi/vk
     "rhi/vk/VK.cpp"
     "rhi/vk/VKBuffer.cpp"
@@ -39,6 +41,7 @@ add_library(ignis SHARED
     "rhi/vk/VKSync.cpp"
     "rhi/vk/VKTexture.cpp"
     "rhi/vk/VKRenderPass.cpp"
+    "rhi/vk/VKShader.cpp"
 )
 
 target_include_directories(ignis

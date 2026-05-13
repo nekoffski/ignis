@@ -113,7 +113,7 @@ Most classes inherit `NonCopyable` and/or `NonMovable` from `core/Concepts.hh`. 
 | `fmt` / `spdlog`         | Formatting and logging                 |
 | `glm`                    | 3D math (via `core/Math.hh`)           |
 | `vulkan-headers` + `VMA` | Vulkan API + memory allocation         |
-| `shaderc`                | GLSL → SPIR-V compilation              |
+| `shaderc`                | HLSL → SPIR-V compilation              |
 | `fastgltf`               | glTF 2.0 parsing (asset pipeline, WIP) |
 | `stb`                    | Image read/write                       |
 | `tomlplusplus`           | Config parsing                         |

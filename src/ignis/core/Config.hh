@@ -41,10 +41,15 @@ class Config {
         std::vector<std::string> layers;
     };
 
+    struct Asset {
+        Path path;
+    };
+
     const Renderer& renderer() const;
     const Vulkan& vulkan() const;
     const Version& version() const;
     const Core& core() const;
+    const Asset& asset() const;
 
     static Config fromFile(const Path& path);
 
@@ -55,6 +60,7 @@ class Config {
     Version m_version;
     std::optional<Vulkan> m_vulkan;
     Core m_core;
+    Asset m_asset;
 };
 
 }  // namespace ignis

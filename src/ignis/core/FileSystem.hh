@@ -19,6 +19,13 @@ class Path {
     bool isFile() const;
     bool isDirectory() const;
 
+    Path parent() const;
+
+    static Path join(const Path& base, const Path& relative);
+
+    bool endsWith(const std::string& suffix) const;
+    void append(const std::string& suffix);
+
    private:
     std::string m_path;
 };

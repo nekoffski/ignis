@@ -236,6 +236,14 @@ void VKDevice::destroyRenderPass(RenderPassHandle handle) {
     m_renderPassPool.destroy(handle.id);
 }
 
+Result<ShaderHandle> VKDevice::createShader(
+    const ShaderDescription& shaderDescription
+) {
+    return Result<ShaderHandle>();
+}
+
+void VKDevice::destroyShader(ShaderHandle handle) {}
+
 void VKDevice::destroyTexture(TextureHandle handle) {
     m_texturePool.destroy(handle.id);
 }

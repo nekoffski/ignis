@@ -13,6 +13,23 @@ bool Path::isFile() const { return fs::is_regular_file(m_path); }
 
 bool Path::isDirectory() const { return fs::is_directory(m_path); }
 
+Path Path::parent() const {
+    auto parentPath = fs::path(m_path).parent_path();
+    return Path{parentPath.string()};
+}
+
+Path Path::join(const Path& base, const Path& relative) {
+    return Path{fs::path(base.str()) / fs::path(relative.str())};
+}
+
+bool Path::endsWith(const std::string& suffix) const {
+    if (suffix.size() > m_path.size()) [[unlikely]]
+        return false;
+    return std::equal(suffix.rbegin(), suffix.rend(), m_path.rbegin());
+}
+
+void Path::append(const std::string& suffix) { m_path += suffix; }
+
 File::File(const Path& path) : m_path(path) {}
 
 const Path& File::path() const { return m_path; }

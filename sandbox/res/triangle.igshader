@@ -1,0 +1,7 @@
+[[stage]]
+type = "vertex"
+path = "{root}/triangle.frag"
+
+[[stage]]
+type = "fragment"
+path = "{root}/triangle.vert"

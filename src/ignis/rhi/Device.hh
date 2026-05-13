@@ -4,6 +4,7 @@
 
 #include "Buffer.hh"
 #include "RenderPass.hh"
+#include "Shader.hh"
 #include "Texture.hh"
 #include "Window.hh"
 #include "Workload.hh"
@@ -29,19 +30,25 @@ class Device : public NonCopyable, public NonMovable {
     virtual Result<WorkloadReceipt> submit(const Workload& workload) = 0;
     virtual Opt<Error> wait(WorkloadReceipt receipt) = 0;
 
-    virtual Result<BufferHandle> createBuffer(const BufferDescription& desc
+    virtual Result<BufferHandle> createBuffer(
+        const BufferDescription& bufferDescription
     ) = 0;
     virtual void destroyBuffer(BufferHandle handle) = 0;
 
     virtual Result<TextureHandle> createTexture(
-        const TextureDescription& metadata
+        const TextureDescription& textureDescription
     ) = 0;
     virtual void destroyTexture(TextureHandle handle) = 0;
 
     virtual Result<RenderPassHandle> createRenderPass(
-        const RenderPassDescription& desc
+        const RenderPassDescription& renderPassDescription
     ) = 0;
     virtual void destroyRenderPass(RenderPassHandle handle) = 0;
+
+    virtual Result<ShaderHandle> createShader(
+        const ShaderDescription& shaderDescription
+    ) = 0;
+    virtual void destroyShader(ShaderHandle handle) = 0;
 
    private:
     virtual BufferProxy::Impl* proxy(BufferHandle handle) = 0;
