@@ -40,6 +40,7 @@ class File {
     Opt<Error> write(const std::string& content);
     Result<std::string> read() const;
     Result<std::vector<std::string>> readLines() const;
+    Result<std::vector<u32>> readBinary() const;
 
     Opt<Error> remove();
 

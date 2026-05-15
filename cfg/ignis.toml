@@ -14,7 +14,7 @@ maxTextures = 128
 maxBuffers = 128
 
 [asset]
-assetPath = "./sandbox"
+path = "../sandbox/res"
 
 [vulkan]
 apiVersion = "v1.3"

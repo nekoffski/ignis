@@ -24,12 +24,13 @@ int main(int argc, char** argv) {
     auto& device = engine.device();
 
     auto shaderDescription = ShaderParser{}.parseFile("triangle.igshader");
+
     // auto shader = device.createShader(shaderDescription);
 
-    if (not shader) {
-        log::error("Failed to create shader: {}", shader.error().message());
-        return 1;
-    }
+    // if (not shader) {
+    //     log::error("Failed to create shader: {}", shader.error().message());
+    //     return 1;
+    // }
 
     IGNIS_PROFILE_DUMP_SUMMARY();
     return 0;

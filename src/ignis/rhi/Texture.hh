@@ -15,7 +15,13 @@ enum class Format {
     r8unorm,
     r8g8unorm,
     r8g8b8unorm,
-    r8g8b8a8unorm
+    r8g8b8a8unorm,
+    r32sfloat,
+    r32g32sfloat,
+    r32g32b32sfloat,
+    r32g32b32a32sfloat,
+    r32sint,
+    r32uint,
 };
 
 enum class Layout {

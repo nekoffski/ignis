@@ -16,6 +16,18 @@ Str toString(Format format) {
             return "r8g8b8unorm";
         case Format::r8g8b8a8unorm:
             return "r8g8b8a8unorm";
+        case Format::r32sfloat:
+            return "r32sfloat";
+        case Format::r32g32sfloat:
+            return "r32g32sfloat";
+        case Format::r32g32b32sfloat:
+            return "r32g32b32sfloat";
+        case Format::r32g32b32a32sfloat:
+            return "r32g32b32a32sfloat";
+        case Format::r32sint:
+            return "r32sint";
+        case Format::r32uint:
+            return "r32uint";
         default:
             return fmt::format("Unknown({})", fmt::underlying(format));
     }

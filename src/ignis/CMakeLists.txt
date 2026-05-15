@@ -59,7 +59,8 @@ target_link_libraries(ignis
         Vulkan::Vulkan
         GPUOpen::VulkanMemoryAllocator
         stduuid::stduuid
-        stb::stb 
+        stb::stb
+        spirv-reflect-static
 )
 
 set_target_properties(ignis PROPERTIES POSITION_INDEPENDENT_CODE ON)

@@ -108,15 +108,15 @@ Most classes inherit `NonCopyable` and/or `NonMovable` from `core/Concepts.hh`. 
 
 ## Key Dependencies
 
-| Library                  | Purpose                                |
-| ------------------------ | -------------------------------------- |
-| `fmt` / `spdlog`         | Formatting and logging                 |
-| `glm`                    | 3D math (via `core/Math.hh`)           |
-| `vulkan-headers` + `VMA` | Vulkan API + memory allocation         |
-| `shaderc`                | HLSL → SPIR-V compilation              |
-| `fastgltf`               | glTF 2.0 parsing (asset pipeline, WIP) |
-| `stb`                    | Image read/write                       |
-| `tomlplusplus`           | Config parsing                         |
+| Library                  | Purpose                                  |
+| ------------------------ | ---------------------------------------- |
+| `fmt` / `spdlog`         | Formatting and logging                   |
+| `glm`                    | 3D math (via `core/Math.hh`)             |
+| `vulkan-headers` + `VMA` | Vulkan API + memory allocation           |
+| `spirv-reflect`          | SPIR-V reflection (shader introspection) |
+| `fastgltf`               | glTF 2.0 parsing (asset pipeline, WIP)   |
+| `stb`                    | Image read/write                         |
+| `tomlplusplus`           | Config parsing                           |
 
 ## Status
 

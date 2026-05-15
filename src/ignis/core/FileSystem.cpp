@@ -75,6 +75,27 @@ Result<std::vector<std::string>> File::readLines() const {
     return lines;
 }
 
+Result<std::vector<u32>> File::readBinary() const {
+    std::ifstream file(m_path.str(), std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        return Error::unexpected(
+            Error::Code::ioError, "Failed to open file '{}' for reading",
+            m_path.str()
+        );
+    }
+    auto size = file.tellg();
+    if (size % sizeof(u32) != 0) {
+        return Error::unexpected(
+            Error::Code::invalidArgument,
+            "File '{}' size is not a multiple of 4 bytes", m_path.str()
+        );
+    }
+    file.seekg(0);
+    std::vector<u32> buffer(static_cast<std::size_t>(size) / sizeof(u32));
+    file.read(reinterpret_cast<char*>(buffer.data()), size);
+    return buffer;
+}
+
 Opt<Error> File::remove() {
     std::error_code ec;
     fs::remove(m_path.str(), ec);

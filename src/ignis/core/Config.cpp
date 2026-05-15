@@ -119,7 +119,8 @@ void Config::parseFields(const Path& path) {
         m_vulkan->layers = r.read<StrVec>("vulkan", "layers");
     }
 
-    m_asset.path = r.read<std::string>("asset", "path");
+    m_asset.path =
+        Path::join(path.parent(), r.read<std::string>("asset", "path"));
 }
 
 // -- getters

@@ -1,7 +1,7 @@
 [[stage]]
 type = "vertex"
-path = "{root}/triangle.frag"
+path = "triangle.vert.spv"
 
 [[stage]]
 type = "fragment"
-path = "{root}/triangle.vert"
+path = "triangle.frag.spv"
