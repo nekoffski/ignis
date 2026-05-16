@@ -4,6 +4,8 @@
 
 #include "ignis/core/Log.hh"
 #include "ignis/rhi/Buffer.hh"
+#include "ignis/rhi/Pipeline.hh"
+#include "ignis/rhi/Shader.hh"
 #include "ignis/rhi/Texture.hh"
 
 namespace ignis::rhi {
@@ -41,5 +43,15 @@ VkSamplerAddressMode toVk(Repeat repeat);
 VkImageLayout toVk(Layout layout);
 
 Format fromVk(VkFormat format);
+
+VkShaderStageFlags toVk(ShaderStageType stage);
+VkDescriptorType toVk(DescriptorType type);
+
+VkPolygonMode toVk(PolygonMode mode);
+VkCullModeFlags toVk(CullMode mode);
+VkFrontFace toVk(FrontFace face);
+VkCompareOp toVk(CompareOp op);
+VkBlendFactor toVk(BlendFactor factor);
+VkBlendOp toVk(BlendOp op);
 
 }  // namespace ignis::rhi

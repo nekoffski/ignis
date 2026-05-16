@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Buffer.hh"
+#include "Pipeline.hh"
 #include "RenderPass.hh"
 #include "Shader.hh"
 #include "Texture.hh"
@@ -49,6 +50,11 @@ class Device : public NonCopyable, public NonMovable {
         const ShaderDescription& shaderDescription
     ) = 0;
     virtual void destroyShader(ShaderHandle handle) = 0;
+
+    virtual Result<PipelineHandle> createPipeline(
+        const PipelineDescription& pipelineDescription
+    ) = 0;
+    virtual void destroyPipeline(PipelineHandle handle) = 0;
 
    private:
     virtual BufferProxy::Impl* proxy(BufferHandle handle) = 0;

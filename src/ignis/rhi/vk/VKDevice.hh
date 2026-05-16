@@ -4,8 +4,10 @@
 #include "VKBuffer.hh"
 #include "VKCommandBuffer.hh"
 #include "VKDeviceInfo.hh"
+#include "VKPipeline.hh"
 #include "VKQueue.hh"
 #include "VKRenderPass.hh"
+#include "VKShader.hh"
 #include "VKTexture.hh"
 #include "ignis/core/Pool.hh"
 #include "ignis/core/Scoped.hh"
@@ -18,6 +20,9 @@ class VKDevice : public Device {
     using TexturePool = Pool<ResourceWrapper<VKTexture, ResourceType::texture>>;
     using RenderPassPool =
         Pool<ResourceWrapper<VKRenderPass, ResourceType::renderPass>>;
+    using ShaderPool = Pool<ResourceWrapper<VKShader, ResourceType::shader>>;
+    using PipelinePool =
+        Pool<ResourceWrapper<VKPipeline, ResourceType::pipeline>>;
 
     friend class BufferProxy;
 
@@ -53,6 +58,11 @@ class VKDevice : public Device {
     ) override;
     void destroyShader(ShaderHandle handle) override;
 
+    Result<PipelineHandle> createPipeline(
+        const PipelineDescription& pipelineDescription
+    ) override;
+    void destroyPipeline(PipelineHandle handle) override;
+
     Opt<i32> findMemoryIndex(u32 typeFilter, MemoryProperty memoryProperty);
 
     bool supportsFormat(Format format, Tiling tiling, TextureUsage usage);
@@ -63,6 +73,8 @@ class VKDevice : public Device {
     VKTexture* findTexture(TextureHandle handle);
     VKBuffer* findBuffer(BufferHandle handle);
     VKRenderPass* findRenderPass(RenderPassHandle handle);
+    VKShader* findShader(ShaderHandle handle);
+    VKPipeline* findPipeline(PipelineHandle handle);
 
    private:
     BufferProxy::Impl* proxy(BufferHandle handle) override;
@@ -84,6 +96,8 @@ class VKDevice : public Device {
     BufferPool m_bufferPool;
     TexturePool m_texturePool;
     RenderPassPool m_renderPassPool;
+    ShaderPool m_shaderPool;
+    PipelinePool m_pipelinePool;
 };
 
 }  // namespace ignis::rhi

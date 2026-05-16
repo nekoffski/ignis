@@ -121,3 +121,40 @@ Most classes inherit `NonCopyable` and/or `NonMovable` from `core/Concepts.hh`. 
 ## Status
 
 Much of the **renderer layer** and **scene/ECS** is stubbed. Prefer extending existing skeletons over introducing new abstractions. The **core** and **RHI foundation** are the most stable areas.
+
+## Command / Workload Pattern
+
+GPU work is recorded into a `Workload`, submitted to `Device::submit()`, and awaited with `Device::wait(receipt)`.
+
+```cpp
+Workload wl{Queue::graphics};
+wl.enqueue(CmdBeginRenderPass{...});
+wl.enqueue(CmdEndRenderPass{...});
+auto receipt = device.submit(wl);
+device.wait(*receipt);
+```
+
+**Internals (two-pass dispatch inside `VKCommandDispatcher`):**
+
+1. `preprocessCommands()` — collects all referenced handles into `VKCommandManifest`
+2. `VKCommandContext::consume()` — resolves handles to live pointers (fails fast if any are invalid)
+3. `recordCommands()` — emits Vulkan API calls via `recordCommand()` overloads
+
+**Key types:**
+
+| Type                  | Location          | Purpose                                                |
+| --------------------- | ----------------- | ------------------------------------------------------ |
+| `Workload`            | `rhi/Workload.hh` | User-facing command accumulator, bound to one `Queue`  |
+| `WorkloadReceipt`     | `rhi/Workload.hh` | Opaque token (`u8`) for GPU wait / dependency chaining |
+| `Command`             | `rhi/Command.hh`  | `std::variant` of all command structs                  |
+| `VKCommandDispatcher` | `rhi/vk/`         | Two-pass preprocess → record engine                    |
+| `VKCommandManifest`   | `rhi/vk/`         | Pre-flight handle set (validate before recording)      |
+| `VKCommandContext`    | `rhi/vk/`         | Resolved pointer map used during recording             |
+
+**Adding a new command:**
+
+1. Add a struct + `CommandType` entry in `rhi/Command.hh`, add to the `Command` variant
+2. Add `preprocessCommand(VKCommandManifest&, const NewCmd&)` in the dispatcher
+3. Add `recordCommand(const VKCommandContext&, const NewCmd&)` in the dispatcher
+
+**Existing commands:** `CmdBeginRenderPass`, `CmdEndRenderPass`, `CmdUploadBufferToTexture`, `CmdDownloadTextureToBuffer`. Draw, bind-shader, bind-descriptor-set, and push-constant commands are **not yet implemented**.

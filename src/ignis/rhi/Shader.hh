@@ -46,6 +46,7 @@ struct VertexAttribute {
 
 struct ShaderStage {
     ShaderStageType stage;
+    std::string entrypoint;
     std::vector<u32> spirv;
 };
 

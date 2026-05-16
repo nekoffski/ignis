@@ -1,5 +1,7 @@
 #include "VKCommands.hh"
 
+#include "VKPipeline.hh"
+
 namespace ignis::rhi {
 
 Opt<Error> preprocessCommand(
@@ -35,6 +37,25 @@ Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdEndRenderPass& cmd
 ) {
     manifest.add(cmd.renderPass);
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindPipeline& cmd
+) {
+    manifest.add(cmd.pipeline);
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(VKCommandManifest&, const CmdDraw&) {
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(VKCommandManifest&, const CmdSetViewport&) {
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(VKCommandManifest&, const CmdSetScissor&) {
     return Error::empty();
 }
 
@@ -80,7 +101,7 @@ Opt<Error> recordCommand(
 
     auto& renderPass = ctx.resource(cmd.renderPass);
     return renderPass.begin(
-        ctx.cmdBuffer(), cmd.renderArea, std::move(attachments)
+        ctx.cmdBuffer(), cmd.renderArea, cmd.clearColor, std::move(attachments)
     );
 }
 
@@ -89,6 +110,54 @@ Opt<Error> recordCommand(
 ) {
     auto& renderPass = ctx.resource(cmd.renderPass);
     return renderPass.end(ctx.cmdBuffer());
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindPipeline& cmd
+) {
+    auto& pipeline = ctx.resource(cmd.pipeline);
+    vkCmdBindPipeline(
+        ctx.cmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle()
+    );
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(const VKCommandContext& ctx, const CmdDraw& cmd) {
+    vkCmdDraw(
+        ctx.cmdBuffer(), cmd.vertexCount, cmd.instanceCount, cmd.firstVertex,
+        cmd.firstInstance
+    );
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdSetViewport& cmd
+) {
+    VkViewport viewport{};
+    viewport.x = cmd.area.x;
+    viewport.y = cmd.area.y;
+    viewport.width = cmd.area.w;
+    viewport.height = cmd.area.h;
+    viewport.minDepth = cmd.minDepth;
+    viewport.maxDepth = cmd.maxDepth;
+    vkCmdSetViewport(ctx.cmdBuffer(), 0, 1, &viewport);
+
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdSetScissor& cmd
+) {
+    VkRect2D scissor{};
+    scissor.offset = {
+        static_cast<i32>(cmd.area.x), static_cast<i32>(cmd.area.y)
+    };
+    scissor.extent = {
+        static_cast<u32>(cmd.area.w), static_cast<u32>(cmd.area.h)
+    };
+    vkCmdSetScissor(ctx.cmdBuffer(), 0, 1, &scissor);
+
+    return Error::empty();
 }
 
 }  // namespace ignis::rhi

@@ -60,7 +60,7 @@ class VKRenderPass : public NonCopyable {
 
     Opt<Error> begin(
         VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-        std::vector<VKTexture*>&& attachments
+        const Vec4& clearColor, std::vector<VKTexture*>&& attachments
     );
     Opt<Error> end(VkCommandBuffer cmdBuffer);
 

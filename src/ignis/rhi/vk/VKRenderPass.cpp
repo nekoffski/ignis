@@ -78,7 +78,7 @@ VKRenderPass::~VKRenderPass() {
 
 Opt<Error> VKRenderPass::begin(
     VkCommandBuffer cmdBuffer, const Rect<f32>& renderArea,
-    std::vector<VKTexture*>&& attachments
+    const Vec4& clearColor, std::vector<VKTexture*>&& attachments
 ) {
     if (attachments.size() != m_attachmentDescriptions.size()) {
         return Error{
@@ -113,18 +113,24 @@ Opt<Error> VKRenderPass::begin(
     };
 
     std::vector<VkClearValue> clearValues;
+    clearValues.reserve(
+        m_attachmentDescriptions.size() +
+        static_cast<size_t>(m_desc.depthAttachment.has_value())
+    );
+
     for (const auto& attachment : m_desc.colorAttachments) {
         VkClearValue clearValue{};
         if (attachment.clear) {
-            clearValue.color = {{0.f, 0.f, 1.f, 1.f}};
+            clearValue.color = {
+                {clearColor.x, clearColor.y, clearColor.z, clearColor.w}
+            };
         }
         clearValues.push_back(clearValue);
     }
+
     if (m_desc.depthAttachment.has_value()) {
         VkClearValue clearValue{};
-        if (m_desc.depthAttachment->clear) {
-            clearValue.depthStencil = {1.f, 0};
-        }
+        if (m_desc.depthAttachment->clear) clearValue.depthStencil = {1.f, 0};
         clearValues.push_back(clearValue);
     }
 

@@ -207,7 +207,11 @@ static Opt<Error> reflectStage(
     if (stageType == rhi::ShaderStageType::vertex)
         reflectVertexAttributes(module, desc);
 
-    desc.stages.push_back({.stage = stageType, .spirv = spirv});
+    desc.stages.push_back({
+        .stage = stageType,
+        .entrypoint = module.entry_point_name,
+        .spirv = spirv,
+    });
     return Error::empty();
 }
 

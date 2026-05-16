@@ -25,6 +25,11 @@ VKCommandManifest& VKCommandManifest::add(BufferHandle handle) {
     return *this;
 }
 
+VKCommandManifest& VKCommandManifest::add(PipelineHandle handle) {
+    m_pipelines.insert(handle);
+    return *this;
+}
+
 const std::unordered_set<RenderPassHandle>& VKCommandManifest::renderPasses(
 ) const {
     return m_renderPasses;
@@ -36,6 +41,10 @@ const std::unordered_set<TextureHandle>& VKCommandManifest::textures() const {
 
 const std::unordered_set<BufferHandle>& VKCommandManifest::buffers() const {
     return m_buffers;
+}
+
+const std::unordered_set<PipelineHandle>& VKCommandManifest::pipelines() const {
+    return m_pipelines;
 }
 
 VKCommandDispatcher::VKCommandDispatcher(
@@ -116,6 +125,15 @@ VKBuffer& VKCommandContext::resource(BufferHandle handle) const {
     return *it->second;
 }
 
+VKPipeline& VKCommandContext::resource(PipelineHandle handle) const {
+    auto it = m_pipelines.find(handle);
+    log::expect(
+        it != m_pipelines.end(), "Pipeline with handle {} not found",
+        static_cast<u32>(handle.id)
+    );
+    return *it->second;
+}
+
 VkCommandBuffer VKCommandContext::cmdBuffer() const { return m_cmdBuffer; }
 
 Opt<Error> VKCommandContext::consume(
@@ -156,6 +174,18 @@ Opt<Error> VKCommandContext::consume(
         m_buffers[bufferHandle] = buffer;
     }
 
+    for (const auto& pipelineHandle : manifest.pipelines()) {
+        auto pipeline = device.findPipeline(pipelineHandle);
+        if (not pipeline) {
+            return Error{
+                Error::Code::resourceMissing,
+                "Pipeline with handle {} not found",
+                static_cast<u32>(pipelineHandle.id)
+            };
+        }
+        m_pipelines[pipelineHandle] = pipeline;
+    }
+
     return Error::empty();
 }
 
@@ -171,6 +201,18 @@ Opt<Error> VKCommandDispatcher::recordCommand(const Command& command) {
             return rhi::recordCommand(m_context, cmd);
         },
         [&](const CmdEndRenderPass& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdBindPipeline& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdDraw& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdSetViewport& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdSetScissor& cmd) -> Opt<Error> {
             return rhi::recordCommand(m_context, cmd);
         },
     };
@@ -192,6 +234,22 @@ Opt<Error> VKCommandDispatcher::preprocessCommand(const Command& command) {
             return rhi::preprocessCommand(m_manifest, cmd);
         },
         [&](const CmdEndRenderPass& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdBindPipeline& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdDraw& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdSetViewport& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdSetScissor& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
             return rhi::preprocessCommand(m_manifest, cmd);
         },

@@ -6,6 +6,7 @@
 
 #include "VK.hh"
 #include "VKBuffer.hh"
+#include "VKPipeline.hh"
 #include "VKRenderPass.hh"
 #include "VKTexture.hh"
 #include "ignis/core/Concepts.hh"
@@ -27,15 +28,18 @@ class VKCommandManifest : public NonCopyable, public NonMovable {
     VKCommandManifest& add(RenderPassHandle handle);
     VKCommandManifest& add(TextureHandle handle);
     VKCommandManifest& add(BufferHandle handle);
+    VKCommandManifest& add(PipelineHandle handle);
 
     const std::unordered_set<RenderPassHandle>& renderPasses() const;
     const std::unordered_set<TextureHandle>& textures() const;
     const std::unordered_set<BufferHandle>& buffers() const;
+    const std::unordered_set<PipelineHandle>& pipelines() const;
 
    private:
     std::unordered_set<RenderPassHandle> m_renderPasses;
     std::unordered_set<TextureHandle> m_textures;
     std::unordered_set<BufferHandle> m_buffers;
+    std::unordered_set<PipelineHandle> m_pipelines;
 };
 
 class VKCommandContext : public NonCopyable, public NonMovable {
@@ -47,6 +51,7 @@ class VKCommandContext : public NonCopyable, public NonMovable {
     VKRenderPass& resource(RenderPassHandle handle) const;
     VKTexture& resource(TextureHandle handle) const;
     VKBuffer& resource(BufferHandle handle) const;
+    VKPipeline& resource(PipelineHandle handle) const;
 
     VkCommandBuffer cmdBuffer() const;
 
@@ -56,6 +61,7 @@ class VKCommandContext : public NonCopyable, public NonMovable {
     std::unordered_map<RenderPassHandle, VKRenderPass*> m_renderPasses;
     std::unordered_map<TextureHandle, VKTexture*> m_textures;
     std::unordered_map<BufferHandle, VKBuffer*> m_buffers;
+    std::unordered_map<PipelineHandle, VKPipeline*> m_pipelines;
 
     Opt<Error> consume(const VKCommandManifest& manifest, VKDevice& device);
 };

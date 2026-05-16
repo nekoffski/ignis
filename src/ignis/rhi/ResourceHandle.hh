@@ -4,7 +4,7 @@
 
 namespace ignis::rhi {
 
-enum class ResourceType : u8 { buffer, texture, renderPass, shader };
+enum class ResourceType : u8 { buffer, texture, renderPass, shader, pipeline };
 
 template <ResourceType T>
 struct ResourceHandle {

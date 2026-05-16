@@ -22,6 +22,18 @@ VkFormat toVk(Format format) {
             return VK_FORMAT_R8G8B8_UNORM;
         case Format::r8g8b8a8unorm:
             return VK_FORMAT_R8G8B8A8_UNORM;
+        case Format::r32sfloat:
+            return VK_FORMAT_R32_SFLOAT;
+        case Format::r32g32sfloat:
+            return VK_FORMAT_R32G32_SFLOAT;
+        case Format::r32g32b32sfloat:
+            return VK_FORMAT_R32G32B32_SFLOAT;
+        case Format::r32g32b32a32sfloat:
+            return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case Format::r32sint:
+            return VK_FORMAT_R32_SINT;
+        case Format::r32uint:
+            return VK_FORMAT_R32_UINT;
         default:
             log::error(
                 "Unsupported texture format: {}", fmt::underlying(format)
@@ -96,11 +108,160 @@ Format fromVk(VkFormat format) {
             return Format::r8g8b8unorm;
         case VK_FORMAT_R8G8B8A8_UNORM:
             return Format::r8g8b8a8unorm;
+        case VK_FORMAT_R32_SFLOAT:
+            return Format::r32sfloat;
+        case VK_FORMAT_R32G32_SFLOAT:
+            return Format::r32g32sfloat;
+        case VK_FORMAT_R32G32B32_SFLOAT:
+            return Format::r32g32b32sfloat;
+        case VK_FORMAT_R32G32B32A32_SFLOAT:
+            return Format::r32g32b32a32sfloat;
+        case VK_FORMAT_R32_SINT:
+            return Format::r32sint;
+        case VK_FORMAT_R32_UINT:
+            return Format::r32uint;
         default:
             log::error(
                 "Unsupported Vulkan format: {}", fmt::underlying(format)
             );
             return Format::undefined;
+    }
+}
+
+VkShaderStageFlags toVk(ShaderStageType stage) {
+    VkShaderStageFlags flags = 0;
+    if (checkFlag(stage, ShaderStageType::vertex))
+        flags |= VK_SHADER_STAGE_VERTEX_BIT;
+    if (checkFlag(stage, ShaderStageType::fragment))
+        flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+    if (checkFlag(stage, ShaderStageType::compute))
+        flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+    if (checkFlag(stage, ShaderStageType::geometry))
+        flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+    return flags;
+}
+
+VkDescriptorType toVk(DescriptorType type) {
+    switch (type) {
+        case DescriptorType::uniformBuffer:
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case DescriptorType::storageBuffer:
+            return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        case DescriptorType::sampledTexture:
+            return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case DescriptorType::storageTexture:
+            return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case DescriptorType::sampler:
+            return VK_DESCRIPTOR_TYPE_SAMPLER;
+        default:
+            log::error(
+                "Unsupported descriptor type: {}", fmt::underlying(type)
+            );
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    }
+}
+
+VkPolygonMode toVk(PolygonMode mode) {
+    switch (mode) {
+        case PolygonMode::fill:
+            return VK_POLYGON_MODE_FILL;
+        case PolygonMode::line:
+            return VK_POLYGON_MODE_LINE;
+        case PolygonMode::point:
+            return VK_POLYGON_MODE_POINT;
+        default:
+            log::panic("unsupported PolygonMode: {}", fmt::underlying(mode));
+    }
+}
+
+VkCullModeFlags toVk(CullMode mode) {
+    switch (mode) {
+        case CullMode::none:
+            return VK_CULL_MODE_NONE;
+        case CullMode::front:
+            return VK_CULL_MODE_FRONT_BIT;
+        case CullMode::back:
+            return VK_CULL_MODE_BACK_BIT;
+        default:
+            log::panic("unsupported CullMode: {}", fmt::underlying(mode));
+    }
+}
+
+VkFrontFace toVk(FrontFace face) {
+    switch (face) {
+        case FrontFace::clockwise:
+            return VK_FRONT_FACE_CLOCKWISE;
+        case FrontFace::counterClockwise:
+            return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        default:
+            log::panic("unsupported FrontFace: {}", fmt::underlying(face));
+    }
+}
+
+VkCompareOp toVk(CompareOp op) {
+    switch (op) {
+        case CompareOp::never:
+            return VK_COMPARE_OP_NEVER;
+        case CompareOp::less:
+            return VK_COMPARE_OP_LESS;
+        case CompareOp::equal:
+            return VK_COMPARE_OP_EQUAL;
+        case CompareOp::lessOrEqual:
+            return VK_COMPARE_OP_LESS_OR_EQUAL;
+        case CompareOp::greater:
+            return VK_COMPARE_OP_GREATER;
+        case CompareOp::notEqual:
+            return VK_COMPARE_OP_NOT_EQUAL;
+        case CompareOp::greaterOrEqual:
+            return VK_COMPARE_OP_GREATER_OR_EQUAL;
+        case CompareOp::always:
+            return VK_COMPARE_OP_ALWAYS;
+        default:
+            log::panic("unsupported CompareOp: {}", fmt::underlying(op));
+    }
+}
+
+VkBlendFactor toVk(BlendFactor factor) {
+    switch (factor) {
+        case BlendFactor::zero:
+            return VK_BLEND_FACTOR_ZERO;
+        case BlendFactor::one:
+            return VK_BLEND_FACTOR_ONE;
+        case BlendFactor::srcColor:
+            return VK_BLEND_FACTOR_SRC_COLOR;
+        case BlendFactor::oneMinusSrcColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+        case BlendFactor::dstColor:
+            return VK_BLEND_FACTOR_DST_COLOR;
+        case BlendFactor::oneMinusDstColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+        case BlendFactor::srcAlpha:
+            return VK_BLEND_FACTOR_SRC_ALPHA;
+        case BlendFactor::oneMinusSrcAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        case BlendFactor::dstAlpha:
+            return VK_BLEND_FACTOR_DST_ALPHA;
+        case BlendFactor::oneMinusDstAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+        default:
+            log::panic("unsupported BlendFactor: {}", fmt::underlying(factor));
+    }
+}
+
+VkBlendOp toVk(BlendOp op) {
+    switch (op) {
+        case BlendOp::add:
+            return VK_BLEND_OP_ADD;
+        case BlendOp::subtract:
+            return VK_BLEND_OP_SUBTRACT;
+        case BlendOp::reverseSubtract:
+            return VK_BLEND_OP_REVERSE_SUBTRACT;
+        case BlendOp::min:
+            return VK_BLEND_OP_MIN;
+        case BlendOp::max:
+            return VK_BLEND_OP_MAX;
+        default:
+            log::panic("unsupported BlendOp: {}", fmt::underlying(op));
     }
 }
 

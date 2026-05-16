@@ -15,7 +15,9 @@ VKDevice::VKDevice(const Config& config, Window* window)
       m_pendingWorkloads(maxPendingWorkloads),
       m_bufferPool(64u),
       m_texturePool(64u),
-      m_renderPassPool(64u) {
+      m_renderPassPool(64u),
+      m_shaderPool(64u),
+      m_pipelinePool(64u) {
     IGNIS_PROFILE_FUNCTION();
 
     VKBootstrap bootstrap{config, window};
@@ -239,10 +241,56 @@ void VKDevice::destroyRenderPass(RenderPassHandle handle) {
 Result<ShaderHandle> VKDevice::createShader(
     const ShaderDescription& shaderDescription
 ) {
-    return Result<ShaderHandle>();
+    auto id = m_shaderPool.create([&](u32 slot) {
+        return ResourceWrapper{
+            VKShader{*this, shaderDescription},
+            ShaderHandle{slot},
+        };
+    });
+    if (not id) {
+        return Error::unexpected(
+            Error::Code::poolFull,
+            "Failed to create shader: shader pool is full"
+        );
+    }
+    return m_shaderPool.get(*id)->handle;
 }
 
-void VKDevice::destroyShader(ShaderHandle handle) {}
+void VKDevice::destroyShader(ShaderHandle handle) {
+    m_shaderPool.destroy(handle.id);
+}
+
+Result<PipelineHandle> VKDevice::createPipeline(
+    const PipelineDescription& pipelineDescription
+) {
+    auto id = m_pipelinePool.create([&](u32 slot) {
+        return ResourceWrapper{
+            VKPipeline{*this, pipelineDescription},
+            PipelineHandle{slot},
+        };
+    });
+    if (not id) {
+        return Error::unexpected(
+            Error::Code::poolFull,
+            "Failed to create pipeline: pipeline pool is full"
+        );
+    }
+    return m_pipelinePool.get(*id)->handle;
+}
+
+void VKDevice::destroyPipeline(PipelineHandle handle) {
+    m_pipelinePool.destroy(handle.id);
+}
+
+VKPipeline* VKDevice::findPipeline(PipelineHandle handle) {
+    if (auto wrapper = m_pipelinePool.get(handle.id); wrapper)
+        return &wrapper->resource;
+    log::warn(
+        "Failed to get pipeline: invalid pipeline handle: {}",
+        static_cast<u32>(handle.id)
+    );
+    return nullptr;
+}
 
 void VKDevice::destroyTexture(TextureHandle handle) {
     m_texturePool.destroy(handle.id);
@@ -274,6 +322,16 @@ VKRenderPass* VKDevice::findRenderPass(RenderPassHandle handle) {
         return &renderPassWrapper->resource;
     log::warn(
         "Failed to get render pass proxy: invalid render pass handle: {}",
+        static_cast<u32>(handle.id)
+    );
+    return nullptr;
+}
+
+VKShader* VKDevice::findShader(ShaderHandle handle) {
+    if (auto shaderWrapper = m_shaderPool.get(handle.id); shaderWrapper)
+        return &shaderWrapper->resource;
+    log::warn(
+        "Failed to get shader: invalid shader handle: {}",
         static_cast<u32>(handle.id)
     );
     return nullptr;

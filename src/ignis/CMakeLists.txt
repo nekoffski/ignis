@@ -42,6 +42,7 @@ add_library(ignis SHARED
     "rhi/vk/VKTexture.cpp"
     "rhi/vk/VKRenderPass.cpp"
     "rhi/vk/VKShader.cpp"
+    "rhi/vk/VKPipeline.cpp"
 )
 
 target_include_directories(ignis
