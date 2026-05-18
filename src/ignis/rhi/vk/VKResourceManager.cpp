@@ -6,11 +6,11 @@ namespace ignis::rhi {
 
 VKResourceManager::VKResourceManager(VKDevice& device, const Config& config)
     : m_device(device),
-      m_bufferPool(64u),
-      m_texturePool(64u),
-      m_renderPassPool(64u),
-      m_shaderPool(64u),
-      m_pipelinePool(64u) {}
+      m_bufferPool(config.renderer().maxBuffers),
+      m_texturePool(config.renderer().maxTextures),
+      m_renderPassPool(config.renderer().maxRenderPasses),
+      m_shaderPool(config.renderer().maxShaders),
+      m_pipelinePool(config.renderer().maxPipelines) {}
 
 Result<BufferHandle> VKResourceManager::create(const BufferDescription& desc) {
     auto id = m_bufferPool.create([&](u32 slot) {

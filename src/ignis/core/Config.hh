@@ -21,6 +21,9 @@ class Config {
         u64 maxTextures{128u};
         u64 maxBuffers{128u};
         u64 maxRenderGraphs{128u};
+        u64 maxPipelines{128u};
+        u64 maxShaders{128u};
+        u64 maxRenderPasses{128u};
     };
 
     struct Version {
