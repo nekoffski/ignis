@@ -1,6 +1,6 @@
 #include "Buffer.hh"
 
-#include "Device.hh"
+#include "ResourceManager.hh"
 
 namespace ignis::rhi {
 
@@ -17,7 +17,7 @@ BufferDescription BufferDescription::staging(u64 size) {
 }
 
 Opt<Error> BufferProxy::write(const void* data, const Range& range) {
-    if (auto* impl = m_device.proxy(m_handle); impl) {
+    if (auto* impl = m_resourceManager.proxy(m_handle); impl) {
         impl->write(data, range);
         return Error::empty();
     }
@@ -28,7 +28,7 @@ Opt<Error> BufferProxy::write(const void* data, const Range& range) {
 }
 
 Opt<Error> BufferProxy::read(void* data, const Range& range) {
-    if (auto* impl = m_device.proxy(m_handle); impl) {
+    if (auto* impl = m_resourceManager.proxy(m_handle); impl) {
         impl->read(data, range);
         return Error::empty();
     }
@@ -38,7 +38,7 @@ Opt<Error> BufferProxy::read(void* data, const Range& range) {
     };
 }
 
-BufferProxy::BufferProxy(Device& device, BufferHandle handle)
-    : m_device(device), m_handle(handle) {}
+BufferProxy::BufferProxy(ResourceManager& resourceManager, BufferHandle handle)
+    : m_resourceManager(resourceManager), m_handle(handle) {}
 
 }  // namespace ignis::rhi

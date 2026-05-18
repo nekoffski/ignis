@@ -9,9 +9,9 @@ namespace ignis::rhi {
 
 VKShader::VKShader(VKDevice& device, const ShaderDescription& desc)
     : m_device(device), m_desc(desc) {
-    createShaderModules(desc);
+    createModules(desc);
     createDescriptorSetLayouts(desc);
-    createPipelineLayout(desc);
+    createLayout(desc);
 }
 
 VKShader::~VKShader() {
@@ -51,7 +51,7 @@ const std::vector<VkDescriptorSetLayout>& VKShader::descriptorSetLayouts(
 
 const ShaderDescription& VKShader::description() const { return m_desc; }
 
-void VKShader::createShaderModules(const ShaderDescription& desc) {
+void VKShader::createModules(const ShaderDescription& desc) {
     m_modules.reserve(desc.stages.size());
     for (const auto& stage : desc.stages) {
         VkShaderModuleCreateInfo createInfo{};
@@ -105,7 +105,7 @@ void VKShader::createDescriptorSetLayouts(const ShaderDescription& desc) {
     }
 }
 
-void VKShader::createPipelineLayout(const ShaderDescription& desc) {
+void VKShader::createLayout(const ShaderDescription& desc) {
     std::vector<VkPushConstantRange> pushRanges;
     pushRanges.reserve(desc.pushConstants.size());
     for (const auto& pc : desc.pushConstants) {

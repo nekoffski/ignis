@@ -26,10 +26,10 @@ static u32 formatByteSize(Format fmt) {
 
 VKPipeline::VKPipeline(VKDevice& device, const PipelineDescription& desc)
     : m_device(device), m_desc(desc) {
-    auto* shader = device.findShader(desc.shader);
+    auto* shader = device.resources().find(desc.shader);
     if (not shader) log::panic("VKPipeline: invalid shader handle");
 
-    auto* renderPass = device.findRenderPass(desc.renderPass);
+    auto* renderPass = device.resources().find(desc.renderPass);
     if (not renderPass) log::panic("VKPipeline: invalid render pass handle");
 
     auto stages = buildShaderStages(*shader);
@@ -95,10 +95,11 @@ VKPipeline::VKPipeline(VKDevice& device, const PipelineDescription& desc)
 }
 
 VKPipeline::~VKPipeline() {
-    if (m_handle)
+    if (m_handle) {
         VK_TRACE(
             vkDestroyPipeline(m_device.device(), m_handle, m_device.allocator())
         );
+    }
 }
 
 VKPipeline::VKPipeline(VKPipeline&& oth) noexcept

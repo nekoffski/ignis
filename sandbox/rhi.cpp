@@ -34,14 +34,16 @@ int main(int argc, char** argv) {
     td.image.channels = 4;
     td.metadata.format = Format::r8g8b8a8unorm;
 
-    auto texture = device.createTexture(td);
+    auto texture = device.resources().create(td);
 
     // create staging buffer
     auto bd = BufferDescription::staging(size);
-    auto writeBuffer = device.createBuffer(bd);
-    auto readBuffer = device.createBuffer(bd);
+    auto writeBuffer = device.resources().create(bd);
+    auto readBuffer = device.resources().create(bd);
 
-    BufferProxy{device, *writeBuffer}.write(pixels.data(), Range{0, size});
+    BufferProxy{device.resources(), *writeBuffer}.write(
+        pixels.data(), Range{0, size}
+    );
 
     Workload workload{Queue::transfer};
 
@@ -73,7 +75,9 @@ int main(int argc, char** argv) {
     // read back data from buffer
     std::vector<u8> readback(size, 255u);
 
-    BufferProxy{device, *readBuffer}.read(readback.data(), Range{0, size});
+    BufferProxy{device.resources(), *readBuffer}.read(
+        readback.data(), Range{0, size}
+    );
 
     {
         IGNIS_PROFILE_REGION("image-save");

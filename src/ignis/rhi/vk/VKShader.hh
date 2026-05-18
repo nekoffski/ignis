@@ -25,9 +25,9 @@ class VKShader : public NonCopyable {
     const ShaderDescription& description() const;
 
    private:
-    void createShaderModules(const ShaderDescription& desc);
+    void createModules(const ShaderDescription& desc);
     void createDescriptorSetLayouts(const ShaderDescription& desc);
-    void createPipelineLayout(const ShaderDescription& desc);
+    void createLayout(const ShaderDescription& desc);
 
     VKDevice& m_device;
     ShaderDescription m_desc;

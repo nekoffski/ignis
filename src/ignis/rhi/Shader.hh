@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "Buffer.hh"
 #include "ResourceHandle.hh"
 #include "Texture.hh"
 #include "ignis/core/Enum.hh"
@@ -56,6 +57,19 @@ struct ShaderDescription {
     std::vector<DescriptorBinding> bindings;
     std::vector<PushConstantRange> pushConstants;
     std::vector<VertexAttribute> vertexAttributes;
+};
+
+struct BindGroup {
+    template <typename T>
+    struct Binding {
+        T resource;
+        u32 set;
+        u32 binding;
+    };
+
+    std::vector<u8> pushConstantData;
+    std::vector<Binding<BufferHandle>> buffers;
+    std::vector<Binding<TextureHandle>> textures;
 };
 
 using ShaderHandle = ResourceHandle<ResourceType::shader>;

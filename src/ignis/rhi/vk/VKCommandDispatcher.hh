@@ -15,7 +15,7 @@
 
 namespace ignis::rhi {
 
-class VKDevice;
+class VKResourceManager;
 class VKCommandDispatcher;
 class VKCommandContext;
 
@@ -63,13 +63,16 @@ class VKCommandContext : public NonCopyable, public NonMovable {
     std::unordered_map<BufferHandle, VKBuffer*> m_buffers;
     std::unordered_map<PipelineHandle, VKPipeline*> m_pipelines;
 
-    Opt<Error> consume(const VKCommandManifest& manifest, VKDevice& device);
+    Opt<Error> consume(
+        const VKCommandManifest& manifest, VKResourceManager& resourceManager
+    );
 };
 
 class VKCommandDispatcher : public NonCopyable, public NonMovable {
    public:
     explicit VKCommandDispatcher(
-        VKDevice& device, VkCommandBuffer cmdBuffer, Queue targetQueue
+        VKResourceManager& resourceManager, VkCommandBuffer cmdBuffer,
+        Queue targetQueue
     );
 
     Opt<Error> dispatch(const Command& command);
@@ -82,7 +85,7 @@ class VKCommandDispatcher : public NonCopyable, public NonMovable {
     Opt<Error> preprocessCommands(std::span<const Command> commands);
     Opt<Error> preprocessCommand(const Command& command);
 
-    VKDevice& m_device;
+    VKResourceManager& m_resourceManager;
     VkCommandBuffer m_cmdBuffer;
     Queue m_targetQueue;
 

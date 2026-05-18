@@ -13,11 +13,7 @@ VKDevice::VKDevice(const Config& config, Window* window)
     : m_cfg(config),
       m_window(window),
       m_pendingWorkloads(maxPendingWorkloads),
-      m_bufferPool(64u),
-      m_texturePool(64u),
-      m_renderPassPool(64u),
-      m_shaderPool(64u),
-      m_pipelinePool(64u) {
+      m_resourceManager(*this, config) {
     IGNIS_PROFILE_FUNCTION();
 
     VKBootstrap bootstrap{config, window};
@@ -105,8 +101,10 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
         }
     }
 
-    auto err = workload->commandBuffer().with([&](auto handle, auto q) {
-        return VKCommandDispatcher{*this, handle, q}.dispatch(wl.commands());
+    auto err = workload->commandBuffer().with([&](auto handle, auto queue) {
+        return VKCommandDispatcher{m_resourceManager, handle, queue}.dispatch(
+            wl.commands()
+        );
     });
 
     if (err) {
@@ -165,177 +163,6 @@ Allocator VKDevice::allocator() const { return m_allocator; }
 VKDeviceInfo VKDevice::deviceInfo() const { return m_deviceInfo; }
 
 const VKCommandPools& VKDevice::commandPools() const { return *m_commandPools; }
-
-Result<BufferHandle> VKDevice::createBuffer(const BufferDescription& desc) {
-    auto id = m_bufferPool.create([&](u32 slot) {
-        return ResourceWrapper{
-            VKBuffer{
-                *this,
-                desc,
-            },
-            BufferHandle{slot},
-        };
-    });
-
-    if (not id) {
-        return Error::unexpected(
-            Error::Code::poolFull,
-            "Failed to create buffer: buffer pool is full"
-        );
-    }
-    return m_bufferPool.get(*id)->handle;
-}
-
-void VKDevice::destroyBuffer(BufferHandle handle) {
-    m_bufferPool.destroy(handle.id);
-}
-
-Result<TextureHandle> VKDevice::createTexture(
-    const TextureDescription& definition
-) {
-    auto id = m_texturePool.create([&](u32 slot) {
-        return ResourceWrapper{
-            VKTexture{
-                *this,
-                definition.image,
-                definition.metadata,
-                definition.sampler,
-            },
-            TextureHandle{slot},
-        };
-    });
-    if (not id) {
-        return Error::unexpected(
-            Error::Code::poolFull,
-            "Failed to create texture: texture pool is full"
-        );
-    }
-    return m_texturePool.get(*id)->handle;
-}
-
-Result<RenderPassHandle> VKDevice::createRenderPass(
-    const RenderPassDescription& desc
-) {
-    auto id = m_renderPassPool.create([&](u32 slot) {
-        return ResourceWrapper{
-            VKRenderPass{
-                *this,
-                desc,
-            },
-            RenderPassHandle{slot},
-        };
-    });
-    if (not id) {
-        return Error::unexpected(
-            Error::Code::poolFull,
-            "Failed to create render pass: render pass pool is full"
-        );
-    }
-    return m_renderPassPool.get(*id)->handle;
-}
-
-void VKDevice::destroyRenderPass(RenderPassHandle handle) {
-    m_renderPassPool.destroy(handle.id);
-}
-
-Result<ShaderHandle> VKDevice::createShader(
-    const ShaderDescription& shaderDescription
-) {
-    auto id = m_shaderPool.create([&](u32 slot) {
-        return ResourceWrapper{
-            VKShader{*this, shaderDescription},
-            ShaderHandle{slot},
-        };
-    });
-    if (not id) {
-        return Error::unexpected(
-            Error::Code::poolFull,
-            "Failed to create shader: shader pool is full"
-        );
-    }
-    return m_shaderPool.get(*id)->handle;
-}
-
-void VKDevice::destroyShader(ShaderHandle handle) {
-    m_shaderPool.destroy(handle.id);
-}
-
-Result<PipelineHandle> VKDevice::createPipeline(
-    const PipelineDescription& pipelineDescription
-) {
-    auto id = m_pipelinePool.create([&](u32 slot) {
-        return ResourceWrapper{
-            VKPipeline{*this, pipelineDescription},
-            PipelineHandle{slot},
-        };
-    });
-    if (not id) {
-        return Error::unexpected(
-            Error::Code::poolFull,
-            "Failed to create pipeline: pipeline pool is full"
-        );
-    }
-    return m_pipelinePool.get(*id)->handle;
-}
-
-void VKDevice::destroyPipeline(PipelineHandle handle) {
-    m_pipelinePool.destroy(handle.id);
-}
-
-VKPipeline* VKDevice::findPipeline(PipelineHandle handle) {
-    if (auto wrapper = m_pipelinePool.get(handle.id); wrapper)
-        return &wrapper->resource;
-    log::warn(
-        "Failed to get pipeline: invalid pipeline handle: {}",
-        static_cast<u32>(handle.id)
-    );
-    return nullptr;
-}
-
-void VKDevice::destroyTexture(TextureHandle handle) {
-    m_texturePool.destroy(handle.id);
-}
-
-VKTexture* VKDevice::findTexture(TextureHandle handle) {
-    if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper)
-        return &textureWrapper->resource;
-    log::warn(
-        "Failed to get texture proxy: invalid texture handle: {}",
-        static_cast<u32>(handle.id)
-    );
-    return nullptr;
-}
-
-VKBuffer* VKDevice::findBuffer(BufferHandle handle) {
-    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
-        return &bufferWrapper->resource;
-    log::warn(
-        "Failed to get buffer proxy: invalid buffer handle: {}",
-        static_cast<u32>(handle.id)
-    );
-    return nullptr;
-}
-
-VKRenderPass* VKDevice::findRenderPass(RenderPassHandle handle) {
-    if (auto renderPassWrapper = m_renderPassPool.get(handle.id);
-        renderPassWrapper)
-        return &renderPassWrapper->resource;
-    log::warn(
-        "Failed to get render pass proxy: invalid render pass handle: {}",
-        static_cast<u32>(handle.id)
-    );
-    return nullptr;
-}
-
-VKShader* VKDevice::findShader(ShaderHandle handle) {
-    if (auto shaderWrapper = m_shaderPool.get(handle.id); shaderWrapper)
-        return &shaderWrapper->resource;
-    log::warn(
-        "Failed to get shader: invalid shader handle: {}",
-        static_cast<u32>(handle.id)
-    );
-    return nullptr;
-}
 
 Opt<i32> VKDevice::findMemoryIndex(
     u32 typeFilter, MemoryProperty memoryProperty
@@ -396,11 +223,6 @@ u32 VKDevice::queueIndex(Queue type) const {
     return m_deviceInfo.queueIndices.at(type);
 }
 
-BufferProxy::Impl* VKDevice::proxy(BufferHandle handle) {
-    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
-        return &bufferWrapper->resource;
-    log::error("Failed to get buffer proxy: invalid buffer handle");
-    return nullptr;
-}
+VKResourceManager& VKDevice::resources() { return m_resourceManager; }
 
 }  // namespace ignis::rhi

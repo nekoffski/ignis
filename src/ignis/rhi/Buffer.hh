@@ -61,7 +61,7 @@ struct BufferDescription {
     static BufferDescription staging(u64 size);
 };
 
-class Device;
+class ResourceManager;
 
 class BufferProxy {
    public:
@@ -76,10 +76,10 @@ class BufferProxy {
     Opt<Error> write(const void* data, const Range& range);
     Opt<Error> read(void* data, const Range& range);
 
-    explicit BufferProxy(Device& device, BufferHandle handle);
+    explicit BufferProxy(ResourceManager& resourceManager, BufferHandle handle);
 
    private:
-    Device& m_device;
+    ResourceManager& m_resourceManager;
     BufferHandle m_handle;
 };
 

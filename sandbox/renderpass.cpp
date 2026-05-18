@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     textureDesc.metadata.usage =
         TextureUsage::colorAttachment | TextureUsage::transferSrc;
 
-    auto texture = device.createTexture(textureDesc);
+    auto texture = device.resources().create(textureDesc);
 
     // create render pass
     RenderPassDescription renderPassDesc{
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
         .depthAttachment = std::nullopt,
 
     };
-    auto renderPass = device.createRenderPass(renderPassDesc);
+    auto renderPass = device.resources().create(renderPassDesc);
 
     Workload workload{Queue::graphics};
     Workload downloadWorkload{Queue::transfer};
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 
     // create buffer for readback
     auto bufferDesc = BufferDescription::staging(128u * 128u * 4u);
-    auto buffer = device.createBuffer(bufferDesc);
+    auto buffer = device.resources().create(bufferDesc);
 
     downloadWorkload.enqueue(CmdDownloadTextureToBuffer{
         .from = *texture,
@@ -100,7 +100,9 @@ int main(int argc, char** argv) {
 
     // copy data to buffer
     std::vector<u8> readback(bufferDesc.size);
-    BufferProxy{device, *buffer}.read(readback.data(), {0, bufferDesc.size});
+    BufferProxy{device.resources(), *buffer}.read(
+        readback.data(), {0, bufferDesc.size}
+    );
 
     {
         IGNIS_PROFILE_REGION("image-save");

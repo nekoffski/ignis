@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    auto shader = device.createShader(*shaderDescription);
+    auto shader = device.resources().create(*shaderDescription);
     if (not shader) {
         log::error("Failed to create shader: {}", shader.error().message());
         return 1;
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     textureDesc.metadata.usage =
         TextureUsage::colorAttachment | TextureUsage::transferSrc;
 
-    auto texture = device.createTexture(textureDesc);
+    auto texture = device.resources().create(textureDesc);
     if (not texture) {
         log::error("Failed to create texture: {}", texture.error().message());
         return 1;
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
         .depthAttachment = std::nullopt,
     };
 
-    auto renderPass = device.createRenderPass(renderPassDesc);
+    auto renderPass = device.resources().create(renderPassDesc);
     if (not renderPass) {
         log::error(
             "Failed to create render pass: {}", renderPass.error().message()
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
         .blendAttachments = {BlendAttachment{}},
     };
 
-    auto pipeline = device.createPipeline(pipelineDesc);
+    auto pipeline = device.resources().create(pipelineDesc);
     if (not pipeline) {
         log::error("Failed to create pipeline: {}", pipeline.error().message());
         return 1;
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
     }
 
     auto bufferDesc = BufferDescription::staging(width * height * 4u);
-    auto buffer = device.createBuffer(bufferDesc);
+    auto buffer = device.resources().create(bufferDesc);
     if (not buffer) {
         log::error("Failed to create buffer: {}", buffer.error().message());
         return 1;
@@ -151,7 +151,9 @@ int main(int argc, char** argv) {
     }
 
     std::vector<u8> readback(bufferDesc.size);
-    BufferProxy{device, *buffer}.read(readback.data(), {0, bufferDesc.size});
+    BufferProxy{device.resources(), *buffer}.read(
+        readback.data(), {0, bufferDesc.size}
+    );
 
     auto err = ImageWriter{"triangle.png"}.write({
         .pixels = readback.data(),

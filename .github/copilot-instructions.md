@@ -66,7 +66,7 @@ No exceptions. Use:
 - `log::expect(cond, ...)` for assertion-style checks
 
 ```cpp
-Result<Buffer> createBuffer(...);       // may fail, returns value
+Result<Buffer> create(...);       // may fail, returns value
 Opt<Error>         uploadData(...);         // may fail, no value
 ```
 

@@ -1,7 +1,7 @@
 #include "VKCommandDispatcher.hh"
 
 #include "VKCommands.hh"
-#include "VKDevice.hh"
+#include "VKResourceManager.hh"
 #include "ignis/core/Functional.hh"
 
 namespace ignis::rhi {
@@ -48,9 +48,10 @@ const std::unordered_set<PipelineHandle>& VKCommandManifest::pipelines() const {
 }
 
 VKCommandDispatcher::VKCommandDispatcher(
-    VKDevice& device, VkCommandBuffer cmdBuffer, Queue targetQueue
+    VKResourceManager& resourceManager, VkCommandBuffer cmdBuffer,
+    Queue targetQueue
 )
-    : m_device(device),
+    : m_resourceManager(resourceManager),
       m_cmdBuffer(cmdBuffer),
       m_targetQueue(targetQueue),
       m_context(cmdBuffer) {}
@@ -86,7 +87,7 @@ Opt<Error> VKCommandDispatcher::preprocessCommands(
         }
     }
 
-    if (auto err = m_context.consume(m_manifest, m_device); err) {
+    if (auto err = m_context.consume(m_manifest, m_resourceManager); err) {
         log::error("Failed to preprocess commands: {}", err->message());
         return err;
     }
@@ -137,10 +138,10 @@ VKPipeline& VKCommandContext::resource(PipelineHandle handle) const {
 VkCommandBuffer VKCommandContext::cmdBuffer() const { return m_cmdBuffer; }
 
 Opt<Error> VKCommandContext::consume(
-    const VKCommandManifest& manifest, VKDevice& device
+    const VKCommandManifest& manifest, VKResourceManager& resourceManager
 ) {
     for (const auto& renderPassHandle : manifest.renderPasses()) {
-        auto renderPass = device.findRenderPass(renderPassHandle);
+        auto renderPass = resourceManager.find(renderPassHandle);
         if (not renderPass) {
             return Error{
                 Error::Code::resourceMissing,
@@ -152,7 +153,7 @@ Opt<Error> VKCommandContext::consume(
     }
 
     for (const auto& textureHandle : manifest.textures()) {
-        auto texture = device.findTexture(textureHandle);
+        auto texture = resourceManager.find(textureHandle);
         if (not texture) {
             return Error{
                 Error::Code::resourceMissing,
@@ -164,7 +165,7 @@ Opt<Error> VKCommandContext::consume(
     }
 
     for (const auto& bufferHandle : manifest.buffers()) {
-        auto buffer = device.findBuffer(bufferHandle);
+        auto buffer = resourceManager.find(bufferHandle);
         if (not buffer) {
             return Error{
                 Error::Code::resourceMissing, "Buffer with handle {} not found",
@@ -175,7 +176,7 @@ Opt<Error> VKCommandContext::consume(
     }
 
     for (const auto& pipelineHandle : manifest.pipelines()) {
-        auto pipeline = device.findPipeline(pipelineHandle);
+        auto pipeline = resourceManager.find(pipelineHandle);
         if (not pipeline) {
             return Error{
                 Error::Code::resourceMissing,
