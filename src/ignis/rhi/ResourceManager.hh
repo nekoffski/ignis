@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BindGroup.hh"
 #include "Buffer.hh"
 #include "Pipeline.hh"
 #include "RenderPass.hh"
@@ -41,8 +42,14 @@ class ResourceManager : public virtual NonCopyable, public virtual NonMovable {
     ) = 0;
     virtual void destroy(PipelineHandle handle) = 0;
 
+    virtual Result<BindGroupHandle> create(
+        const BindGroupDescription& bindGroupDescription
+    ) = 0;
+    virtual void destroy(BindGroupHandle handle) = 0;
+
    private:
     virtual BufferProxy::Impl* proxy(BufferHandle handle) = 0;
+    virtual BindGroupProxy::Impl* proxy(BindGroupHandle handle) = 0;
 };
 
 }  // namespace ignis::rhi

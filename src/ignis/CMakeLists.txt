@@ -29,6 +29,7 @@ add_library(ignis SHARED
     "rhi/Queue.cpp"
     "rhi/RenderPass.cpp"
     "rhi/Shader.cpp"
+    "rhi/BindGroup.cpp"
     # -- rhi/vk
     "rhi/vk/VK.cpp"
     "rhi/vk/VKBuffer.cpp"
@@ -44,6 +45,7 @@ add_library(ignis SHARED
     "rhi/vk/VKShader.cpp"
     "rhi/vk/VKPipeline.cpp"
     "rhi/vk/VKResourceManager.cpp"
+    "rhi/vk/VKBindGroup.cpp"
 )
 
 target_include_directories(ignis

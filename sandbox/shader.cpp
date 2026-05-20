@@ -38,6 +38,14 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    auto bindGroup = device.resources().create(BindGroupDescription{*shader});
+    if (not bindGroup) {
+        log::error(
+            "Failed to create bind group: {}", bindGroup.error().message()
+        );
+        return 1;
+    }
+
     constexpr u32 width = 512u;
     constexpr u32 height = 512u;
     constexpr Format colorFormat = Format::r8g8b8a8unorm;

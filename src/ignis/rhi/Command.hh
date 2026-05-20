@@ -5,6 +5,7 @@
 #include "Queue.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
+#include "ignis/rhi/BindGroup.hh"
 #include "ignis/rhi/Buffer.hh"
 #include "ignis/rhi/Pipeline.hh"
 #include "ignis/rhi/RenderPass.hh"
@@ -77,6 +78,12 @@ struct CmdDraw : public CommandBase<CommandType::draw, Queue::graphics> {
     u32 instanceCount{1};
     u32 firstVertex{0};
     u32 firstInstance{0};
+};
+
+struct CmdBindBindGroup
+    : public CommandBase<CommandType::bindPipeline, Queue::graphics> {
+    BindGroupHandle bindGroup;
+    PipelineHandle pipeline;
 };
 
 using Command = std::variant<

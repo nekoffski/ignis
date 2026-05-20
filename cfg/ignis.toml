@@ -15,6 +15,7 @@ maxBuffers = 128
 maxPipelines = 16
 maxRenderPasses = 32
 maxShaders = 32
+maxBindGroups = 64
 
 [asset]
 path = "../sandbox/res"

@@ -59,19 +59,6 @@ struct ShaderDescription {
     std::vector<VertexAttribute> vertexAttributes;
 };
 
-struct BindGroup {
-    template <typename T>
-    struct Binding {
-        T resource;
-        u32 set;
-        u32 binding;
-    };
-
-    std::vector<u8> pushConstantData;
-    std::vector<Binding<BufferHandle>> buffers;
-    std::vector<Binding<TextureHandle>> textures;
-};
-
 using ShaderHandle = ResourceHandle<ResourceType::shader>;
 
 std::string shaderStageToString(ShaderStageType stage);

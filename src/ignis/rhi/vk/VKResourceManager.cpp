@@ -10,7 +10,8 @@ VKResourceManager::VKResourceManager(VKDevice& device, const Config& config)
       m_texturePool(config.renderer().maxTextures),
       m_renderPassPool(config.renderer().maxRenderPasses),
       m_shaderPool(config.renderer().maxShaders),
-      m_pipelinePool(config.renderer().maxPipelines) {}
+      m_pipelinePool(config.renderer().maxPipelines),
+      m_bindGroupPool(config.renderer().maxBindGroups) {}
 
 Result<BufferHandle> VKResourceManager::create(const BufferDescription& desc) {
     auto id = m_bufferPool.create([&](u32 slot) {
@@ -142,6 +143,37 @@ void VKResourceManager::destroy(TextureHandle handle) {
     m_texturePool.destroy(handle.id);
 }
 
+Result<BindGroupHandle> VKResourceManager::create(
+    const BindGroupDescription& bindGroupDescription
+) {
+    auto* shader = find(bindGroupDescription.shader);
+    if (not shader) {
+        return Error::unexpected(
+            Error::Code::invalidArgument,
+            "Failed to create bind group: invalid shader handle: {}",
+            static_cast<u32>(bindGroupDescription.shader.id)
+        );
+    }
+
+    auto id = m_bindGroupPool.create([&](u32 slot) {
+        return ResourceWrapper{
+            VKBindGroup{m_device, *shader},
+            BindGroupHandle{slot},
+        };
+    });
+    if (not id) {
+        return Error::unexpected(
+            Error::Code::poolFull,
+            "Failed to create bind group: bind group pool is full"
+        );
+    }
+    return m_bindGroupPool.get(*id)->handle;
+}
+
+void VKResourceManager::destroy(BindGroupHandle handle) {
+    m_bindGroupPool.destroy(handle.id);
+}
+
 VKTexture* VKResourceManager::find(TextureHandle handle) {
     if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper)
         return &textureWrapper->resource;
@@ -183,11 +215,24 @@ VKShader* VKResourceManager::find(ShaderHandle handle) {
     return nullptr;
 }
 
-BufferProxy::Impl* VKResourceManager::proxy(BufferHandle handle) {
-    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
-        return &bufferWrapper->resource;
-    log::error("Failed to get buffer proxy: invalid buffer handle");
+VKBindGroup* VKResourceManager::find(BindGroupHandle handle) {
+    if (auto bindGroupWrapper = m_bindGroupPool.get(handle.id);
+        bindGroupWrapper) {
+        return &bindGroupWrapper->resource;
+    }
+    log::warn(
+        "Failed to get bind group: invalid bind group handle: {}",
+        static_cast<u32>(handle.id)
+    );
     return nullptr;
+}
+
+BufferProxy::Impl* VKResourceManager::proxy(BufferHandle handle) {
+    return find(handle);
+}
+
+BindGroupProxy::Impl* VKResourceManager::proxy(BindGroupHandle handle) {
+    return find(handle);
 }
 
 }  // namespace ignis::rhi

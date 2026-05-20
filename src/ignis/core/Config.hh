@@ -24,6 +24,7 @@ class Config {
         u64 maxPipelines{128u};
         u64 maxShaders{128u};
         u64 maxRenderPasses{128u};
+        u64 maxBindGroups{128u};
     };
 
     struct Version {

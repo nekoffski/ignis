@@ -63,7 +63,7 @@ struct BufferDescription {
 
 class ResourceManager;
 
-class BufferProxy {
+class BufferProxy : public NonCopyable {
    public:
     class Impl : public virtual NonCopyable {
        public:
