@@ -23,6 +23,9 @@ enum class CommandType : u8 {
     setViewport,
     setScissor,
     draw,
+    drawIndexed,
+    bindVertexBuffer,
+    bindIndexBuffer,
 };
 
 template <CommandType Type, Queue TargetQueue>
@@ -81,15 +84,37 @@ struct CmdDraw : public CommandBase<CommandType::draw, Queue::graphics> {
     u32 firstInstance{0};
 };
 
+struct CmdDrawIndexed
+    : public CommandBase<CommandType::drawIndexed, Queue::graphics> {
+    u32 indexCount;
+    u32 instanceCount{1};
+    u32 firstIndex{0};
+    i32 vertexOffset{0};
+    u32 firstInstance{0};
+};
+
 struct CmdBindBindGroup
     : public CommandBase<CommandType::bindBindGroup, Queue::graphics> {
     BindGroupHandle bindGroup;
 };
 
+struct CmdBindVertexBuffer
+    : public CommandBase<CommandType::bindVertexBuffer, Queue::graphics> {
+    BufferHandle buffer;
+    u64 offset{0};
+};
+
+struct CmdBindIndexBuffer
+    : public CommandBase<CommandType::bindIndexBuffer, Queue::graphics> {
+    BufferHandle buffer;
+    u64 offset{0};
+};
+
 using Command = std::variant<
     CmdUploadBufferToTexture, CmdDownloadTextureToBuffer, CmdBeginRenderPass,
     CmdEndRenderPass, CmdBindPipeline, CmdBindBindGroup, CmdSetViewport,
-    CmdSetScissor, CmdDraw>;
+    CmdSetScissor, CmdDraw, CmdDrawIndexed, CmdBindVertexBuffer,
+    CmdBindIndexBuffer>;
 
 template <typename T>
 concept CommandConcept = requires {

@@ -67,6 +67,24 @@ Opt<Error> preprocessCommand(VKCommandManifest&, const CmdSetScissor&) {
     return Error::empty();
 }
 
+Opt<Error> preprocessCommand(VKCommandManifest&, const CmdDrawIndexed&) {
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindVertexBuffer& cmd
+) {
+    manifest.add(cmd.buffer);
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindIndexBuffer& cmd
+) {
+    manifest.add(cmd.buffer);
+    return Error::empty();
+}
+
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdUploadBufferToTexture& cmd
 ) {
@@ -194,6 +212,38 @@ Opt<Error> recordCommand(
     };
     vkCmdSetScissor(ctx.cmdBuffer(), 0, 1, &scissor);
 
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdDrawIndexed& cmd
+) {
+    vkCmdDrawIndexed(
+        ctx.cmdBuffer(), cmd.indexCount, cmd.instanceCount, cmd.firstIndex,
+        cmd.vertexOffset, cmd.firstInstance
+    );
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindVertexBuffer& cmd
+) {
+    auto& buffer = ctx.resource(cmd.buffer);
+    auto vkBuffer = buffer.handle();
+    auto offset = cmd.offset;
+
+    vkCmdBindVertexBuffers(ctx.cmdBuffer(), 0, 1, &vkBuffer, &offset);
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindIndexBuffer& cmd
+) {
+    auto& buffer = ctx.resource(cmd.buffer);
+    auto vkBuffer = buffer.handle();
+    vkCmdBindIndexBuffer(
+        ctx.cmdBuffer(), vkBuffer, cmd.offset, VK_INDEX_TYPE_UINT32
+    );
     return Error::empty();
 }
 

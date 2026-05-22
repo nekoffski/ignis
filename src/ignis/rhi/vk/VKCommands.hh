@@ -29,6 +29,15 @@ Opt<Error> preprocessCommand(
 Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdSetScissor& cmd
 );
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdDrawIndexed& cmd
+);
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindVertexBuffer& cmd
+);
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindIndexBuffer& cmd
+);
 
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdUploadBufferToTexture& cmd
@@ -53,5 +62,14 @@ Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdSetViewport& cmd
 );
 Opt<Error> recordCommand(const VKCommandContext& ctx, const CmdSetScissor& cmd);
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdDrawIndexed& cmd
+);
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindVertexBuffer& cmd
+);
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindIndexBuffer& cmd
+);
 
 }  // namespace ignis::rhi

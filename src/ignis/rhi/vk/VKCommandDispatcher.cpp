@@ -250,6 +250,15 @@ Opt<Error> VKCommandDispatcher::recordCommand(const Command& command) {
         [&](const CmdSetScissor& cmd) -> Opt<Error> {
             return rhi::recordCommand(m_context, cmd);
         },
+        [&](const CmdDrawIndexed& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdBindVertexBuffer& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdBindIndexBuffer& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
     };
     return std::visit(std::move(visitor), command);
 }
@@ -289,6 +298,18 @@ Opt<Error> VKCommandDispatcher::preprocessCommand(const Command& command) {
             return rhi::preprocessCommand(m_manifest, cmd);
         },
         [&](const CmdSetScissor& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdDrawIndexed& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdBindVertexBuffer& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdBindIndexBuffer& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
             return rhi::preprocessCommand(m_manifest, cmd);
         },

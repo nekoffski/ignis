@@ -7,6 +7,7 @@
 #include "ignis/core/Log.hh"
 #include "ignis/core/Profiler.hh"
 #include "ignis/core/Scope.hh"
+#include "ignis/core/Vertex.hh"
 
 int main(int argc, char** argv) {
     using namespace ignis;
@@ -22,6 +23,37 @@ int main(int argc, char** argv) {
     auto config = Config::fromFile(argv[1]);
     Engine engine{config};
     auto& device = engine.device();
+
+    // index/vertex buffers
+    std::array<Vertex, 3> vertices = {{
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+    }};
+    std::array<u32, 3> indices = {0, 1, 2};
+
+    auto vbDesc = BufferDescription{
+        .size = sizeof(vertices),
+        .usage = BufferUsage::vertexBuffer,
+        .memoryProperty =
+            MemoryProperty::hostVisible | MemoryProperty::hostCoherent,
+    };
+    auto vertexBuffer = device.resources().create(vbDesc);
+
+    auto ibDesc = BufferDescription{
+        .size = sizeof(indices),
+        .usage = BufferUsage::indexBuffer,
+        .memoryProperty =
+            MemoryProperty::hostVisible | MemoryProperty::hostCoherent,
+    };
+    auto indexBuffer = device.resources().create(ibDesc);
+
+    BufferProxy{device.resources(), *vertexBuffer}.write(
+        vertices.data(), {0, sizeof(vertices)}
+    );
+    BufferProxy{device.resources(), *indexBuffer}.write(
+        indices.data(), {0, sizeof(indices)}
+    );
 
     auto shaderDescription = ShaderParser{}.parseFile("triangle.igshader");
     if (not shaderDescription) {
@@ -117,7 +149,7 @@ int main(int argc, char** argv) {
         .clearColor = {0.1f, 0.1f, 0.1f, 1.f},
     });
     BindGroupProxy bgp{device.resources(), *bindGroup};
-    Vec4 tint{0.5f, 0.1f, 0.1f, 1.0f};
+    Vec4 tint{1.0f, 1.0f, 1.0f, 1.0f};
 
     if (auto err = bgp.set({.offset = 0, .size = sizeof(Vec4)}, &tint); err) {
         log::error("Failed to set push constant: {}", err->message());
@@ -126,7 +158,9 @@ int main(int argc, char** argv) {
 
     workload.enqueue(CmdBindPipeline{.pipeline = *pipeline});
     workload.enqueue(CmdBindBindGroup{.bindGroup = *bindGroup});
-    workload.enqueue(CmdDraw{.vertexCount = 3});
+    workload.enqueue(CmdBindVertexBuffer{.buffer = *vertexBuffer});
+    workload.enqueue(CmdBindIndexBuffer{.buffer = *indexBuffer});
+    workload.enqueue(CmdDrawIndexed{.indexCount = 3});
     workload.enqueue(CmdEndRenderPass{.renderPass = *renderPass});
 
     auto wlReceipt = device.submit(workload);
