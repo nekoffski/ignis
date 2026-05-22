@@ -19,6 +19,9 @@ Opt<Error> preprocessCommand(
 Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdBindPipeline& cmd
 );
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindBindGroup& cmd
+);
 Opt<Error> preprocessCommand(VKCommandManifest& manifest, const CmdDraw& cmd);
 Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdSetViewport& cmd
@@ -41,6 +44,9 @@ Opt<Error> recordCommand(
 );
 Opt<Error> recordCommand(
     const VKCommandContext& ctx, const CmdBindPipeline& cmd
+);
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindBindGroup& cmd
 );
 Opt<Error> recordCommand(const VKCommandContext& ctx, const CmdDraw& cmd);
 Opt<Error> recordCommand(

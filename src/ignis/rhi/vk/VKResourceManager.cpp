@@ -6,12 +6,48 @@ namespace ignis::rhi {
 
 VKResourceManager::VKResourceManager(VKDevice& device, const Config& config)
     : m_device(device),
+      m_maxBindGroups(static_cast<u32>(config.renderer().maxBindGroups)),
       m_bufferPool(config.renderer().maxBuffers),
       m_texturePool(config.renderer().maxTextures),
       m_renderPassPool(config.renderer().maxRenderPasses),
       m_shaderPool(config.renderer().maxShaders),
       m_pipelinePool(config.renderer().maxPipelines),
       m_bindGroupPool(config.renderer().maxBindGroups) {}
+
+void VKResourceManager::ensureDescriptorPool() {
+    if (not m_descriptorPool.empty()) return;
+
+    auto maxGroups = m_maxBindGroups;
+
+    std::array<VkDescriptorPoolSize, 5> sizes{{
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, maxGroups * 8},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, maxGroups * 8},
+        {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, maxGroups * 8},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, maxGroups * 4},
+        {VK_DESCRIPTOR_TYPE_SAMPLER, maxGroups * 4},
+    }};
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets = maxGroups * 8;
+    poolInfo.poolSizeCount = static_cast<u32>(sizes.size());
+    poolInfo.pPoolSizes = sizes.data();
+
+    VkDescriptorPool pool = VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateDescriptorPool(
+        m_device.device(), &poolInfo, m_device.allocator(), &pool
+    ));
+
+    m_descriptorPool =
+        Scoped<VkDescriptorPool>(pool, [this](VkDescriptorPool& p) {
+            if (p != VK_NULL_HANDLE) {
+                VK_TRACE(vkDestroyDescriptorPool(
+                    m_device.device(), p, m_device.allocator()
+                ));
+            }
+        });
+}
 
 Result<BufferHandle> VKResourceManager::create(const BufferDescription& desc) {
     auto id = m_bufferPool.create([&](u32 slot) {
@@ -155,9 +191,11 @@ Result<BindGroupHandle> VKResourceManager::create(
         );
     }
 
+    ensureDescriptorPool();
+
     auto id = m_bindGroupPool.create([&](u32 slot) {
         return ResourceWrapper{
-            VKBindGroup{m_device, *shader},
+            VKBindGroup{m_device, *shader, *m_descriptorPool},
             BindGroupHandle{slot},
         };
     });

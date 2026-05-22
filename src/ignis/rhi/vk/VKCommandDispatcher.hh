@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "VK.hh"
+#include "VKBindGroup.hh"
 #include "VKBuffer.hh"
 #include "VKPipeline.hh"
 #include "VKRenderPass.hh"
@@ -29,17 +30,20 @@ class VKCommandManifest : public NonCopyable, public NonMovable {
     VKCommandManifest& add(TextureHandle handle);
     VKCommandManifest& add(BufferHandle handle);
     VKCommandManifest& add(PipelineHandle handle);
+    VKCommandManifest& add(BindGroupHandle handle);
 
     const std::unordered_set<RenderPassHandle>& renderPasses() const;
     const std::unordered_set<TextureHandle>& textures() const;
     const std::unordered_set<BufferHandle>& buffers() const;
     const std::unordered_set<PipelineHandle>& pipelines() const;
+    const std::unordered_set<BindGroupHandle>& bindGroups() const;
 
    private:
     std::unordered_set<RenderPassHandle> m_renderPasses;
     std::unordered_set<TextureHandle> m_textures;
     std::unordered_set<BufferHandle> m_buffers;
     std::unordered_set<PipelineHandle> m_pipelines;
+    std::unordered_set<BindGroupHandle> m_bindGroups;
 };
 
 class VKCommandContext : public NonCopyable, public NonMovable {
@@ -52,6 +56,7 @@ class VKCommandContext : public NonCopyable, public NonMovable {
     VKTexture& resource(TextureHandle handle) const;
     VKBuffer& resource(BufferHandle handle) const;
     VKPipeline& resource(PipelineHandle handle) const;
+    VKBindGroup& resource(BindGroupHandle handle) const;
 
     VkCommandBuffer cmdBuffer() const;
 
@@ -62,6 +67,7 @@ class VKCommandContext : public NonCopyable, public NonMovable {
     std::unordered_map<TextureHandle, VKTexture*> m_textures;
     std::unordered_map<BufferHandle, VKBuffer*> m_buffers;
     std::unordered_map<PipelineHandle, VKPipeline*> m_pipelines;
+    std::unordered_map<BindGroupHandle, VKBindGroup*> m_bindGroups;
 
     Opt<Error> consume(
         const VKCommandManifest& manifest, VKResourceManager& resourceManager

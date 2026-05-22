@@ -13,6 +13,7 @@ namespace ignis::rhi {
 
 class ResourceManager : public virtual NonCopyable, public virtual NonMovable {
     friend class BufferProxy;
+    friend class BindGroupProxy;
 
    public:
     virtual ~ResourceManager() = default;

@@ -8,6 +8,7 @@
 #include "VKTexture.hh"
 #include "ignis/core/Config.hh"
 #include "ignis/core/Pool.hh"
+#include "ignis/core/Scoped.hh"
 #include "ignis/rhi/ResourceManager.hh"
 
 namespace ignis::rhi {
@@ -65,7 +66,12 @@ class VKResourceManager : public ResourceManager {
     BufferProxy::Impl* proxy(BufferHandle handle) override;
     BindGroupProxy::Impl* proxy(BindGroupHandle handle) override;
 
+    void ensureDescriptorPool();
+
     VKDevice& m_device;
+    u32 m_maxBindGroups{};
+
+    Scoped<VkDescriptorPool> m_descriptorPool;
 
     BufferPool m_bufferPool;
     TexturePool m_texturePool;

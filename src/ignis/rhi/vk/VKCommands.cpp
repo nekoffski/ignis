@@ -1,5 +1,6 @@
 #include "VKCommands.hh"
 
+#include "VKBindGroup.hh"
 #include "VKPipeline.hh"
 
 namespace ignis::rhi {
@@ -44,6 +45,13 @@ Opt<Error> preprocessCommand(
     VKCommandManifest& manifest, const CmdBindPipeline& cmd
 ) {
     manifest.add(cmd.pipeline);
+    return Error::empty();
+}
+
+Opt<Error> preprocessCommand(
+    VKCommandManifest& manifest, const CmdBindBindGroup& cmd
+) {
+    manifest.add(cmd.bindGroup);
     return Error::empty();
 }
 
@@ -119,6 +127,35 @@ Opt<Error> recordCommand(
     vkCmdBindPipeline(
         ctx.cmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle()
     );
+    return Error::empty();
+}
+
+Opt<Error> recordCommand(
+    const VKCommandContext& ctx, const CmdBindBindGroup& cmd
+) {
+    auto& bindGroup = ctx.resource(cmd.bindGroup);
+    const auto& sets = bindGroup.descriptorSets();
+
+    if (not sets.empty()) {
+        vkCmdBindDescriptorSets(
+            ctx.cmdBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+            bindGroup.pipelineLayout(), 0, static_cast<u32>(sets.size()),
+            sets.data(), 0, nullptr
+        );
+    }
+
+    const auto& pushRanges = bindGroup.pushConstantRanges();
+    const auto& pushData = bindGroup.pushConstantData();
+    for (const auto& range : pushRanges) {
+        if (range.offset + range.size <= pushData.size()) {
+            vkCmdPushConstants(
+                ctx.cmdBuffer(), bindGroup.pipelineLayout(),
+                toVk(range.stageFlags), range.offset, range.size,
+                pushData.data() + range.offset
+            );
+        }
+    }
+
     return Error::empty();
 }
 

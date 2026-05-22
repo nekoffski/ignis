@@ -19,6 +19,7 @@ enum class CommandType : u8 {
     beginRenderPass,
     endRenderPass,
     bindPipeline,
+    bindBindGroup,
     setViewport,
     setScissor,
     draw,
@@ -81,14 +82,14 @@ struct CmdDraw : public CommandBase<CommandType::draw, Queue::graphics> {
 };
 
 struct CmdBindBindGroup
-    : public CommandBase<CommandType::bindPipeline, Queue::graphics> {
+    : public CommandBase<CommandType::bindBindGroup, Queue::graphics> {
     BindGroupHandle bindGroup;
-    PipelineHandle pipeline;
 };
 
 using Command = std::variant<
     CmdUploadBufferToTexture, CmdDownloadTextureToBuffer, CmdBeginRenderPass,
-    CmdEndRenderPass, CmdBindPipeline, CmdSetViewport, CmdSetScissor, CmdDraw>;
+    CmdEndRenderPass, CmdBindPipeline, CmdBindBindGroup, CmdSetViewport,
+    CmdSetScissor, CmdDraw>;
 
 template <typename T>
 concept CommandConcept = requires {

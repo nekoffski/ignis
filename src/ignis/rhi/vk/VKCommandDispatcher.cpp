@@ -30,6 +30,11 @@ VKCommandManifest& VKCommandManifest::add(PipelineHandle handle) {
     return *this;
 }
 
+VKCommandManifest& VKCommandManifest::add(BindGroupHandle handle) {
+    m_bindGroups.insert(handle);
+    return *this;
+}
+
 const std::unordered_set<RenderPassHandle>& VKCommandManifest::renderPasses(
 ) const {
     return m_renderPasses;
@@ -45,6 +50,11 @@ const std::unordered_set<BufferHandle>& VKCommandManifest::buffers() const {
 
 const std::unordered_set<PipelineHandle>& VKCommandManifest::pipelines() const {
     return m_pipelines;
+}
+
+const std::unordered_set<BindGroupHandle>& VKCommandManifest::bindGroups(
+) const {
+    return m_bindGroups;
 }
 
 VKCommandDispatcher::VKCommandDispatcher(
@@ -135,6 +145,15 @@ VKPipeline& VKCommandContext::resource(PipelineHandle handle) const {
     return *it->second;
 }
 
+VKBindGroup& VKCommandContext::resource(BindGroupHandle handle) const {
+    auto it = m_bindGroups.find(handle);
+    log::expect(
+        it != m_bindGroups.end(), "Bind group with handle {} not found",
+        static_cast<u32>(handle.id)
+    );
+    return *it->second;
+}
+
 VkCommandBuffer VKCommandContext::cmdBuffer() const { return m_cmdBuffer; }
 
 Opt<Error> VKCommandContext::consume(
@@ -187,6 +206,18 @@ Opt<Error> VKCommandContext::consume(
         m_pipelines[pipelineHandle] = pipeline;
     }
 
+    for (const auto& bindGroupHandle : manifest.bindGroups()) {
+        auto bindGroup = resourceManager.find(bindGroupHandle);
+        if (not bindGroup) {
+            return Error{
+                Error::Code::resourceMissing,
+                "Bind group with handle {} not found",
+                static_cast<u32>(bindGroupHandle.id)
+            };
+        }
+        m_bindGroups[bindGroupHandle] = bindGroup;
+    }
+
     return Error::empty();
 }
 
@@ -205,6 +236,9 @@ Opt<Error> VKCommandDispatcher::recordCommand(const Command& command) {
             return rhi::recordCommand(m_context, cmd);
         },
         [&](const CmdBindPipeline& cmd) -> Opt<Error> {
+            return rhi::recordCommand(m_context, cmd);
+        },
+        [&](const CmdBindBindGroup& cmd) -> Opt<Error> {
             return rhi::recordCommand(m_context, cmd);
         },
         [&](const CmdDraw& cmd) -> Opt<Error> {
@@ -239,6 +273,10 @@ Opt<Error> VKCommandDispatcher::preprocessCommand(const Command& command) {
             return rhi::preprocessCommand(m_manifest, cmd);
         },
         [&](const CmdBindPipeline& cmd) -> Opt<Error> {
+            CHECK_QUEUE(cmd, m_targetQueue);
+            return rhi::preprocessCommand(m_manifest, cmd);
+        },
+        [&](const CmdBindBindGroup& cmd) -> Opt<Error> {
             CHECK_QUEUE(cmd, m_targetQueue);
             return rhi::preprocessCommand(m_manifest, cmd);
         },

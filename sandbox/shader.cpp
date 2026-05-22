@@ -116,7 +116,16 @@ int main(int argc, char** argv) {
         .renderArea = renderArea,
         .clearColor = {0.1f, 0.1f, 0.1f, 1.f},
     });
+    BindGroupProxy bgp{device.resources(), *bindGroup};
+    Vec4 tint{0.5f, 0.1f, 0.1f, 1.0f};
+
+    if (auto err = bgp.set({.offset = 0, .size = sizeof(Vec4)}, &tint); err) {
+        log::error("Failed to set push constant: {}", err->message());
+        return 1;
+    }
+
     workload.enqueue(CmdBindPipeline{.pipeline = *pipeline});
+    workload.enqueue(CmdBindBindGroup{.bindGroup = *bindGroup});
     workload.enqueue(CmdDraw{.vertexCount = 3});
     workload.enqueue(CmdEndRenderPass{.renderPass = *renderPass});
 

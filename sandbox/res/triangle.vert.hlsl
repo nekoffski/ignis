@@ -1,7 +1,7 @@
-struct VSOutput
-{
-    float4 pos : SV_Position;
-    float3 color : COLOR0;
+
+struct VSOutput {
+  float4 pos : SV_Position;
+  float3 color : COLOR0;
 };
 
 static const float2 positions[3] = {
@@ -16,10 +16,9 @@ static const float3 colors[3] = {
     float3(0.0, 0.0, 1.0),
 };
 
-VSOutput main(uint vertexID : SV_VertexID)
-{
-    VSOutput o;
-    o.pos = float4(positions[vertexID], 0.0, 1.0);
-    o.color = colors[vertexID];
-    return o;
+VSOutput main(uint vertexID : SV_VertexID) {
+  VSOutput o;
+  o.pos = float4(positions[vertexID], 0.0, 1.0);
+  o.color = colors[vertexID];
+  return o;
 }

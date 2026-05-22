@@ -33,4 +33,6 @@ DESIGN.md
 
 *.png
 
+tools/dxc
+
 *.spv
