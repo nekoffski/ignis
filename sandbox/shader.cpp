@@ -7,12 +7,13 @@
 #include "ignis/core/Log.hh"
 #include "ignis/core/Profiler.hh"
 #include "ignis/core/Scope.hh"
-#include "ignis/core/Vertex.hh"
+#include "ignis/render/Vertex.hh"
 
 int main(int argc, char** argv) {
     using namespace ignis;
     using namespace ignis::rhi;
     using namespace ignis::asset;
+    using namespace ignis::render;
 
     ON_SCOPE_EXIT { log::info("Cya!"); };
 

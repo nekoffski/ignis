@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 namespace ignis {
 
-const std::string& Path::str() const { return m_path; }
+const Str& Path::str() const { return m_path; }
 
 bool Path::isFile() const { return fs::is_regular_file(m_path); }
 
@@ -22,39 +22,51 @@ Path Path::join(const Path& base, const Path& relative) {
     return Path{fs::path(base.str()) / fs::path(relative.str())};
 }
 
-bool Path::endsWith(const std::string& suffix) const {
+bool Path::endsWith(const Str& suffix) const {
     if (suffix.size() > m_path.size()) [[unlikely]]
         return false;
     return std::equal(suffix.rbegin(), suffix.rend(), m_path.rbegin());
 }
 
-void Path::append(const std::string& suffix) { m_path += suffix; }
+Opt<Str> Path::extension() const {
+    auto ext = fs::path(m_path).extension();
+    if (ext.empty()) return std::nullopt;
+    return ext.string();
+}
+
+Opt<Str> Path::filename() const {
+    auto fname = fs::path(m_path).filename();
+    if (fname.empty()) return std::nullopt;
+    return fname.string();
+}
+
+void Path::append(const Str& suffix) { m_path += suffix; }
 
 File::File(const Path& path) : m_path(path) {}
 
 const Path& File::path() const { return m_path; }
 
-Opt<Error> File::append(const std::string& content) {
+Opt<Error> File::append(const Str& content) {
     std::ofstream file(m_path.str(), std::ios::app);
     if (!file.is_open())
-        return Error{Error::Code::noError, "Failed to open file for appending"};
+        return Error{Error::Code::ioError, "Failed to open file for appending"};
     file << content;
     return Error::empty();
 }
 
-Opt<Error> File::write(const std::string& content) {
+Opt<Error> File::write(const Str& content) {
     std::ofstream file(m_path.str(), std::ios::trunc);
     if (!file.is_open())
-        return Error{Error::Code::noError, "Failed to open file for writing"};
+        return Error{Error::Code::ioError, "Failed to open file for writing"};
     file << content;
     return Error::empty();
 }
 
-Result<std::string> File::read() const {
+Result<Str> File::read() const {
     std::ifstream file(m_path.str());
     if (!file.is_open()) {
         return Error::unexpected(
-            Error::Code::noError, "Failed to open file for reading"
+            Error::Code::ioError, "Failed to open file for reading"
         );
     }
     std::stringstream buffer;
@@ -62,15 +74,15 @@ Result<std::string> File::read() const {
     return buffer.str();
 }
 
-Result<std::vector<std::string>> File::readLines() const {
+Result<std::vector<Str>> File::readLines() const {
     std::ifstream file(m_path.str());
     if (!file.is_open()) {
         return Error::unexpected(
-            Error::Code::noError, "Failed to open file for reading"
+            Error::Code::ioError, "Failed to open file for reading"
         );
     }
-    std::vector<std::string> lines;
-    std::string line;
+    std::vector<Str> lines;
+    Str line;
     while (std::getline(file, line)) lines.push_back(line);
     return lines;
 }
@@ -99,7 +111,7 @@ Result<std::vector<u32>> File::readBinary() const {
 Opt<Error> File::remove() {
     std::error_code ec;
     fs::remove(m_path.str(), ec);
-    if (ec) return Error{Error::Code::noError, "Failed to remove file"};
+    if (ec) return Error{Error::Code::ioError, "Failed to remove file"};
     return Error::empty();
 }
 

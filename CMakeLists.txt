@@ -17,6 +17,7 @@ find_package(spdlog REQUIRED)
 find_package(tomlplusplus CONFIG REQUIRED)
 find_package(stduuid REQUIRED)
 find_package(spirv-reflect-static REQUIRED)
+find_package(tinyobjloader REQUIRED)
 
 add_subdirectory(src/ignis)
 add_subdirectory(sandbox)

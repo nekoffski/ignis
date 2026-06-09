@@ -21,6 +21,7 @@ class Error {
         resourceInUse = 7,
         logicError = 8,
         fileDoesNotExist = 9,
+        unrecognizedFileFormat = 10,
     };
 
     explicit Error(

@@ -4,6 +4,9 @@ add_library(ignis SHARED
     "asset/Image.cpp"
     "asset/Stb.cpp"
     "asset/ShaderParser.cpp"
+    "asset/GeometryLoader.cpp"
+    "asset/geometry/TinyObj.cpp"
+    "asset/geometry/WavefrontLoader.cpp"
     # -- core
     "core/Config.cpp"
     "core/String.cpp"
@@ -20,6 +23,7 @@ add_library(ignis SHARED
     "render/GraphLayout.cpp"
     "render/Scene.cpp"
     "render/Bundle.cpp"
+    "render/Mesh.cpp"
     # -- rhi
     "rhi/Device.cpp"
     "rhi/Window.cpp"
@@ -65,6 +69,7 @@ target_link_libraries(ignis
         stduuid::stduuid
         stb::stb
         spirv-reflect-static
+        tinyobjloader::tinyobjloader
 )
 
 set_target_properties(ignis PROPERTIES POSITION_INDEPENDENT_CODE ON)

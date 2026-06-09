@@ -119,43 +119,14 @@ void expect(bool condition, details::FormatWithLocation fmt, Args&&... args) {
 
 void expect(const Opt<Error>& e);
 
-namespace internal {
-
-template <typename... Args>
-void debug(details::FormatWithLocation fmt, Args&&... args) {
-#ifdef ignis_ENABLE_INTERNAL_LOGGING
-    log::debug(std::move(fmt), std::forward<Args>(args)...);
-#endif
+template <typename T>
+void expect(const Result<T>& r) {
+    if (not r) [[unlikely]] {
+        log::panic(
+            "Unexpected error: {}. Error code: {}, message: {}",
+            r.error().message(), fmt::underlying(r.error().code())
+        );
+    }
 }
-
-template <typename... Args>
-void error(details::FormatWithLocation fmt, Args&&... args) {
-#ifdef ignis_ENABLE_INTERNAL_LOGGING
-    log::error(std::move(fmt), std::forward<Args>(args)...);
-#endif
-}
-
-template <typename... Args>
-void info(details::FormatWithLocation fmt, Args&&... args) {
-#ifdef ignis_ENABLE_INTERNAL_LOGGING
-    log::info(std::move(fmt), std::forward<Args>(args)...);
-#endif
-}
-
-template <typename... Args>
-void trace(details::FormatWithLocation fmt, Args&&... args) {
-#ifdef ignis_ENABLE_INTERNAL_LOGGING
-    log::trace(std::move(fmt), std::forward<Args>(args)...);
-#endif
-}
-
-template <typename... Args>
-void warn(details::FormatWithLocation fmt, Args&&... args) {
-#ifdef ignis_ENABLE_INTERNAL_LOGGING
-    log::warn(std::move(fmt), std::forward<Args>(args)...);
-#endif
-}
-
-}  // namespace internal
 
 }  // namespace ignis::log
