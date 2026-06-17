@@ -29,7 +29,9 @@ ProfilerSummary Profiler::generateSummary() {
 }
 
 void Profiler::clear() {
-    for (auto& [_, events] : m_threads) events.clear();
+    for (auto& [_, events] : m_threads) {
+        events.clear();
+    }
 }
 
 RegionTimer::RegionTimer(std::string name, ProfilerEvents& events)
@@ -99,7 +101,9 @@ void ProfilerSummary::printGraph(
 ) const {
     std::vector<const SummaryGraphNode*> ordered;
     ordered.reserve(node.children.size());
-    for (const auto& [_, child] : node.children) ordered.push_back(&child);
+    for (const auto& [_, child] : node.children) {
+        ordered.push_back(&child);
+    }
     std::sort(
         ordered.begin(), ordered.end(),
         [](const SummaryGraphNode* a, const SummaryGraphNode* b) {
@@ -133,8 +137,9 @@ void ProfilerSummary::printGraph(
 void ProfilerSummary::forEachNode(
     const std::function<void(const CallStatistics&, u64, std::thread::id)>& fn
 ) const {
-    for (const auto& [threadId, graph] : m_summaryGraphs)
+    for (const auto& [threadId, graph] : m_summaryGraphs) {
         forEachNodeImpl(graph, "", fn, 0, threadId);
+    }
 }
 
 ProfilerSummary::CallStatistics ProfilerSummary::computeStats(
@@ -163,11 +168,13 @@ void ProfilerSummary::forEachNodeImpl(
         const auto fullName =
             parentName.empty() ? node.name : parentName + "::" + node.name;
         fn(computeStats(node, fullName), indent, threadId);
-        for (const auto& [_, child] : node.children)
+        for (const auto& [_, child] : node.children) {
             forEachNodeImpl(child, fullName, fn, indent + 1, threadId);
+        }
     } else {
-        for (const auto& [_, child] : node.children)
+        for (const auto& [_, child] : node.children) {
             forEachNodeImpl(child, parentName, fn, indent, threadId);
+        }
     }
 }
 

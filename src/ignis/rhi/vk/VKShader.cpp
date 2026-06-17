@@ -18,15 +18,18 @@ VKShader::~VKShader() {
     auto vkDevice = m_device.device();
     auto allocator = m_device.allocator();
 
-    if (m_pipelineLayout)
+    if (m_pipelineLayout) {
         VK_TRACE(vkDestroyPipelineLayout(vkDevice, m_pipelineLayout, allocator)
         );
+    }
 
-    for (auto layout : m_setLayouts)
+    for (auto layout : m_setLayouts) {
         VK_TRACE(vkDestroyDescriptorSetLayout(vkDevice, layout, allocator));
+    }
 
-    for (auto module : m_modules)
+    for (auto module : m_modules) {
         VK_TRACE(vkDestroyShaderModule(vkDevice, module, allocator));
+    }
 }
 
 VKShader::VKShader(VKShader&& oth) noexcept

@@ -30,7 +30,9 @@ Opt<Error> preprocessCommand(
     }
 
     manifest.add(cmd.renderPass);
-    for (const auto& attachment : cmd.attachments) manifest.add(attachment);
+    for (const auto& attachment : cmd.attachments) {
+        manifest.add(attachment);
+    }
     return Error::empty();
 }
 

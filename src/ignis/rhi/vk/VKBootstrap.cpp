@@ -34,8 +34,9 @@ u32 apiVersion(const Config& cfg) {
 void assertExtensions(const std::vector<const char*>& extensions) {
     auto availableExtensions = vk::enumerateInstanceExtensionProperties();
     std::vector<std::string> availableExtensionNames;
-    for (const auto& ext : availableExtensions)
+    for (const auto& ext : availableExtensions) {
         availableExtensionNames.push_back(ext.extensionName);
+    }
     for (const auto& ext : extensions) {
         if (std::ranges::find(availableExtensionNames, ext) ==
             availableExtensionNames.end()) {
@@ -107,7 +108,9 @@ void showDeviceInfo(const VKDeviceInfo& info) {
 
 VKBootstrap::VKBootstrap(const Config& config, Window* window)
     : m_cfg(config), m_window(window) {
-    if (not window) log::warn("Bootstraping vulkan without surface support");
+    if (not window) {
+        log::warn("Bootstraping vulkan without surface support");
+    }
     IGNIS_PROFILE_FUNCTION();
 
     createInstance();
@@ -228,9 +231,15 @@ std::pair<std::unordered_map<Queue, u32>, Queue> discoverQueues(
 
     for (u32 i = 0; i < queueFamilyCount; ++i) {
         const auto& queueFlags = queueFamilies[i].queueFlags;
-        if (queueFlags & VK_QUEUE_GRAPHICS_BIT) markIndex(Queue::graphics, i);
-        if (queueFlags & VK_QUEUE_COMPUTE_BIT) markIndex(Queue::compute, i);
-        if (queueFlags & VK_QUEUE_TRANSFER_BIT) markIndex(Queue::transfer, i);
+        if (queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            markIndex(Queue::graphics, i);
+        }
+        if (queueFlags & VK_QUEUE_COMPUTE_BIT) {
+            markIndex(Queue::compute, i);
+        }
+        if (queueFlags & VK_QUEUE_TRANSFER_BIT) {
+            markIndex(Queue::transfer, i);
+        }
 
         // TODO:
         // VkBool32 supportsPresent = false;
@@ -313,12 +322,16 @@ void VKBootstrap::createLogicalDevice() {
 
     indices.push_back(queueIndices.at(Queue::graphics));
 
-    if (m_window)
-        if (queueIndices.at(Queue::graphics) != queueIndices.at(Queue::present))
+    if (m_window) {
+        if (queueIndices.at(Queue::graphics) !=
+            queueIndices.at(Queue::present)) {
             indices.push_back(queueIndices.at(Queue::present));
+        }
+    }
 
-    if (queueIndices.at(Queue::graphics) != queueIndices.at(Queue::transfer))
+    if (queueIndices.at(Queue::graphics) != queueIndices.at(Queue::transfer)) {
         indices.push_back(queueIndices.at(Queue::transfer));
+    }
 
     if (queueIndices.contains(Queue::compute) &&
         queueIndices.at(Queue::graphics) != queueIndices.at(Queue::compute)) {
@@ -349,7 +362,9 @@ void VKBootstrap::createLogicalDevice() {
 
     std::vector<const char*> extensionNames;
 
-    if (m_window) extensionNames.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    if (m_window) {
+        extensionNames.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    }
 
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

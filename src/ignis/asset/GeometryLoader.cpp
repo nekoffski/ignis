@@ -21,7 +21,9 @@ Result<render::MeshData> GeometryLoader::load(const Path& path) && {
     }
 
     if (auto extension = fullPath.extension(); extension) {
-        if (*extension == ".obj") return WavefrontLoader{}.load(fullPath);
+        if (*extension == ".obj") {
+            return WavefrontLoader{}.load(fullPath);
+        }
     }
 
     return Error::unexpected(

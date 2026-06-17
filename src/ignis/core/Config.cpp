@@ -10,10 +10,11 @@ namespace ignis {
 namespace {
 
 Config::Renderer::Backend parseBackend(const std::string& backendStr) {
-    if (backendStr == "vulkan")
+    if (backendStr == "vulkan") {
         return Config::Renderer::Backend::vulkan;
-    else
+    } else {
         log::panic("Unknown renderer backend: {}", backendStr);
+    }
 }
 
 class Reader : public NonCopyable, public NonMovable {

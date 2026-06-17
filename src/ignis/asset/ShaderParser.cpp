@@ -173,7 +173,9 @@ static void reflectVertexAttributes(
     spvReflectEnumerateInputVariables(&module, &count, inputs.data());
 
     for (auto* input : inputs) {
-        if (input->built_in != -1) continue;
+        if (input->built_in != -1) {
+            continue;
+        }
         desc.vertexAttributes.push_back({
             .location = input->location,
             .format = toFormat(input->format),
@@ -204,8 +206,9 @@ static Opt<Error> reflectStage(
 
     reflectBindings(module, stageType, desc, bindingIndex);
     reflectPushConstants(module, stageType, desc);
-    if (stageType == rhi::ShaderStageType::vertex)
+    if (stageType == rhi::ShaderStageType::vertex) {
         reflectVertexAttributes(module, desc);
+    }
 
     desc.stages.push_back({
         .stage = stageType,
@@ -225,8 +228,10 @@ Result<rhi::ShaderDescription> ShaderParser::parseFile(
 
     for (const auto& [stageType, spirv] : shaderFile.stages) {
         log::debug("Reflecting stage '{}'", shaderStageToString(stageType));
-        if (auto err = reflectStage(stageType, spirv, desc, bindingIndex); err)
+        if (auto err = reflectStage(stageType, spirv, desc, bindingIndex);
+            err) {
             return Error::unexpected(*err);
+        }
     }
 
     log::debug("Shader description:\n{}", toString(desc));
@@ -236,10 +241,11 @@ Result<rhi::ShaderDescription> ShaderParser::parseFile(
 static bool validateStages(
     rhi::ShaderStageType existingMask, rhi::ShaderStageType newStage
 ) {
-    if (newStage == rhi::ShaderStageType::compute)
+    if (newStage == rhi::ShaderStageType::compute) {
         return existingMask == rhi::ShaderStageType::none;
-    else
+    } else {
         return not checkFlag(existingMask, rhi::ShaderStageType::compute);
+    }
 }
 
 Opt<Error> ShaderParser::ShaderFile::addStage(

@@ -23,20 +23,25 @@ Path Path::join(const Path& base, const Path& relative) {
 }
 
 bool Path::endsWith(const Str& suffix) const {
-    if (suffix.size() > m_path.size()) [[unlikely]]
+    if (suffix.size() > m_path.size()) [[unlikely]] {
         return false;
+    }
     return std::equal(suffix.rbegin(), suffix.rend(), m_path.rbegin());
 }
 
 Opt<Str> Path::extension() const {
     auto ext = fs::path(m_path).extension();
-    if (ext.empty()) return std::nullopt;
+    if (ext.empty()) {
+        return std::nullopt;
+    }
     return ext.string();
 }
 
 Opt<Str> Path::filename() const {
     auto fname = fs::path(m_path).filename();
-    if (fname.empty()) return std::nullopt;
+    if (fname.empty()) {
+        return std::nullopt;
+    }
     return fname.string();
 }
 
@@ -48,16 +53,18 @@ const Path& File::path() const { return m_path; }
 
 Opt<Error> File::append(const Str& content) {
     std::ofstream file(m_path.str(), std::ios::app);
-    if (!file.is_open())
+    if (!file.is_open()) {
         return Error{Error::Code::ioError, "Failed to open file for appending"};
+    }
     file << content;
     return Error::empty();
 }
 
 Opt<Error> File::write(const Str& content) {
     std::ofstream file(m_path.str(), std::ios::trunc);
-    if (!file.is_open())
+    if (!file.is_open()) {
         return Error{Error::Code::ioError, "Failed to open file for writing"};
+    }
     file << content;
     return Error::empty();
 }
@@ -83,7 +90,9 @@ Result<std::vector<Str>> File::readLines() const {
     }
     std::vector<Str> lines;
     Str line;
-    while (std::getline(file, line)) lines.push_back(line);
+    while (std::getline(file, line)) {
+        lines.push_back(line);
+    }
     return lines;
 }
 
@@ -111,7 +120,9 @@ Result<std::vector<u32>> File::readBinary() const {
 Opt<Error> File::remove() {
     std::error_code ec;
     fs::remove(m_path.str(), ec);
-    if (ec) return Error{Error::Code::ioError, "Failed to remove file"};
+    if (ec) {
+        return Error{Error::Code::ioError, "Failed to remove file"};
+    }
     return Error::empty();
 }
 

@@ -130,14 +130,18 @@ Format fromVk(VkFormat format) {
 
 VkShaderStageFlags toVk(ShaderStageType stage) {
     VkShaderStageFlags flags = 0;
-    if (checkFlag(stage, ShaderStageType::vertex))
+    if (checkFlag(stage, ShaderStageType::vertex)) {
         flags |= VK_SHADER_STAGE_VERTEX_BIT;
-    if (checkFlag(stage, ShaderStageType::fragment))
+    }
+    if (checkFlag(stage, ShaderStageType::fragment)) {
         flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
-    if (checkFlag(stage, ShaderStageType::compute))
+    }
+    if (checkFlag(stage, ShaderStageType::compute)) {
         flags |= VK_SHADER_STAGE_COMPUTE_BIT;
-    if (checkFlag(stage, ShaderStageType::geometry))
+    }
+    if (checkFlag(stage, ShaderStageType::geometry)) {
         flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+    }
     return flags;
 }
 

@@ -14,7 +14,9 @@ class ScopeGuard {
           m_condition(std::forward<Condition>(condition)) {}
 
     ~ScopeGuard() {
-        if (m_condition()) m_callback();
+        if (m_condition()) {
+            m_callback();
+        }
     }
 
    private:

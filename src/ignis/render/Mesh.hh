@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "Vertex.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
@@ -9,7 +11,7 @@ namespace ignis::render {
 
 struct Primitive {
     u32 firstVertex;
-    u32 firstVertex;
+    u32 firstIndex;
     u32 indexCount;
 };
 

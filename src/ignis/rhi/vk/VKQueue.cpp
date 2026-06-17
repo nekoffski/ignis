@@ -17,8 +17,9 @@ bool VKQueueSubmitter::submit() {
     submitInfo.pSignalSemaphores = m_workload.semaphore()->handlePtr();
 
     std::vector<VkSemaphore> waitSemaphoreHandles;
-    for (const auto& semaphore : waitSemaphores)
+    for (const auto& semaphore : waitSemaphores) {
         waitSemaphoreHandles.push_back(semaphore->handle());
+    }
 
     submitInfo.waitSemaphoreCount =
         static_cast<u32>(waitSemaphoreHandles.size());

@@ -33,8 +33,9 @@ VKFence::VKFence(VKDevice& device, State initialState)
     VkFenceCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-    if (initialState == State::signaled)
+    if (initialState == State::signaled) {
         info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    }
 
     VK_TRACE(
         vkCreateFence(m_device.device(), &info, m_device.allocator(), &m_handle)
@@ -50,14 +51,18 @@ VKFence::~VKFence() {
 }
 
 void VKFence::reset() {
-    if (m_state == State::unsignaled) return;
+    if (m_state == State::unsignaled) {
+        return;
+    }
 
     VK_TRACE(vkResetFences(m_device.device(), 1, &m_handle));
     m_state = State::unsignaled;
 }
 
 bool VKFence::wait(std::chrono::nanoseconds timeout) {
-    if (m_state == State::signaled) return true;
+    if (m_state == State::signaled) {
+        return true;
+    }
 
     auto result = vkWaitForFences(
         m_device.device(), 1, &m_handle, VK_TRUE, timeout.count()

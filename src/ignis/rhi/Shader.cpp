@@ -8,12 +8,16 @@
 namespace ignis::rhi {
 
 std::string shaderStageToString(ShaderStageType stage) {
-    if (stage == ShaderStageType::none) return "none";
+    if (stage == ShaderStageType::none) {
+        return "none";
+    }
 
     std::string result;
     auto append = [&](ShaderStageType flag, const char* name) {
         if (checkFlag(stage, flag)) {
-            if (not result.empty()) result += '|';
+            if (not result.empty()) {
+                result += '|';
+            }
             result += name;
         }
     };
@@ -83,12 +87,15 @@ Str toString(const ShaderDescription& desc) {
     Str result = fmt::format(
         "ShaderDescription(stages={})\n", shaderStageToString(desc.stagesMask)
     );
-    for (const auto& b : desc.bindings)
+    for (const auto& b : desc.bindings) {
         result += fmt::format("  {}\n", toString(b));
-    for (const auto& pc : desc.pushConstants)
+    }
+    for (const auto& pc : desc.pushConstants) {
         result += fmt::format("  {}\n", toString(pc));
-    for (const auto& attr : desc.vertexAttributes)
+    }
+    for (const auto& attr : desc.vertexAttributes) {
         result += fmt::format("  {}\n", toString(attr));
+    }
     return result;
 }
 

@@ -39,25 +39,32 @@ class Pool : public NonCopyable, public NonMovable {
     }
 
     void destroy(u64 id) {
-        if (id < m_pool.size()) m_pool[id].reset();
+        if (id < m_pool.size()) {
+            m_pool[id].reset();
+        }
     }
 
     T* get(u64 id) {
-        if (id < m_pool.size() && m_pool[id].has_value())
+        if (id < m_pool.size() && m_pool[id].has_value()) {
             return &m_pool[id].value();
+        }
         return nullptr;
     }
 
     const T* get(u64 id) const {
-        if (id < m_pool.size() && m_pool[id].has_value())
+        if (id < m_pool.size() && m_pool[id].has_value()) {
             return &m_pool[id].value();
+        }
         return nullptr;
     }
 
    private:
     std::optional<u64> findFreeSlot() const {
-        for (u64 i = 0; i < m_pool.size(); ++i)
-            if (not m_pool[i].has_value()) return i;
+        for (u64 i = 0; i < m_pool.size(); ++i) {
+            if (not m_pool[i].has_value()) {
+                return i;
+            }
+        }
         return std::nullopt;
     }
 

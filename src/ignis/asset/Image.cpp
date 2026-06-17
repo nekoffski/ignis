@@ -47,26 +47,31 @@ ImageWriter& ImageWriter::format(ImageFormat format) {
 }
 
 Opt<Error> ImageWriter::write(const RawImageData& imageData) {
-    if (m_format == ImageFormat::none)
-        if (auto err = detectFormat(); err) return err;
+    if (m_format == ImageFormat::none) {
+        if (auto err = detectFormat(); err) {
+            return err;
+        }
+    }
 
-    if (not writeImpl(m_path, m_format, imageData))
+    if (not writeImpl(m_path, m_format, imageData)) {
         return Error{Error::Code::ioError, "stb_image_write failed"};
+    }
 
     return Error::empty();
 }
 
 Opt<Error> ImageWriter::detectFormat() {
-    if (const auto& pathStr = m_path.str(); pathStr.ends_with(".png"))
+    if (const auto& pathStr = m_path.str(); pathStr.ends_with(".png")) {
         m_format = ImageFormat::png;
-    else if (pathStr.ends_with(".jpg") || pathStr.ends_with(".jpeg"))
+    } else if (pathStr.ends_with(".jpg") || pathStr.ends_with(".jpeg")) {
         m_format = ImageFormat::jpeg;
-    else if (pathStr.ends_with(".bmp"))
+    } else if (pathStr.ends_with(".bmp")) {
         m_format = ImageFormat::bmp;
-    else if (pathStr.ends_with(".tga"))
+    } else if (pathStr.ends_with(".tga")) {
         m_format = ImageFormat::tga;
-    else
+    } else {
         return Error{Error::Code::invalidArgument, "Unsupported image format"};
+    }
 
     return Error::empty();
 }
@@ -83,8 +88,9 @@ std::vector<u8> ImageUtils::chessboard(
             bool isWhite = (squareX + squareY) % 2 == 0;
 
             u8 color = isWhite ? 255 : 0;
-            for (u32 c = 0; c < channels; ++c)
+            for (u32 c = 0; c < channels; ++c) {
                 data[(y * width + x) * channels + c] = c == 3 ? 255 : color;
+            }
         }
     }
     return data;

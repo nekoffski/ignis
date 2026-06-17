@@ -51,17 +51,22 @@ VKTexture::~VKTexture() {
     auto device = m_device.device();
     auto allocator = m_device.allocator();
 
-    if (m_sampler != VK_NULL_HANDLE)
+    if (m_sampler != VK_NULL_HANDLE) {
         VK_TRACE(vkDestroySampler(device, m_sampler, allocator));
+    }
 
-    if (m_view != VK_NULL_HANDLE) vkDestroyImageView(device, m_view, allocator);
+    if (m_view != VK_NULL_HANDLE) {
+        vkDestroyImageView(device, m_view, allocator);
+    }
 
     if (not m_ownedBySwapchain) {
-        if (m_memory != VK_NULL_HANDLE)
+        if (m_memory != VK_NULL_HANDLE) {
             VK_TRACE(vkFreeMemory(device, m_memory, allocator));
+        }
 
-        if (m_image != VK_NULL_HANDLE)
+        if (m_image != VK_NULL_HANDLE) {
             VK_TRACE(vkDestroyImage(device, m_image, allocator));
+        }
     }
 }
 
@@ -75,8 +80,9 @@ void VKTexture::bindMemory() {
         memoryRequirements.memoryTypeBits, MemoryProperty::deviceLocal
     );
 
-    if (not memoryType)
+    if (not memoryType) {
         log::error("Required memory type not found. VKImage not valid.");
+    }
 
     VkMemoryAllocateInfo memoryAllocateInfo{};
 
@@ -118,8 +124,9 @@ void VKTexture::createImage(
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (metadata.type == TextureType::cubemap)
+    if (metadata.type == TextureType::cubemap) {
         imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    }
 
     VK_ASSERT(vkCreateImage(
         m_device.device(), &imageCreateInfo, m_device.allocator(), &m_image

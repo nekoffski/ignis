@@ -46,41 +46,77 @@ Str toString(Tiling tiling) {
 
 Str toString(TextureUsage usage) {
     Str result;
-    if (usage == TextureUsage::none) return "none";
-    if (checkFlag(usage, TextureUsage::transferSrc)) result += "transferSrc|";
-    if (checkFlag(usage, TextureUsage::transferDest)) result += "transferDest|";
-    if (checkFlag(usage, TextureUsage::sampled)) result += "sampled|";
-    if (checkFlag(usage, TextureUsage::storage)) result += "storage|";
-    if (checkFlag(usage, TextureUsage::colorAttachment))
+    if (usage == TextureUsage::none) {
+        return "none";
+    }
+    if (checkFlag(usage, TextureUsage::transferSrc)) {
+        result += "transferSrc|";
+    }
+    if (checkFlag(usage, TextureUsage::transferDest)) {
+        result += "transferDest|";
+    }
+    if (checkFlag(usage, TextureUsage::sampled)) {
+        result += "sampled|";
+    }
+    if (checkFlag(usage, TextureUsage::storage)) {
+        result += "storage|";
+    }
+    if (checkFlag(usage, TextureUsage::colorAttachment)) {
         result += "colorAttachment|";
-    if (checkFlag(usage, TextureUsage::depthStencilAttachment))
+    }
+    if (checkFlag(usage, TextureUsage::depthStencilAttachment)) {
         result += "depthStencilAttachment|";
-    if (checkFlag(usage, TextureUsage::transientAttachment))
+    }
+    if (checkFlag(usage, TextureUsage::transientAttachment)) {
         result += "transientAttachment|";
-    if (checkFlag(usage, TextureUsage::inputAttachment))
+    }
+    if (checkFlag(usage, TextureUsage::inputAttachment)) {
         result += "inputAttachment|";
+    }
 
-    if (!result.empty()) result.pop_back();
+    if (!result.empty()) {
+        result.pop_back();
+    }
     return result;
 }
 
 Str toString(TextureAspect aspect) {
     Str result;
-    if (aspect == TextureAspect::none) return "none";
-    if (checkFlag(aspect, TextureAspect::color)) result += "color|";
-    if (checkFlag(aspect, TextureAspect::depth)) result += "depth|";
-    if (checkFlag(aspect, TextureAspect::stencil)) result += "stencil|";
-    if (checkFlag(aspect, TextureAspect::metadata)) result += "metadata|";
-    if (!result.empty()) result.pop_back();
+    if (aspect == TextureAspect::none) {
+        return "none";
+    }
+    if (checkFlag(aspect, TextureAspect::color)) {
+        result += "color|";
+    }
+    if (checkFlag(aspect, TextureAspect::depth)) {
+        result += "depth|";
+    }
+    if (checkFlag(aspect, TextureAspect::stencil)) {
+        result += "stencil|";
+    }
+    if (checkFlag(aspect, TextureAspect::metadata)) {
+        result += "metadata|";
+    }
+    if (!result.empty()) {
+        result.pop_back();
+    }
     return result;
 }
 
 Str toString(TextureFlags flags) {
     Str result;
-    if (flags == TextureFlags::none) return "none";
-    if (checkFlag(flags, TextureFlags::writable)) result += "writable|";
-    if (checkFlag(flags, TextureFlags::transparent)) result += "transparent|";
-    if (!result.empty()) result.pop_back();
+    if (flags == TextureFlags::none) {
+        return "none";
+    }
+    if (checkFlag(flags, TextureFlags::writable)) {
+        result += "writable|";
+    }
+    if (checkFlag(flags, TextureFlags::transparent)) {
+        result += "transparent|";
+    }
+    if (!result.empty()) {
+        result.pop_back();
+    }
     return result;
 }
 

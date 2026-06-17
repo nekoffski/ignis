@@ -27,10 +27,14 @@ static u32 formatByteSize(Format fmt) {
 VKPipeline::VKPipeline(VKDevice& device, const PipelineDescription& desc)
     : m_device(device), m_desc(desc) {
     auto* shader = device.resources().find(desc.shader);
-    if (not shader) log::panic("VKPipeline: invalid shader handle");
+    if (not shader) {
+        log::panic("VKPipeline: invalid shader handle");
+    }
 
     auto* renderPass = device.resources().find(desc.renderPass);
-    if (not renderPass) log::panic("VKPipeline: invalid render pass handle");
+    if (not renderPass) {
+        log::panic("VKPipeline: invalid render pass handle");
+    }
 
     auto stages = buildShaderStages(*shader);
 
@@ -142,8 +146,9 @@ void VKPipeline::buildVertexInput(
 ) const {
     if (not shaderDesc.vertexAttributes.empty()) {
         u32 stride = 0;
-        for (const auto& attr : shaderDesc.vertexAttributes)
+        for (const auto& attr : shaderDesc.vertexAttributes) {
             stride += formatByteSize(attr.format);
+        }
 
         bindingDescs.push_back({
             .binding = 0,

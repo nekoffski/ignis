@@ -26,7 +26,9 @@ VKBindGroup::VKBindGroup(
     m_pushConstantData.resize(totalPushConstantSize, 0);
 
     const auto& layouts = shader.descriptorSetLayouts();
-    if (layouts.empty()) return;
+    if (layouts.empty()) {
+        return;
+    }
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -41,7 +43,9 @@ VKBindGroup::VKBindGroup(
 }
 
 VKBindGroup::~VKBindGroup() {
-    if (m_sets.empty() || m_pool == VK_NULL_HANDLE) return;
+    if (m_sets.empty() || m_pool == VK_NULL_HANDLE) {
+        return;
+    }
     VK_TRACE(vkFreeDescriptorSets(
         m_device.device(), m_pool, static_cast<u32>(m_sets.size()),
         m_sets.data()
@@ -61,8 +65,9 @@ Opt<Error> VKBindGroup::set(
     const BindGroupProxy::DescriptorLocation& location, BufferHandle buffer
 ) {
     auto* vkBuffer = m_device.resources().find(buffer);
-    if (not vkBuffer)
+    if (not vkBuffer) {
         return Error{Error::Code::resourceMissing, "Buffer not found"};
+    }
 
     if (location.set >= m_sets.size()) {
         return Error{

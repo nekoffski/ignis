@@ -59,11 +59,13 @@ VkFramebuffer VKRenderPass::VKFramebuffer::handle() const { return m_handle; }
 
 VKRenderPass::VKRenderPass(VKDevice& device, const RenderPassDescription& desc)
     : m_device(device), m_desc(desc) {
-    for (const auto& colorAttachment : m_desc.colorAttachments)
+    for (const auto& colorAttachment : m_desc.colorAttachments) {
         m_attachmentDescriptions.push_back(&colorAttachment);
+    }
 
-    if (m_desc.depthAttachment.has_value())
+    if (m_desc.depthAttachment.has_value()) {
         m_attachmentDescriptions.push_back(&m_desc.depthAttachment.value());
+    }
 
     create();
 }
@@ -130,7 +132,9 @@ Opt<Error> VKRenderPass::begin(
 
     if (m_desc.depthAttachment.has_value()) {
         VkClearValue clearValue{};
-        if (m_desc.depthAttachment->clear) clearValue.depthStencil = {1.f, 0};
+        if (m_desc.depthAttachment->clear) {
+            clearValue.depthStencil = {1.f, 0};
+        }
         clearValues.push_back(clearValue);
     }
 
@@ -180,8 +184,9 @@ VkFramebuffer VKRenderPass::getFramebuffer(
     );
 
     AttachmentHandles handles{};
-    for (size_t i = 0; i < attachmentCount; ++i)
+    for (size_t i = 0; i < attachmentCount; ++i) {
         handles[i] = attachments[i]->view();
+    }
 
     if (auto it = m_framebuffers.find(handles); it != m_framebuffers.end()) {
         return it->second.handle();
@@ -268,8 +273,9 @@ void CreateInfoHelper::parseAttachments(const RenderPassDescription& desc) {
     attachmentDescriptions.reserve(attachmentCount);
     colorAttachmentReferences.reserve(attachmentCount);
 
-    for (const auto& attachment : desc.colorAttachments)
+    for (const auto& attachment : desc.colorAttachments) {
         parseColorAttachment(attachment);
+    }
 
     if (desc.depthAttachment.has_value()) {
         parseDepthAttachment(desc.depthAttachment.value());

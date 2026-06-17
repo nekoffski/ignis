@@ -1,22 +1,24 @@
-// #include <fmt/format.h>
+#include "ignis/render/Renderer.hh"
 
-// #include "ignis/render/Renderer.hh"
-// #include "ignis/core/Config.hh"
-// #include "ignis/core/Log.hh"
-// #include "ignis/core/Profiler.hh"
+#include <fmt/format.h>
+
+#include "ignis/Engine.hh"
+#include "ignis/core/Config.hh"
+#include "ignis/core/Log.hh"
+#include "ignis/core/Profiler.hh"
 
 int main(int argc, char** argv) {
-    //     using namespace ignis;
+    using namespace ignis;
 
-    //     log::init(log::LoggerOptions{.enableColors = false});
-    //     log::expect(argc > 1, "No config file path provided");
+    log::init(log::LoggerOptions{.enableColors = false});
+    log::expect(argc > 1, "No config file path provided");
 
-    //     IGNIS_PROFILE_REGISTER_THREAD();
+    IGNIS_PROFILE_REGISTER_THREAD();
 
-    //     // engine core
-    //     auto config = Config::fromFile(Path{argv[1]});
-    //     Engine engine{config};
-    //     auto& renderer = engine.renderer();
+    // engine core
+    auto config = Config::fromFile(argv[1]);
+    Engine engine{config};
+    // auto& renderer = engine.renderer();
 
     //     // compile render graph
     //     RenderGraphLayout rgraphLayout{};
@@ -54,7 +56,7 @@ int main(int argc, char** argv) {
     //         return -1;
     //     }
 
-    //     IGNIS_PROFILE_DUMP_SUMMARY();
-    //     log::info("Cya!");
+    IGNIS_PROFILE_DUMP_SUMMARY();
+    log::info("Cya!");
     return 0;
 }

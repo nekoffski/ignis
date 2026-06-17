@@ -13,8 +13,12 @@ VKBuffer::~VKBuffer() {
     auto device = m_device.device();
     auto allocator = m_device.allocator();
 
-    if (m_memory) VK_TRACE(vkFreeMemory(device, m_memory, allocator));
-    if (m_handle) VK_TRACE(vkDestroyBuffer(device, m_handle, allocator));
+    if (m_memory) {
+        VK_TRACE(vkFreeMemory(device, m_memory, allocator));
+    }
+    if (m_handle) {
+        VK_TRACE(vkDestroyBuffer(device, m_handle, allocator));
+    }
 }
 
 VKBuffer::VKBuffer(VKBuffer&& oth) noexcept
@@ -89,7 +93,9 @@ void VKBuffer::create() {
         m_device.device(), &allocateInfo, m_device.allocator(), &m_memory
     ));
 
-    if (m_description.bindOnCreation) bind();
+    if (m_description.bindOnCreation) {
+        bind();
+    }
 }
 
 }  // namespace ignis::rhi

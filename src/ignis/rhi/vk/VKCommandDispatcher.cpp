@@ -71,7 +71,9 @@ Opt<Error> VKCommandDispatcher::dispatch(const Command& command) {
 }
 
 Opt<Error> VKCommandDispatcher::dispatch(std::span<const Command> commands) {
-    if (auto err = preprocessCommands(commands); err) return err;
+    if (auto err = preprocessCommands(commands); err) {
+        return err;
+    }
     return recordCommands(commands);
 }
 

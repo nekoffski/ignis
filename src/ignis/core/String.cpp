@@ -35,7 +35,9 @@ std::optional<std::string> extensionFromPath(
                            ? name.find_first_of('.')
                            : name.find_last_of('.');
 
-    if (begin != path.npos) return name.substr(begin);
+    if (begin != path.npos) {
+        return name.substr(begin);
+    }
     return {};
 }
 

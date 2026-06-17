@@ -15,7 +15,9 @@ VKResourceManager::VKResourceManager(VKDevice& device, const Config& config)
       m_bindGroupPool(config.renderer().maxBindGroups) {}
 
 void VKResourceManager::ensureDescriptorPool() {
-    if (not m_descriptorPool.empty()) return;
+    if (not m_descriptorPool.empty()) {
+        return;
+    }
 
     auto maxGroups = m_maxBindGroups;
 
@@ -166,8 +168,9 @@ void VKResourceManager::destroy(PipelineHandle handle) {
 }
 
 VKPipeline* VKResourceManager::find(PipelineHandle handle) {
-    if (auto wrapper = m_pipelinePool.get(handle.id); wrapper)
+    if (auto wrapper = m_pipelinePool.get(handle.id); wrapper) {
         return &wrapper->resource;
+    }
     log::warn(
         "Failed to get pipeline: invalid pipeline handle: {}",
         static_cast<u32>(handle.id)
@@ -213,8 +216,9 @@ void VKResourceManager::destroy(BindGroupHandle handle) {
 }
 
 VKTexture* VKResourceManager::find(TextureHandle handle) {
-    if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper)
+    if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper) {
         return &textureWrapper->resource;
+    }
     log::warn(
         "Failed to get texture proxy: invalid texture handle: {}",
         static_cast<u32>(handle.id)
@@ -223,8 +227,9 @@ VKTexture* VKResourceManager::find(TextureHandle handle) {
 }
 
 VKBuffer* VKResourceManager::find(BufferHandle handle) {
-    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper)
+    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper) {
         return &bufferWrapper->resource;
+    }
     log::warn(
         "Failed to get buffer proxy: invalid buffer handle: {}",
         static_cast<u32>(handle.id)
@@ -234,8 +239,9 @@ VKBuffer* VKResourceManager::find(BufferHandle handle) {
 
 VKRenderPass* VKResourceManager::find(RenderPassHandle handle) {
     if (auto renderPassWrapper = m_renderPassPool.get(handle.id);
-        renderPassWrapper)
+        renderPassWrapper) {
         return &renderPassWrapper->resource;
+    }
     log::warn(
         "Failed to get render pass proxy: invalid render pass handle: {}",
         static_cast<u32>(handle.id)
@@ -244,8 +250,9 @@ VKRenderPass* VKResourceManager::find(RenderPassHandle handle) {
 }
 
 VKShader* VKResourceManager::find(ShaderHandle handle) {
-    if (auto shaderWrapper = m_shaderPool.get(handle.id); shaderWrapper)
+    if (auto shaderWrapper = m_shaderPool.get(handle.id); shaderWrapper) {
         return &shaderWrapper->resource;
+    }
     log::warn(
         "Failed to get shader: invalid shader handle: {}",
         static_cast<u32>(handle.id)

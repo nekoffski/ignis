@@ -19,8 +19,9 @@ VKDevice::VKDevice(const Config& config, Window* window)
     VKBootstrap bootstrap{config, window};
 
     m_instance = Scoped(bootstrap.instance(), [](VkInstance& instance) {
-        if (instance != VK_NULL_HANDLE)
+        if (instance != VK_NULL_HANDLE) {
             VK_TRACE(vkDestroyInstance(instance, nullptr));
+        }
     });
 
     m_debugMessenger = Scoped(
@@ -129,8 +130,9 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
 Opt<Error> VKDevice::wait(WorkloadReceipt receipt) {
     auto* workload = m_pendingWorkloads.get(receipt);
 
-    if (not workload)
+    if (not workload) {
         return Error{Error::Code::resourceMissing, "Invalid workload receipt"};
+    }
 
     auto success = workload->fence()->wait();
 
@@ -173,7 +175,9 @@ Opt<i32> VKDevice::findMemoryIndex(
         bool isSuitable = (typeFilter & (1 << i)) &&
                           (props.memoryTypes[i].propertyFlags & vkMemoryProperty
                           ) == vkMemoryProperty;
-        if (isSuitable) return i;
+        if (isSuitable) {
+            return i;
+        }
     }
     log::warn(
         "Unable to find suitable memory type: {}/{}", typeFilter,
@@ -205,8 +209,11 @@ bool VKDevice::supportsFormat(
                                                ? props.linearTilingFeatures
                                                : props.optimalTilingFeatures;
 
-    for (const auto& [u, f] : usageToFeature)
-        if (checkFlag(usage, u) && not(available & f)) return false;
+    for (const auto& [u, f] : usageToFeature) {
+        if (checkFlag(usage, u) && not(available & f)) {
+            return false;
+        }
+    }
     return true;
 }
 

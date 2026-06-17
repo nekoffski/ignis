@@ -17,8 +17,9 @@ template <typename T, std::ranges::range R>
 std::vector<T> operator|(R&& r, ToImpl<T>) {
     std::vector<T> out;
 
-    if constexpr (std::ranges::sized_range<decltype(r)>)
+    if constexpr (std::ranges::sized_range<decltype(r)>) {
         out.reserve(std::ranges::size(r));
+    }
 
     std::ranges::copy(r, std::back_inserter(out));
     return out;

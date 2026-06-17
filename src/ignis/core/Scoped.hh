@@ -19,7 +19,9 @@ class Scoped : public NonCopyable {
           m_empty(false) {}
 
     ~Scoped() {
-        if (not m_empty) m_destructor(m_resource);
+        if (not m_empty) {
+            m_destructor(m_resource);
+        }
     }
 
     Scoped(Scoped&& oth)
@@ -31,7 +33,9 @@ class Scoped : public NonCopyable {
 
     Scoped& operator=(Scoped&& oth) {
         if (this != &oth) {
-            if (not m_empty) m_destructor(m_resource);
+            if (not m_empty) {
+                m_destructor(m_resource);
+            }
             m_resource = std::move(oth.m_resource);
             m_destructor = std::move(oth.m_destructor);
             m_empty = oth.m_empty;
