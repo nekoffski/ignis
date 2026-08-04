@@ -8,8 +8,6 @@
 
 namespace ignis::rhi {
 
-using PipelineHandle = ResourceHandle<ResourceType::pipeline>;
-
 enum class PolygonMode : u8 { fill, line, point };
 enum class CullMode : u8 { none, front, back };
 enum class FrontFace : u8 { clockwise, counterClockwise };

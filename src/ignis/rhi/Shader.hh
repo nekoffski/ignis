@@ -59,8 +59,6 @@ struct ShaderDescription {
     std::vector<VertexAttribute> vertexAttributes;
 };
 
-using ShaderHandle = ResourceHandle<ResourceType::shader>;
-
 std::string shaderStageToString(ShaderStageType stage);
 ShaderStageType shaderStageTypeFromString(const std::string& str);
 

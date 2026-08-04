@@ -1,3 +1,3 @@
-#include "Scene.hh"
+#include "FrameBundle.hh"
 
 namespace ignis::render {}

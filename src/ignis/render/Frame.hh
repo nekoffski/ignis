@@ -1,10 +1,12 @@
-// #pragma once
+#pragma once
 
-// #include "ignis/core/Concepts.hh"
-// #include "ignis/core/Core.hh"
+#include "ignis/core/Concepts.hh"
+#include "ignis/core/Core.hh"
 
-// namespace ignis {
+namespace ignis::render {
 
-// struct RenderFrame {};
+struct Frame {};
 
-// }  // namespace ignis
+using FrameId = u32;
+
+}  // namespace ignis::render

@@ -8,8 +8,6 @@
 
 namespace ignis::rhi {
 
-using BufferHandle = ResourceHandle<ResourceType::buffer>;
-
 enum class BufferUsage : u64 {
     undefined = 0x0,
     transferSrc = 0x00000001,

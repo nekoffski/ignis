@@ -19,6 +19,7 @@ class Pool : public NonCopyable, public NonMovable {
     Result<u64> create(Args&&... args) {
         if (auto slot = findFreeSlot(); slot.has_value()) [[likely]] {
             m_pool[slot.value()].emplace(std::forward<Args>(args)...);
+            m_size++;
             return slot.value();
         }
         return Error::unexpected(
@@ -31,6 +32,7 @@ class Pool : public NonCopyable, public NonMovable {
     Result<u64> create(Constructor&& constructor) {
         if (auto slot = findFreeSlot(); slot.has_value()) [[likely]] {
             m_pool[slot.value()].emplace(constructor(slot.value()));
+            m_size++;
             return slot.value();
         }
         return Error::unexpected(
@@ -41,6 +43,7 @@ class Pool : public NonCopyable, public NonMovable {
     void destroy(u64 id) {
         if (id < m_pool.size()) {
             m_pool[id].reset();
+            m_size--;
         }
     }
 
@@ -58,6 +61,8 @@ class Pool : public NonCopyable, public NonMovable {
         return nullptr;
     }
 
+    u64 size() const { return m_pool.size(); }
+
    private:
     std::optional<u64> findFreeSlot() const {
         for (u64 i = 0; i < m_pool.size(); ++i) {
@@ -68,6 +73,7 @@ class Pool : public NonCopyable, public NonMovable {
         return std::nullopt;
     }
 
+    u64 m_size{0u};
     std::vector<std::optional<T>> m_pool;
 };
 

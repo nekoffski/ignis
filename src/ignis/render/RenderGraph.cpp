@@ -1,3 +1,3 @@
-#include "Scene.hh"
+#include "RenderGraph.hh"
 
 namespace ignis::render {}

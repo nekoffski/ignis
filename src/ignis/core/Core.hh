@@ -79,6 +79,12 @@ struct Rect {
 using Name = Wrapper<Str>;
 
 template <typename T>
+class Id : public Wrapper<u32> {
+   public:
+    using Wrapper<u32>::Wrapper;
+};
+
+template <typename T>
 class Tag : public Wrapper<T> {
    public:
     using Wrapper<T>::Wrapper;

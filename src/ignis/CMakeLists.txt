@@ -19,10 +19,10 @@ add_library(ignis SHARED
     "core/Profiler.cpp"
     # -- renderer
     "render/Renderer.cpp"
-    "render/Graph.cpp"
-    "render/GraphLayout.cpp"
+    "render/RenderGraph.cpp"
+    "render/RenderGraphLayout.cpp"
     "render/Scene.cpp"
-    "render/Bundle.cpp"
+    "render/FrameBundle.cpp"
     "render/Mesh.cpp"
     # -- rhi
     "rhi/Device.cpp"

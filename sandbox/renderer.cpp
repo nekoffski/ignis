@@ -6,10 +6,39 @@
 #include "ignis/core/Config.hh"
 #include "ignis/core/Log.hh"
 #include "ignis/core/Profiler.hh"
+#include "ignis/render/FrameBundle.hh"
+#include "ignis/render/RenderGraph.hh"
+#include "ignis/render/RenderGraphLayout.hh"
+#include "ignis/render/Scene.hh"
+
+using namespace ignis;
+
+class MainRenderGraphLayout : public render::RenderGraphLayout {
+   public:
+    struct Tags {
+        render::ResourceTag colorAttachment;
+    };
+
+    MainRenderGraphLayout()
+        : render::RenderGraphLayout(Name{"MainRenderGraph"}),
+          m_tags{createTag()} {
+        addPass(Name{"MainPass"})
+            .colorAttachment(m_tags.colorAttachment)
+            .clearColor({1.0f, 1.0f, 0.0f, 1.0f})
+            .shader(Path{"triangle.igshader"})
+            .render([](const render::FrameBundle& bundle) {
+                // todo
+                return;
+            });
+    }
+
+    const Tags& tags() const { return m_tags; }
+
+   private:
+    Tags m_tags;
+};
 
 int main(int argc, char** argv) {
-    using namespace ignis;
-
     log::init(log::LoggerOptions{.enableColors = false});
     log::expect(argc > 1, "No config file path provided");
 
@@ -18,43 +47,39 @@ int main(int argc, char** argv) {
     // engine core
     auto config = Config::fromFile(argv[1]);
     Engine engine{config};
-    // auto& renderer = engine.renderer();
 
-    //     // compile render graph
-    //     RenderGraphLayout rgraphLayout{};
+    auto& renderer = engine.renderer();
+    auto& device = engine.device();
 
-    //     auto mainPassBody = []() { return; };
+    MainRenderGraphLayout renderGraphLayout;
+    auto renderGraph = renderer.compileRenderGraph(renderGraphLayout);
 
-    //     rgraphLayout.addPass(Name{"Main Pass"}, mainPassBody)
-    //         .access(ResourceAccess::colorAttachment, 0)
-    //         .access(ResourceAccess::depthAttachment, 1);
+    if (not renderGraph) {
+        log::info(
+            "Failed to compile render graph: {}", renderGraph.error().message()
+        );
+        return -1;
+    }
 
-    //     auto renderGraphHandle = renderer.compileRenderGraph(rgraphLayout);
+    // prepare render bundle
+    render::Scene scene;
+    render::FrameBundle bundle;
 
-    //     if (not renderGraphHandle) {
-    //         log::info("Failed to compile render graph: {}",
-    //                   renderGraphHandle.error().message());
-    //         return -1;
-    //     }
+    // enqeue bundles
+    auto frame = renderer.enqueue(renderGraph.value(), bundle);
 
-    //     // prepare render bundle
-    //     RenderScene scene{};
-    //     RenderBundle bundle{};
+    if (not frame) {
+        log::info(
+            "Failed to enqueue render graph: {}", frame.error().message()
+        );
+        return -1;
+    }
 
-    //     // enqeue bundles
-    //     auto frame = renderer.enqueue(renderGraphHandle.value(), bundle);
-
-    //     if (not frame) {
-    //         log::info("Failed to enqueue render graph: {}",
-    //                   frame.error().message());
-    //         return -1;
-    //     }
-
-    //     // wait for frame to finish rendering
-    //     if (auto err = renderer.wait(frame.value()); err) {
-    //         log::info("Failed to wait for frame: {}", err->message());
-    //         return -1;
-    //     }
+    // wait for frame to finish rendering
+    if (auto result = renderer.wait(frame.value()); not result) {
+        log::info("Failed to wait for frame: {}", result.error().message());
+        return -1;
+    }
 
     IGNIS_PROFILE_DUMP_SUMMARY();
     log::info("Cya!");

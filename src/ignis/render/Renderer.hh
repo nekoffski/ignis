@@ -1,11 +1,13 @@
 #pragma once
 
 #include <span>
+#include <vector>
 
-#include "Bundle.hh"
 #include "Frame.hh"
-#include "Graph.hh"
-#include "GraphLayout.hh"
+#include "FrameBundle.hh"
+#include "Handle.hh"
+#include "RenderGraph.hh"
+#include "RenderGraphLayout.hh"
 #include "Scene.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Config.hh"
@@ -20,29 +22,26 @@ class Renderer : public NonCopyable, public NonMovable {
    public:
     explicit Renderer(const Config& config, rhi::Device& device);
 
-    // [[nodiscard]] Result<RenderFrame> enqueue(RenderGraphId renderGraphId,
-    //                                           const RenderBundle& bundle) {
-    //     return enqueue(renderGraphId,
-    //                    std::span<const RenderBundle>{&bundle, 1});
-    // }
+    [[nodiscard]] Result<FrameHandle> enqueue(
+        RenderGraphHandle renderGraphId, const FrameBundle& bundle
+    );
 
-    // [[nodiscard]] Result<RenderFrame> enqueue(
-    //     RenderGraphId renderGraphId, std::span<const RenderBundle> bundles) {
-    //     return {};
-    // }
+    [[nodiscard]] Result<FrameHandle> enqueue(
+        RenderGraphHandle renderGraphId, std::span<const FrameBundle> bundles
+    );
 
-    // [[nodiscard]] Opt<Error> wait(const RenderFrame& frame) {
-    //     return Error::empty();
-    // }
+    [[nodiscard]] Result<Frame> wait(FrameHandle frameId);
 
-    // Result<RenderGraphId> compileRenderGraph(const RenderGraphLayout& layout)
-    // {
-    //     return 0u;
-    // }
+    [[nodiscard]] Result<RenderGraphHandle> compileRenderGraph(
+        const RenderGraphLayout& layout
+    );
 
    private:
+    bool renderGraphLimitReached() const;
+
+    const Config& m_config;
     rhi::Device& m_device;
-    // Pool<render::Graph> m_renderGraphs;
+    Pool<RenderGraph> m_renderGraphs;
 };
 
 }  // namespace ignis::render

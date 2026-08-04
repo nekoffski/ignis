@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ignis/core/Core.hh"
+#include "ignis/core/Handle.hh"
 
 namespace ignis::rhi {
 
@@ -14,29 +15,26 @@ enum class ResourceType : u8 {
 };
 
 template <ResourceType T>
-struct ResourceHandle {
-    u32 id : 24;
-    u32 generation : 8 {0u};
-
-    static ResourceType type() { return T; }
-
-    bool operator==(const ResourceHandle&) const = default;
-    bool operator<(const ResourceHandle& o) const {
-        return (id << 8u | generation) < (o.id << 8u | o.generation);
-    }
-};
+struct Handle : HandleBase<ResourceType, T> {};
 
 template <typename T, ResourceType RT>
 struct ResourceWrapper {
     T resource;
-    ResourceHandle<RT> handle;
+    Handle<RT> handle;
 };
+
+using BufferHandle = Handle<ResourceType::buffer>;
+using RenderPassHandle = Handle<ResourceType::renderPass>;
+using ShaderHandle = Handle<ResourceType::shader>;
+using TextureHandle = Handle<ResourceType::texture>;
+using PipelineHandle = Handle<ResourceType::pipeline>;
+using BindGroupHandle = Handle<ResourceType::bindGroup>;
 
 }  // namespace ignis::rhi
 
 template <ignis::rhi::ResourceType T>
-struct std::hash<ignis::rhi::ResourceHandle<T>> {
-    size_t operator()(const ignis::rhi::ResourceHandle<T>& h) const noexcept {
+struct std::hash<ignis::rhi::Handle<T>> {
+    size_t operator()(const ignis::rhi::Handle<T>& h) const noexcept {
         return std::hash<ignis::u32>{}(h.id << 8u | h.generation);
     }
 };

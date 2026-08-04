@@ -9,8 +9,6 @@
 
 namespace ignis::rhi {
 
-using RenderPassHandle = ResourceHandle<ResourceType::renderPass>;
-
 struct Attachment {
     bool clear{false};
     Format format{Format::undefined};

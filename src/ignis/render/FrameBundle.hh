@@ -5,8 +5,12 @@
 
 namespace ignis::render {
 
-class Scene : public NonCopyable, public NonMovable {
+using ResourceTag = Tag<u64>;
+
+class FrameBundle : public NonCopyable, public NonMovable {
    public:
+    explicit FrameBundle() = default;
+
    private:
 };
 

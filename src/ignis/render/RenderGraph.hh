@@ -5,7 +5,7 @@
 
 namespace ignis::render {
 
-class Scene : public NonCopyable, public NonMovable {
+class RenderGraph : public NonCopyable, public NonMovable {
    public:
    private:
 };

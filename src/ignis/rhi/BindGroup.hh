@@ -5,8 +5,6 @@
 
 namespace ignis::rhi {
 
-using BindGroupHandle = ResourceHandle<ResourceType::bindGroup>;
-
 struct BindGroupDescription {
     ShaderHandle shader;
 };

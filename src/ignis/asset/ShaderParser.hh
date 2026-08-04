@@ -22,7 +22,7 @@ class ShaderParser : public NonCopyable, public NonMovable {
    private:
     Result<rhi::ShaderDescription> parseFile(const ShaderFile& shaderFile);
 
-    Config m_config;
+    const Config& m_config;
 };
 
 }  // namespace ignis::asset

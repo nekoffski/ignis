@@ -36,8 +36,6 @@ enum class Layout {
     presentSrc
 };
 
-using TextureHandle = ResourceHandle<ResourceType::texture>;
-
 enum class TextureType { flat, cubemap };
 
 enum class Filter { nearest, linear };
