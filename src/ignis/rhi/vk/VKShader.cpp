@@ -19,7 +19,8 @@ VKShader::~VKShader() {
     auto allocator = m_device.allocator();
 
     if (m_pipelineLayout) {
-        VK_TRACE(vkDestroyPipelineLayout(vkDevice, m_pipelineLayout, allocator)
+        VK_TRACE(
+            vkDestroyPipelineLayout(vkDevice, m_pipelineLayout, allocator)
         );
     }
 
@@ -47,8 +48,8 @@ const std::vector<VkShaderModule>& VKShader::modules() const {
     return m_modules;
 }
 
-const std::vector<VkDescriptorSetLayout>& VKShader::descriptorSetLayouts(
-) const {
+const std::vector<VkDescriptorSetLayout>&
+VKShader::descriptorSetLayouts() const {
     return m_setLayouts;
 }
 

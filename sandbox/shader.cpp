@@ -143,12 +143,14 @@ int main(int argc, char** argv) {
 
     workload.enqueue(CmdSetViewport{.area = renderArea});
     workload.enqueue(CmdSetScissor{.area = renderArea});
-    workload.enqueue(CmdBeginRenderPass{
-        .renderPass = *renderPass,
-        .attachments = {*texture},
-        .renderArea = renderArea,
-        .clearColor = {0.1f, 0.1f, 0.1f, 1.f},
-    });
+    workload.enqueue(
+        CmdBeginRenderPass{
+            .renderPass = *renderPass,
+            .attachments = {*texture},
+            .renderArea = renderArea,
+            .clearColor = {0.1f, 0.1f, 0.1f, 1.f},
+        }
+    );
     BindGroupProxy bgp{device.resources(), *bindGroup};
     Vec4 tint{1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -184,10 +186,12 @@ int main(int argc, char** argv) {
     }
 
     Workload downloadWorkload{Queue::transfer};
-    downloadWorkload.enqueue(CmdDownloadTextureToBuffer{
-        .from = *texture,
-        .to = *buffer,
-    });
+    downloadWorkload.enqueue(
+        CmdDownloadTextureToBuffer{
+            .from = *texture,
+            .to = *buffer,
+        }
+    );
 
     auto dlReceipt = device.submit(downloadWorkload);
     if (not dlReceipt) {

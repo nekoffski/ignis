@@ -10,6 +10,7 @@ tomlplusplus/3.4.0
 stduuid/1.2.3
 spirv-reflect/1.4.313.0
 tinyobjloader/2.0.0-rc10
+gtest/1.15.0
 
 [generators]
 CMakeDeps

@@ -61,7 +61,8 @@ Result<rhi::ShaderDescription> ShaderParser::parseFile(const Path& path) && {
     }
 }
 
-static Opt<rhi::DescriptorType> toDescriptorType(SpvReflectDescriptorType type
+static Opt<rhi::DescriptorType> toDescriptorType(
+    SpvReflectDescriptorType type
 ) {
     switch (type) {
         case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
@@ -327,7 +328,8 @@ Opt<Error> ShaderParser::ShaderFile::parseEntry(
     return addStage(base, *stagePath, stage, f);
 }
 
-Result<ShaderParser::ShaderFile> ShaderParser::ShaderFile::load(const Path& path
+Result<ShaderParser::ShaderFile> ShaderParser::ShaderFile::load(
+    const Path& path
 ) {
     toml::table table;
     try {

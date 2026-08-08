@@ -15,7 +15,9 @@ enum class ResourceType : u8 {
 };
 
 template <ResourceType T>
-struct Handle : HandleBase<ResourceType, T> {};
+struct Handle : HandleBase<ResourceType, T> {
+    using HandleBase<ResourceType, T>::HandleBase;
+};
 
 template <typename T, ResourceType RT>
 struct ResourceWrapper {
@@ -35,6 +37,7 @@ using BindGroupHandle = Handle<ResourceType::bindGroup>;
 template <ignis::rhi::ResourceType T>
 struct std::hash<ignis::rhi::Handle<T>> {
     size_t operator()(const ignis::rhi::Handle<T>& h) const noexcept {
-        return std::hash<ignis::u32>{}(h.id << 8u | h.generation);
+        const auto key = static_cast<ignis::u64>(h.id) << 32u | h.generation;
+        return std::hash<ignis::u64>{}(key);
     }
 };

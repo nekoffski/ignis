@@ -1,8 +1,28 @@
 #include "VKResourceManager.hh"
 
+#include <string_view>
+
 #include "VKDevice.hh"
 
 namespace ignis::rhi {
+
+namespace {
+
+template <typename Pool, typename Handle>
+Opt<Error> destroyResource(
+    Pool& pool, Handle handle, std::string_view resourceType
+) {
+    if (not pool.destroy(handle)) {
+        return Error{
+            Error::Code::resourceMissing,
+            "Failed to destroy {}: invalid handle {}:{}", resourceType,
+            handle.id, handle.generation
+        };
+    }
+    return Error::empty();
+}
+
+}  // namespace
 
 VKResourceManager::VKResourceManager(VKDevice& device, const Config& config)
     : m_device(device),
@@ -52,13 +72,13 @@ void VKResourceManager::ensureDescriptorPool() {
 }
 
 Result<BufferHandle> VKResourceManager::create(const BufferDescription& desc) {
-    auto id = m_bufferPool.create([&](u32 slot) {
+    auto id = m_bufferPool.create([&](HandleKey key) {
         return ResourceWrapper{
             VKBuffer{
                 m_device,
                 desc,
             },
-            BufferHandle{slot},
+            BufferHandle{key.id, key.generation},
         };
     });
 
@@ -71,14 +91,14 @@ Result<BufferHandle> VKResourceManager::create(const BufferDescription& desc) {
     return m_bufferPool.get(*id)->handle;
 }
 
-void VKResourceManager::destroy(BufferHandle handle) {
-    m_bufferPool.destroy(handle.id);
+Opt<Error> VKResourceManager::destroy(BufferHandle handle) {
+    return destroyResource(m_bufferPool, handle, "buffer");
 }
 
 Result<TextureHandle> VKResourceManager::create(
     const TextureDescription& definition
 ) {
-    auto id = m_texturePool.create([&](u32 slot) {
+    auto id = m_texturePool.create([&](HandleKey key) {
         return ResourceWrapper{
             VKTexture{
                 m_device,
@@ -86,7 +106,7 @@ Result<TextureHandle> VKResourceManager::create(
                 definition.metadata,
                 definition.sampler,
             },
-            TextureHandle{slot},
+            TextureHandle{key.id, key.generation},
         };
     });
     if (not id) {
@@ -101,13 +121,13 @@ Result<TextureHandle> VKResourceManager::create(
 Result<RenderPassHandle> VKResourceManager::create(
     const RenderPassDescription& desc
 ) {
-    auto id = m_renderPassPool.create([&](u32 slot) {
+    auto id = m_renderPassPool.create([&](HandleKey key) {
         return ResourceWrapper{
             VKRenderPass{
                 m_device,
                 desc,
             },
-            RenderPassHandle{slot},
+            RenderPassHandle{key.id, key.generation},
         };
     });
     if (not id) {
@@ -119,17 +139,17 @@ Result<RenderPassHandle> VKResourceManager::create(
     return m_renderPassPool.get(*id)->handle;
 }
 
-void VKResourceManager::destroy(RenderPassHandle handle) {
-    m_renderPassPool.destroy(handle.id);
+Opt<Error> VKResourceManager::destroy(RenderPassHandle handle) {
+    return destroyResource(m_renderPassPool, handle, "render pass");
 }
 
 Result<ShaderHandle> VKResourceManager::create(
     const ShaderDescription& shaderDescription
 ) {
-    auto id = m_shaderPool.create([&](u32 slot) {
+    auto id = m_shaderPool.create([&](HandleKey key) {
         return ResourceWrapper{
             VKShader{m_device, shaderDescription},
-            ShaderHandle{slot},
+            ShaderHandle{key.id, key.generation},
         };
     });
     if (not id) {
@@ -141,17 +161,17 @@ Result<ShaderHandle> VKResourceManager::create(
     return m_shaderPool.get(*id)->handle;
 }
 
-void VKResourceManager::destroy(ShaderHandle handle) {
-    m_shaderPool.destroy(handle.id);
+Opt<Error> VKResourceManager::destroy(ShaderHandle handle) {
+    return destroyResource(m_shaderPool, handle, "shader");
 }
 
 Result<PipelineHandle> VKResourceManager::create(
     const PipelineDescription& pipelineDescription
 ) {
-    auto id = m_pipelinePool.create([&](u32 slot) {
+    auto id = m_pipelinePool.create([&](HandleKey key) {
         return ResourceWrapper{
             VKPipeline{m_device, pipelineDescription},
-            PipelineHandle{slot},
+            PipelineHandle{key.id, key.generation},
         };
     });
     if (not id) {
@@ -163,12 +183,12 @@ Result<PipelineHandle> VKResourceManager::create(
     return m_pipelinePool.get(*id)->handle;
 }
 
-void VKResourceManager::destroy(PipelineHandle handle) {
-    m_pipelinePool.destroy(handle.id);
+Opt<Error> VKResourceManager::destroy(PipelineHandle handle) {
+    return destroyResource(m_pipelinePool, handle, "pipeline");
 }
 
 VKPipeline* VKResourceManager::find(PipelineHandle handle) {
-    if (auto wrapper = m_pipelinePool.get(handle.id); wrapper) {
+    if (auto wrapper = m_pipelinePool.get(handle); wrapper) {
         return &wrapper->resource;
     }
     log::warn(
@@ -178,8 +198,8 @@ VKPipeline* VKResourceManager::find(PipelineHandle handle) {
     return nullptr;
 }
 
-void VKResourceManager::destroy(TextureHandle handle) {
-    m_texturePool.destroy(handle.id);
+Opt<Error> VKResourceManager::destroy(TextureHandle handle) {
+    return destroyResource(m_texturePool, handle, "texture");
 }
 
 Result<BindGroupHandle> VKResourceManager::create(
@@ -196,10 +216,10 @@ Result<BindGroupHandle> VKResourceManager::create(
 
     ensureDescriptorPool();
 
-    auto id = m_bindGroupPool.create([&](u32 slot) {
+    auto id = m_bindGroupPool.create([&](HandleKey key) {
         return ResourceWrapper{
             VKBindGroup{m_device, *shader, *m_descriptorPool},
-            BindGroupHandle{slot},
+            BindGroupHandle{key.id, key.generation},
         };
     });
     if (not id) {
@@ -211,12 +231,12 @@ Result<BindGroupHandle> VKResourceManager::create(
     return m_bindGroupPool.get(*id)->handle;
 }
 
-void VKResourceManager::destroy(BindGroupHandle handle) {
-    m_bindGroupPool.destroy(handle.id);
+Opt<Error> VKResourceManager::destroy(BindGroupHandle handle) {
+    return destroyResource(m_bindGroupPool, handle, "bind group");
 }
 
 VKTexture* VKResourceManager::find(TextureHandle handle) {
-    if (auto textureWrapper = m_texturePool.get(handle.id); textureWrapper) {
+    if (auto textureWrapper = m_texturePool.get(handle); textureWrapper) {
         return &textureWrapper->resource;
     }
     log::warn(
@@ -227,7 +247,7 @@ VKTexture* VKResourceManager::find(TextureHandle handle) {
 }
 
 VKBuffer* VKResourceManager::find(BufferHandle handle) {
-    if (auto bufferWrapper = m_bufferPool.get(handle.id); bufferWrapper) {
+    if (auto bufferWrapper = m_bufferPool.get(handle); bufferWrapper) {
         return &bufferWrapper->resource;
     }
     log::warn(
@@ -238,7 +258,7 @@ VKBuffer* VKResourceManager::find(BufferHandle handle) {
 }
 
 VKRenderPass* VKResourceManager::find(RenderPassHandle handle) {
-    if (auto renderPassWrapper = m_renderPassPool.get(handle.id);
+    if (auto renderPassWrapper = m_renderPassPool.get(handle);
         renderPassWrapper) {
         return &renderPassWrapper->resource;
     }
@@ -250,7 +270,7 @@ VKRenderPass* VKResourceManager::find(RenderPassHandle handle) {
 }
 
 VKShader* VKResourceManager::find(ShaderHandle handle) {
-    if (auto shaderWrapper = m_shaderPool.get(handle.id); shaderWrapper) {
+    if (auto shaderWrapper = m_shaderPool.get(handle); shaderWrapper) {
         return &shaderWrapper->resource;
     }
     log::warn(
@@ -261,8 +281,7 @@ VKShader* VKResourceManager::find(ShaderHandle handle) {
 }
 
 VKBindGroup* VKResourceManager::find(BindGroupHandle handle) {
-    if (auto bindGroupWrapper = m_bindGroupPool.get(handle.id);
-        bindGroupWrapper) {
+    if (auto bindGroupWrapper = m_bindGroupPool.get(handle); bindGroupWrapper) {
         return &bindGroupWrapper->resource;
     }
     log::warn(

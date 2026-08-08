@@ -31,7 +31,7 @@ Result<FrameHandle> Renderer::enqueue(
 Result<Frame> Renderer::wait(FrameHandle frameHandle) { return {}; }
 
 bool Renderer::renderGraphLimitReached() const {
-    return m_config.renderer().maxRenderGraphs <= m_renderGraphs.size();
+    return m_config.renderer().maxRenderGraphs <= m_renderGraphs.liveCount();
 }
 
 }  // namespace ignis::render

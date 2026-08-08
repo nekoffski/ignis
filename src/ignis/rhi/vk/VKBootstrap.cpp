@@ -7,8 +7,11 @@ namespace ignis::rhi {
 
 namespace {
 
-VKAPI_ATTR VkBool32 VKAPI_CALL
-debugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void*) {
+VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT,
+    VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData, void*
+) {
     switch (messageSeverity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
             log::warn("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
@@ -259,7 +262,8 @@ std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
     VKDeviceInfo info;
 
     VK_TRACE(vkGetPhysicalDeviceProperties(device, &info.coreProperties));
-    VK_TRACE(vkGetPhysicalDeviceMemoryProperties(device, &info.memoryProperties)
+    VK_TRACE(
+        vkGetPhysicalDeviceMemoryProperties(device, &info.memoryProperties)
     );
     VK_TRACE(vkGetPhysicalDeviceFeatures(device, &info.features));
 
@@ -292,7 +296,7 @@ std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
 void VKBootstrap::pickPhysicalDevice() {
     DeviceRequirements req;
     req.supportSurface = false;
-    req.isDiscrete = true;
+    req.isDiscrete = false;
     req.queues = Queue::graphics | Queue::transfer;
 
     if (m_window) {

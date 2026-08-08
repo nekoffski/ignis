@@ -35,8 +35,8 @@ VKCommandManifest& VKCommandManifest::add(BindGroupHandle handle) {
     return *this;
 }
 
-const std::unordered_set<RenderPassHandle>& VKCommandManifest::renderPasses(
-) const {
+const std::unordered_set<RenderPassHandle>&
+VKCommandManifest::renderPasses() const {
     return m_renderPasses;
 }
 
@@ -52,8 +52,8 @@ const std::unordered_set<PipelineHandle>& VKCommandManifest::pipelines() const {
     return m_pipelines;
 }
 
-const std::unordered_set<BindGroupHandle>& VKCommandManifest::bindGroups(
-) const {
+const std::unordered_set<BindGroupHandle>&
+VKCommandManifest::bindGroups() const {
     return m_bindGroups;
 }
 
@@ -77,7 +77,8 @@ Opt<Error> VKCommandDispatcher::dispatch(std::span<const Command> commands) {
     return recordCommands(commands);
 }
 
-Opt<Error> VKCommandDispatcher::recordCommands(std::span<const Command> commands
+Opt<Error> VKCommandDispatcher::recordCommands(
+    std::span<const Command> commands
 ) {
     for (const auto& command : commands) {
         if (auto err = recordCommand(command); err) {

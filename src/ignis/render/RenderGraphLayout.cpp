@@ -16,7 +16,8 @@ const Name& RenderGraphLayout::name() const { return m_name; }
 
 ResourceTag RenderGraphLayout::createTag() { return ResourceTag{m_nextTag++}; }
 
-RenderGraphLayout::RenderPassLayout& RenderGraphLayout::addPass(const Name& name
+RenderGraphLayout::RenderPassLayout& RenderGraphLayout::addPass(
+    const Name& name
 ) {
     m_passes.emplace_back(name);
     return m_passes.back();

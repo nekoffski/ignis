@@ -7,11 +7,12 @@
 #include "Queue.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
+#include "ignis/core/Handle.hh"
 #include "ignis/core/Log.hh"
 
 namespace ignis::rhi {
 
-using WorkloadReceipt = u8;
+using WorkloadReceipt = HandleKey;
 
 class Workload : public NonCopyable, public NonMovable {
    public:

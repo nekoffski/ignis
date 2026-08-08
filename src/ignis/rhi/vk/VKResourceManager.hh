@@ -29,31 +29,35 @@ class VKResourceManager : public ResourceManager {
    public:
     explicit VKResourceManager(VKDevice& device, const Config& config);
 
-    Result<BufferHandle> create(const BufferDescription& bufferDescription
+    Result<BufferHandle> create(
+        const BufferDescription& bufferDescription
     ) override;
-    void destroy(BufferHandle handle) override;
+    Opt<Error> destroy(BufferHandle handle) override;
 
-    Result<TextureHandle> create(const TextureDescription& textureDescription
+    Result<TextureHandle> create(
+        const TextureDescription& textureDescription
     ) override;
-    void destroy(TextureHandle handle) override;
+    Opt<Error> destroy(TextureHandle handle) override;
 
     Result<RenderPassHandle> create(
         const RenderPassDescription& renderPassDescription
     ) override;
-    void destroy(RenderPassHandle handle) override;
+    Opt<Error> destroy(RenderPassHandle handle) override;
 
-    Result<ShaderHandle> create(const ShaderDescription& shaderDescription
+    Result<ShaderHandle> create(
+        const ShaderDescription& shaderDescription
     ) override;
-    void destroy(ShaderHandle handle) override;
+    Opt<Error> destroy(ShaderHandle handle) override;
 
-    Result<PipelineHandle> create(const PipelineDescription& pipelineDescription
+    Result<PipelineHandle> create(
+        const PipelineDescription& pipelineDescription
     ) override;
-    void destroy(PipelineHandle handle) override;
+    Opt<Error> destroy(PipelineHandle handle) override;
 
     Result<BindGroupHandle> create(
         const BindGroupDescription& bindGroupDescription
     ) override;
-    void destroy(BindGroupHandle handle) override;
+    Opt<Error> destroy(BindGroupHandle handle) override;
 
     VKTexture* find(TextureHandle handle);
     VKBuffer* find(BufferHandle handle);

@@ -48,16 +48,20 @@ int main(int argc, char** argv) {
     Workload workload{Queue::transfer};
 
     // buffer -> texture
-    workload.enqueue(CmdUploadBufferToTexture{
-        .from = *writeBuffer,
-        .to = *texture,
-    });
+    workload.enqueue(
+        CmdUploadBufferToTexture{
+            .from = *writeBuffer,
+            .to = *texture,
+        }
+    );
 
     // texture -> buffer
-    workload.enqueue(CmdDownloadTextureToBuffer{
-        .from = *texture,
-        .to = *readBuffer,
-    });
+    workload.enqueue(
+        CmdDownloadTextureToBuffer{
+            .from = *texture,
+            .to = *readBuffer,
+        }
+    );
 
     // submit workload
     auto wlReceipt = device.submit(workload);

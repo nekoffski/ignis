@@ -19,7 +19,8 @@ class VKBootstrap : public NonCopyable, public NonMovable {
         bool isDiscrete;
         std::vector<const char*> extensions;
 
-        std::optional<VKDeviceInfo> fulfills(const VkPhysicalDevice& device
+        std::optional<VKDeviceInfo> fulfills(
+            const VkPhysicalDevice& device
         ) const;
     };
 

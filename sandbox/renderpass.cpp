@@ -54,16 +54,20 @@ int main(int argc, char** argv) {
     Workload workload{Queue::graphics};
     Workload downloadWorkload{Queue::transfer};
 
-    workload.enqueue(CmdBeginRenderPass{
-        .renderPass = *renderPass,
-        .attachments = {texture.value()},
-        .renderArea = {.x = 0.f, .y = 0.f, .w = 128.f, .h = 128.f},
-        .clearColor = {0.f, 1.f, 0.f, 1.f},
-    });
+    workload.enqueue(
+        CmdBeginRenderPass{
+            .renderPass = *renderPass,
+            .attachments = {texture.value()},
+            .renderArea = {.x = 0.f, .y = 0.f, .w = 128.f, .h = 128.f},
+            .clearColor = {0.f, 1.f, 0.f, 1.f},
+        }
+    );
 
-    workload.enqueue(CmdEndRenderPass{
-        .renderPass = *renderPass,
-    });
+    workload.enqueue(
+        CmdEndRenderPass{
+            .renderPass = *renderPass,
+        }
+    );
 
     std::vector<Workload*> workloads;
     workloads.push_back(&workload);
@@ -72,10 +76,12 @@ int main(int argc, char** argv) {
     auto bufferDesc = BufferDescription::staging(128u * 128u * 4u);
     auto buffer = device.resources().create(bufferDesc);
 
-    downloadWorkload.enqueue(CmdDownloadTextureToBuffer{
-        .from = *texture,
-        .to = *buffer,
-    });
+    downloadWorkload.enqueue(
+        CmdDownloadTextureToBuffer{
+            .from = *texture,
+            .to = *buffer,
+        }
+    );
     workloads.push_back(&downloadWorkload);
 
     {

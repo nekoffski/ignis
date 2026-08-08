@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(ignis VERSION 0.1.0 LANGUAGES CXX)
 
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -21,3 +23,8 @@ find_package(tinyobjloader REQUIRED)
 
 add_subdirectory(src/ignis)
 add_subdirectory(sandbox)
+
+if(BUILD_TESTING)
+    find_package(GTest REQUIRED)
+    add_subdirectory(tests)
+endif()

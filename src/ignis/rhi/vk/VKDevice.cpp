@@ -172,9 +172,9 @@ Opt<i32> VKDevice::findMemoryIndex(
     auto vkMemoryProperty = toVk(memoryProperty);
     const auto& props = m_deviceInfo.memoryProperties;
     for (u32 i = 0; i < props.memoryTypeCount; ++i) {
-        bool isSuitable = (typeFilter & (1 << i)) &&
-                          (props.memoryTypes[i].propertyFlags & vkMemoryProperty
-                          ) == vkMemoryProperty;
+        bool isSuitable =
+            (typeFilter & (1 << i)) && (props.memoryTypes[i].propertyFlags &
+                                        vkMemoryProperty) == vkMemoryProperty;
         if (isSuitable) {
             return i;
         }

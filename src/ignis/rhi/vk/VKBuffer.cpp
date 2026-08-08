@@ -35,7 +35,8 @@ VKBuffer::VKBuffer(VKBuffer&& oth) noexcept
 }
 
 void VKBuffer::bind(u64 offset) {
-    VK_ASSERT(vkBindBufferMemory(m_device.device(), m_handle, m_memory, offset)
+    VK_ASSERT(
+        vkBindBufferMemory(m_device.device(), m_handle, m_memory, offset)
     );
 }
 
