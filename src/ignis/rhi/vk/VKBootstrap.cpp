@@ -75,6 +75,96 @@ std::string deviceTypeName(VkPhysicalDeviceType type) {
     }
 }
 
+DeviceType deviceType(VkPhysicalDeviceType type) {
+    switch (type) {
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+            return DeviceType::integrated;
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+            return DeviceType::discrete;
+        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+            return DeviceType::virtualGpu;
+        case VK_PHYSICAL_DEVICE_TYPE_CPU:
+            return DeviceType::cpu;
+        default:
+            return DeviceType::other;
+    }
+}
+
+DeviceCapabilities makeCapabilities(const VKDeviceInfo& info) {
+    const auto& properties = info.coreProperties;
+    const auto& limits = properties.limits;
+    const auto& features12 = info.vulkan12Features;
+    const auto& features13 = info.vulkan13Features;
+
+    DeviceCapabilities capabilities{
+        .deviceName = properties.deviceName,
+        .driverName = info.driverProperties.driverName,
+        .driverInfo = info.driverProperties.driverInfo,
+        .deviceType = deviceType(properties.deviceType),
+        .apiVersion =
+            {
+                .major = VK_API_VERSION_MAJOR(properties.apiVersion),
+                .minor = VK_API_VERSION_MINOR(properties.apiVersion),
+                .patch = VK_API_VERSION_PATCH(properties.apiVersion),
+            },
+        .vendorId = properties.vendorID,
+        .deviceId = properties.deviceID,
+        .driverVersion = properties.driverVersion,
+        .queues =
+            {
+                .graphics = info.queueIndices.contains(Queue::graphics),
+                .compute = info.queueIndices.contains(Queue::compute),
+                .transfer = info.queueIndices.contains(Queue::transfer),
+                .present = info.queueIndices.contains(Queue::present),
+            },
+        .features =
+            {
+                .samplerAnisotropy =
+                    info.features.samplerAnisotropy != VK_FALSE,
+                .timelineSemaphores = features12.timelineSemaphore != VK_FALSE,
+                .synchronization2 = features13.synchronization2 != VK_FALSE,
+                .dynamicRendering = features13.dynamicRendering != VK_FALSE,
+                .descriptorIndexing = features12.descriptorIndexing != VK_FALSE,
+                .runtimeDescriptorArrays =
+                    features12.runtimeDescriptorArray != VK_FALSE,
+                .partiallyBoundDescriptors =
+                    features12.descriptorBindingPartiallyBound != VK_FALSE,
+                .variableDescriptorCount =
+                    features12.descriptorBindingVariableDescriptorCount !=
+                    VK_FALSE,
+                .sampledImageNonUniformIndexing =
+                    features12.shaderSampledImageArrayNonUniformIndexing !=
+                    VK_FALSE,
+                .bufferDeviceAddress =
+                    features12.bufferDeviceAddress != VK_FALSE,
+                .drawIndirectCount = features12.drawIndirectCount != VK_FALSE,
+            },
+        .limits = {
+            .maxImageDimension2D = limits.maxImageDimension2D,
+            .maxBoundDescriptorSets = limits.maxBoundDescriptorSets,
+            .maxPerStageSampledImages =
+                limits.maxPerStageDescriptorSampledImages,
+            .maxDescriptorSetSampledImages =
+                limits.maxDescriptorSetSampledImages,
+            .maxDrawIndirectCount = limits.maxDrawIndirectCount,
+            .minUniformBufferOffsetAlignment =
+                limits.minUniformBufferOffsetAlignment,
+            .timestampPeriodNanoseconds = limits.timestampPeriod,
+        },
+    };
+
+    capabilities.memoryHeaps.reserve(info.memoryProperties.memoryHeapCount);
+    for (u32 index = 0; index < info.memoryProperties.memoryHeapCount;
+         ++index) {
+        const auto& heap = info.memoryProperties.memoryHeaps[index];
+        capabilities.memoryHeaps.push_back({
+            .size = heap.size,
+            .deviceLocal = (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) != 0,
+        });
+    }
+    return capabilities;
+}
+
 void showDeviceInfo(const VKDeviceInfo& info) {
     const auto& p = info.coreProperties;
 
@@ -92,6 +182,25 @@ void showDeviceInfo(const VKDeviceInfo& info) {
     log::debug("  Device ID:      0x{:04X}", p.deviceID);
     log::debug("  API version:    {}.{}.{}", apiMajor, apiMinor, apiPatch);
     log::debug("  Driver version: {}.{}.{}", drvMajor, drvMinor, drvPatch);
+    log::debug("  Driver:         {}", info.capabilities.driverName);
+    log::debug(
+        "  Queues:         graphics={}, compute={}, transfer={}, present={}",
+        info.capabilities.queues.graphics, info.capabilities.queues.compute,
+        info.capabilities.queues.transfer, info.capabilities.queues.present
+    );
+    log::debug(
+        "  Baseline:       timeline={}, sync2={}, dynamicRendering={}",
+        info.capabilities.features.timelineSemaphores,
+        info.capabilities.features.synchronization2,
+        info.capabilities.features.dynamicRendering
+    );
+    log::debug(
+        "  Optional:       descriptorIndexing={}, bufferDeviceAddress={}, "
+        "drawIndirectCount={}",
+        info.capabilities.features.descriptorIndexing,
+        info.capabilities.features.bufferDeviceAddress,
+        info.capabilities.features.drawIndirectCount
+    );
 
     log::debug("  Memory heaps:");
     const auto& mem = info.memoryProperties;
@@ -259,16 +368,59 @@ std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
     const VkPhysicalDevice& device
 ) const {
     IGNIS_PROFILE_FUNCTION();
-    VKDeviceInfo info;
+    VKDeviceInfo info{};
 
-    VK_TRACE(vkGetPhysicalDeviceProperties(device, &info.coreProperties));
-    VK_TRACE(
-        vkGetPhysicalDeviceMemoryProperties(device, &info.memoryProperties)
-    );
-    VK_TRACE(vkGetPhysicalDeviceFeatures(device, &info.features));
+    VkPhysicalDeviceDriverProperties driverProperties{};
+    driverProperties.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+    VkPhysicalDeviceProperties2 properties{};
+    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    properties.pNext = &driverProperties;
+    VK_TRACE(vkGetPhysicalDeviceProperties2(device, &properties));
+    info.coreProperties = properties.properties;
+    info.driverProperties = driverProperties;
+    info.driverProperties.pNext = nullptr;
+
+    VkPhysicalDeviceMemoryProperties2 memoryProperties{};
+    memoryProperties.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+    VK_TRACE(vkGetPhysicalDeviceMemoryProperties2(device, &memoryProperties));
+    info.memoryProperties = memoryProperties.memoryProperties;
+
+    VkPhysicalDeviceVulkan13Features features13{};
+    features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    VkPhysicalDeviceVulkan12Features features12{};
+    features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    features12.pNext = &features13;
+    VkPhysicalDeviceFeatures2 features{};
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    features.pNext = &features12;
+    VK_TRACE(vkGetPhysicalDeviceFeatures2(device, &features));
+    info.features = features.features;
+    info.vulkan12Features = features12;
+    info.vulkan12Features.pNext = nullptr;
+    info.vulkan13Features = features13;
+    info.vulkan13Features.pNext = nullptr;
 
     if (isDiscrete && info.coreProperties.deviceType !=
                           VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        return {};
+    }
+
+    const bool supportsVulkan13 =
+        VK_API_VERSION_MAJOR(info.coreProperties.apiVersion) > 1 ||
+        (VK_API_VERSION_MAJOR(info.coreProperties.apiVersion) == 1 &&
+         VK_API_VERSION_MINOR(info.coreProperties.apiVersion) >= 3);
+    const bool supportsBaseline = supportsVulkan13 &&
+                                  info.features.samplerAnisotropy &&
+                                  info.vulkan12Features.timelineSemaphore &&
+                                  info.vulkan13Features.synchronization2 &&
+                                  info.vulkan13Features.dynamicRendering;
+    if (not supportsBaseline) {
+        log::debug(
+            "Device '{}' does not support the Vulkan 1.3 renderer baseline",
+            info.coreProperties.deviceName
+        );
         return {};
     }
 
@@ -286,6 +438,7 @@ std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
     }
 
     info.queueIndices = std::move(indices);
+    info.capabilities = makeCapabilities(info);
 
     // swapchain?
     // if (supportSurface) {
@@ -296,7 +449,7 @@ std::optional<VKDeviceInfo> VKBootstrap::DeviceRequirements::fulfills(
 void VKBootstrap::pickPhysicalDevice() {
     DeviceRequirements req;
     req.supportSurface = false;
-    req.isDiscrete = false;
+    req.isDiscrete = m_cfg.vulkan().requireDiscreteGPU;
     req.queues = Queue::graphics | Queue::transfer;
 
     if (m_window) {
@@ -361,8 +514,20 @@ void VKBootstrap::createLogicalDevice() {
         queueCreateInfos.push_back(info);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures{};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
+    VkPhysicalDeviceVulkan13Features features13{};
+    features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    features13.synchronization2 = VK_TRUE;
+    features13.dynamicRendering = VK_TRUE;
+
+    VkPhysicalDeviceVulkan12Features features12{};
+    features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    features12.pNext = &features13;
+    features12.timelineSemaphore = VK_TRUE;
+
+    VkPhysicalDeviceFeatures2 features{};
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    features.pNext = &features12;
+    features.features.samplerAnisotropy = VK_TRUE;
 
     std::vector<const char*> extensionNames;
 
@@ -372,9 +537,10 @@ void VKBootstrap::createLogicalDevice() {
 
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pNext = &features;
     deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+    deviceCreateInfo.pEnabledFeatures = nullptr;
     deviceCreateInfo.enabledExtensionCount = extensionNames.size();
     deviceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
 

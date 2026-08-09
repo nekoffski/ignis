@@ -22,5 +22,6 @@ path = "../sandbox/res"
 
 [vulkan]
 apiVersion = "v1.3"
+requireDiscreteGPU = false
 extensions = ["VK_EXT_debug_utils"]
 layers = ["VK_LAYER_KHRONOS_validation"]

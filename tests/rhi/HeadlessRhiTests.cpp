@@ -22,6 +22,54 @@ std::unique_ptr<ignis::rhi::Device> createHeadlessDevice() {
 
 }  // namespace
 
+TEST(HeadlessRhiTest, ReportsBackendNeutralDeviceCapabilities) {
+    auto device = createHeadlessDevice();
+
+    const auto& capabilities = device->capabilities();
+
+    EXPECT_FALSE(capabilities.deviceName.empty());
+    EXPECT_GE(capabilities.apiVersion.major, 1);
+    EXPECT_TRUE(capabilities.queues.graphics);
+    EXPECT_TRUE(capabilities.queues.transfer);
+    EXPECT_GT(capabilities.limits.maxImageDimension2D, 0);
+    EXPECT_TRUE(capabilities.features.samplerAnisotropy);
+    EXPECT_TRUE(capabilities.features.timelineSemaphores);
+    EXPECT_TRUE(capabilities.features.synchronization2);
+    EXPECT_TRUE(capabilities.features.dynamicRendering);
+}
+
+TEST(HeadlessRhiTest, ReturnsMonotonicTimelinePointsPerQueue) {
+    auto device = createHeadlessDevice();
+    ignis::rhi::Workload firstWorkload{ignis::rhi::Queue::transfer};
+    ignis::rhi::Workload secondWorkload{ignis::rhi::Queue::transfer};
+
+    const auto first = device->submit(firstWorkload);
+    const auto second = device->submit(secondWorkload);
+
+    ASSERT_TRUE(first.has_value());
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(first->queue, ignis::rhi::Queue::transfer);
+    EXPECT_EQ(second->queue, ignis::rhi::Queue::transfer);
+    EXPECT_LT(first->value, second->value);
+    EXPECT_FALSE(device->wait(*second).has_value());
+    EXPECT_FALSE(device->wait(*first).has_value());
+}
+
+TEST(HeadlessRhiTest, WaitsForCrossQueueTimelineDependencies) {
+    auto device = createHeadlessDevice();
+    ignis::rhi::Workload transferWorkload{ignis::rhi::Queue::transfer};
+    const auto transfer = device->submit(transferWorkload);
+    ASSERT_TRUE(transfer.has_value());
+
+    ignis::rhi::Workload graphicsWorkload{ignis::rhi::Queue::graphics};
+    graphicsWorkload.addDependency(*transfer);
+    const auto graphics = device->submit(graphicsWorkload);
+
+    ASSERT_TRUE(graphics.has_value());
+    EXPECT_EQ(graphics->queue, ignis::rhi::Queue::graphics);
+    EXPECT_FALSE(device->wait(*graphics).has_value());
+}
+
 TEST(HeadlessRhiTest, DestroyingAnInvalidHandleReturnsADomainError) {
     auto device = createHeadlessDevice();
     auto& resources = device->resources();
@@ -161,13 +209,13 @@ TEST(HeadlessRhiTest, ClearsAndReadsBackAColorAttachment) {
 
     const auto clearReceipt = device->submit(clearWorkload);
     ASSERT_TRUE(clearReceipt.has_value());
-    ASSERT_FALSE(device->wait(*clearReceipt).has_value());
 
     const auto readbackBuffer =
         resources.create(BufferDescription::staging(width * height * channels));
     ASSERT_TRUE(readbackBuffer.has_value());
 
     Workload readbackWorkload{Queue::transfer};
+    readbackWorkload.addDependency(*clearReceipt);
     readbackWorkload.enqueue(
         CmdDownloadTextureToBuffer{
             .from = *texture,

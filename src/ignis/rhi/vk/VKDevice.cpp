@@ -1,5 +1,7 @@
 #include "VKDevice.hh"
 
+#include <algorithm>
+
 #include "VKBootstrap.hh"
 #include "VKCommandDispatcher.hh"
 #include "VKQueue.hh"
@@ -67,7 +69,23 @@ VKDevice::VKDevice(const Config& config, Window* window)
         });
 
     m_deviceInfo = bootstrap.deviceInfo();
+    m_capabilities = m_deviceInfo.capabilities;
     m_queues = bootstrap.queues();
+
+    for (const auto& [queue, _] : m_queues) {
+        m_timelines.emplace(
+            queue, std::make_unique<VKTimelineSemaphore>(*this)
+        );
+        m_nextTimelineValues.emplace(queue, 0);
+        m_lastSubmittedTimelineValues.emplace(queue, 0);
+    }
+}
+
+VKDevice::~VKDevice() {
+    if (not m_device.empty()) {
+        VK_TRACE(vkDeviceWaitIdle(*m_device));
+        collectCompletedWorkloads();
+    }
 }
 
 Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
@@ -80,7 +98,22 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
         "Workload target queue is not valid"
     );
 
-    auto slot = m_pendingWorkloads.create(*this, wl.targetQueue());
+    collectCompletedWorkloads();
+
+    std::vector<VKTimelineWait> waits;
+    waits.reserve(wl.dependencies().size());
+    for (const auto dependency : wl.dependencies()) {
+        if (const auto error = validateTimelinePoint(dependency); error) {
+            return Error::unexpected(*error);
+        }
+        waits.push_back({
+            .semaphore = m_timelines.at(dependency.queue)->handle(),
+            .value = dependency.value,
+        });
+    }
+
+    const auto completion = reserveTimelinePoint(wl.targetQueue());
+    auto slot = m_pendingWorkloads.create(*this, wl.targetQueue(), completion);
 
     if (not slot) {
         return Error::unexpected(
@@ -90,17 +123,6 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
     }
 
     auto* workload = m_pendingWorkloads.get(*slot);
-
-    for (const auto& dep : wl.dependencies()) {
-        if (auto* depWorkload = m_pendingWorkloads.get(dep); depWorkload) {
-            workload->addDependency(depWorkload->semaphore());
-        } else {
-            log::error(
-                "Failed to find dependency for workload submission: invalid "
-                "receipt"
-            );
-        }
-    }
 
     auto err = workload->commandBuffer().with([&](auto handle, auto queue) {
         return VKCommandDispatcher{m_resourceManager, handle, queue}.dispatch(
@@ -115,8 +137,13 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
     }
 
     auto q = m_queues.at(wl.targetQueue());
+    auto signalSemaphore = m_timelines.at(wl.targetQueue())->handle();
 
-    if (not VKQueueSubmitter{q, *workload}.submit()) {
+    if (not VKQueueSubmitter{
+            q, workload->commandBuffer(), waits, signalSemaphore,
+            completion.value
+        }
+                .submit()) {
         log::error("Failed to submit workload to queue");
         m_pendingWorkloads.destroy(*slot);
         return Error::unexpected(
@@ -124,17 +151,22 @@ Result<WorkloadReceipt> VKDevice::submit(const Workload& wl) {
             "Failed to submit workload to queue"
         );
     }
-    return slot.value();
+
+    m_nextTimelineValues[completion.queue] = completion.value;
+    m_lastSubmittedTimelineValues[completion.queue] = completion.value;
+    m_pendingWorkloadKeys.push_back({
+        .key = *slot,
+        .completion = completion,
+    });
+    return completion;
 }
 
 Opt<Error> VKDevice::wait(WorkloadReceipt receipt) {
-    auto* workload = m_pendingWorkloads.get(receipt);
-
-    if (not workload) {
-        return Error{Error::Code::resourceMissing, "Invalid workload receipt"};
+    if (const auto error = validateTimelinePoint(receipt); error) {
+        return error;
     }
 
-    auto success = workload->fence()->wait();
+    auto success = m_timelines.at(receipt.queue)->wait(receipt.value);
 
     if (not success) {
         log::error("Failed to wait for workload completion");
@@ -144,14 +176,56 @@ Opt<Error> VKDevice::wait(WorkloadReceipt receipt) {
         };
     }
 
-    m_pendingWorkloads.destroy(receipt);
+    collectCompletedWorkloads();
     return Error::empty();
+}
+
+TimelinePoint VKDevice::reserveTimelinePoint(Queue queue) {
+    return TimelinePoint{
+        .queue = queue,
+        .value = m_nextTimelineValues.at(queue) + 1,
+    };
+}
+
+Opt<Error> VKDevice::validateTimelinePoint(TimelinePoint point) const {
+    const auto timeline = m_timelines.find(point.queue);
+    const auto lastSubmitted = m_lastSubmittedTimelineValues.find(point.queue);
+    if (timeline == m_timelines.end() ||
+        lastSubmitted == m_lastSubmittedTimelineValues.end() ||
+        point.value == 0 || point.value > lastSubmitted->second) {
+        return Error{
+            Error::Code::resourceMissing,
+            "Invalid timeline point for queue '{}': {}", toString(point.queue),
+            point.value
+        };
+    }
+    return Error::empty();
+}
+
+void VKDevice::collectCompletedWorkloads() {
+    std::unordered_map<Queue, u64> completedValues;
+    for (const auto& [queue, timeline] : m_timelines) {
+        completedValues.emplace(queue, timeline->value());
+    }
+
+    std::erase_if(m_pendingWorkloadKeys, [&](const PendingWorkload& pending) {
+        if (completedValues.at(pending.completion.queue) <
+            pending.completion.value) {
+            return false;
+        }
+        m_pendingWorkloads.destroy(pending.key);
+        return true;
+    });
 }
 
 bool VKDevice::headless() const { return m_window == nullptr; }
 
 Format VKDevice::depthFormat() const {
     return fromVk(m_deviceInfo.depthFormat);
+}
+
+const DeviceCapabilities& VKDevice::capabilities() const {
+    return m_capabilities;
 }
 
 VkInstance VKDevice::instance() const { return *m_instance; }

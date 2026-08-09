@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Buffer.hh"
+#include "DeviceCapabilities.hh"
 #include "Pipeline.hh"
 #include "RenderPass.hh"
 #include "ResourceManager.hh"
@@ -26,6 +27,7 @@ class Device : public NonCopyable, public NonMovable {
 
     virtual bool headless() const = 0;
     virtual Format depthFormat() const = 0;
+    virtual const DeviceCapabilities& capabilities() const = 0;
 
     virtual Result<WorkloadReceipt> submit(const Workload& workload) = 0;
     virtual Opt<Error> wait(WorkloadReceipt receipt) = 0;

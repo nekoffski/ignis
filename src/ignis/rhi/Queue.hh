@@ -13,6 +13,13 @@ enum class Queue : u8 {
     present = 1 << 3
 };
 
+struct TimelinePoint {
+    Queue queue{Queue::none};
+    u64 value{0};
+
+    bool operator==(const TimelinePoint&) const = default;
+};
+
 Str toString(Queue q);
 
 IGNIS_BIT_ENUM(Queue);

@@ -67,6 +67,20 @@ class Reader : public NonCopyable, public NonMovable {
         }
     }
 
+    template <typename T>
+    T readOr(
+        const std::string& stanza, const std::string& key, T fallback
+    ) const {
+        const auto* table = m_tbl[stanza].as_table();
+        if (table == nullptr || not table->contains(key)) {
+            log::debug(
+                "Config: using default for missing field {}.{}", stanza, key
+            );
+            return fallback;
+        }
+        return read<T>(stanza, key);
+    }
+
    private:
     const toml::table& m_tbl;
 };
@@ -120,6 +134,8 @@ void Config::parseFields(const Path& path) {
         m_vulkan->api = r.read<std::string>("vulkan", "apiVersion") == "v1.3"
                             ? Vulkan::Api::v1_3
                             : Vulkan::Api::v1_3;
+        m_vulkan->requireDiscreteGPU =
+            r.readOr<bool>("vulkan", "requireDiscreteGPU", false);
         m_vulkan->extensions = r.read<StrVec>("vulkan", "extensions");
         m_vulkan->layers = r.read<StrVec>("vulkan", "layers");
     }

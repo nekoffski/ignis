@@ -17,10 +17,10 @@ class VKTexture : public NonCopyable {
    public:
     struct Transition {
         VkImageLayout newLayout;
-        VkPipelineStageFlags srcStageMask;
-        VkPipelineStageFlags dstStageMask;
-        VkAccessFlags srcAccessMask;
-        VkAccessFlags dstAccessMask;
+        VkPipelineStageFlags2 srcStageMask;
+        VkPipelineStageFlags2 dstStageMask;
+        VkAccessFlags2 srcAccessMask;
+        VkAccessFlags2 dstAccessMask;
         Queue srcQueue{Queue::graphics};
         Queue dstQueue{Queue::graphics};
     };

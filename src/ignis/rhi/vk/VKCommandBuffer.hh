@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "VK.hh"
-#include "VKSync.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
 #include "ignis/core/Enum.hh"
@@ -55,20 +54,16 @@ class VKCommandBuffer : public NonCopyable, public NonMovable {
 
 class VKWorkload : public NonCopyable {
    public:
-    explicit VKWorkload(VKDevice& device, Queue targetQueue);
-
-    void addDependency(std::shared_ptr<VKSemaphore> semaphore);
+    explicit VKWorkload(
+        VKDevice& device, Queue targetQueue, TimelinePoint completion
+    );
 
     VKCommandBuffer& commandBuffer();
-    std::shared_ptr<VKFence> fence();
-    std::shared_ptr<VKSemaphore> semaphore();
-    std::span<std::shared_ptr<VKSemaphore>> waitSemaphores();
+    TimelinePoint completion() const;
 
    private:
     std::unique_ptr<VKCommandBuffer> m_cmdBuffer;
-    std::shared_ptr<VKFence> m_fence;
-    std::shared_ptr<VKSemaphore> m_semaphore;
-    std::vector<std::shared_ptr<VKSemaphore>> m_waitSemaphores;
+    TimelinePoint m_completion;
 };
 
 IGNIS_BIT_ENUM(VKCommandBuffer::BeginFlags)

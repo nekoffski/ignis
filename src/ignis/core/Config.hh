@@ -41,6 +41,7 @@ class Config {
         enum class Api { v1_3 };
 
         Api api{Api::v1_3};
+        bool requireDiscreteGPU{false};
         std::vector<std::string> extensions;
         std::vector<std::string> layers;
     };

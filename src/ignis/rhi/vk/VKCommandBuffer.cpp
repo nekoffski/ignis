@@ -38,23 +38,14 @@ void VKCommandBuffer::end() { VK_TRACE(vkEndCommandBuffer(m_handle)); }
 
 VkCommandBuffer VKCommandBuffer::handle() { return m_handle; }
 
-VKWorkload::VKWorkload(VKDevice& device, Queue targetQueue)
+VKWorkload::VKWorkload(
+    VKDevice& device, Queue targetQueue, TimelinePoint completion
+)
     : m_cmdBuffer(std::make_unique<VKCommandBuffer>(device, targetQueue)),
-      m_fence(std::make_shared<VKFence>(device)),
-      m_semaphore(std::make_shared<VKSemaphore>(device)) {}
-
-void VKWorkload::addDependency(std::shared_ptr<VKSemaphore> semaphore) {
-    m_waitSemaphores.push_back(std::move(semaphore));
-}
+      m_completion(completion) {}
 
 VKCommandBuffer& VKWorkload::commandBuffer() { return *m_cmdBuffer; }
 
-std::shared_ptr<VKFence> VKWorkload::fence() { return m_fence; }
-
-std::shared_ptr<VKSemaphore> VKWorkload::semaphore() { return m_semaphore; }
-
-std::span<std::shared_ptr<VKSemaphore>> VKWorkload::waitSemaphores() {
-    return m_waitSemaphores;
-}
+TimelinePoint VKWorkload::completion() const { return m_completion; }
 
 }  // namespace ignis::rhi

@@ -9,10 +9,14 @@ Research basis: [Modern real-time renderer techniques and an Ignis development r
   accounting, generational keys with wrap retirement, typed RHI handles and
   domain errors, plus headless texture round-trip, render-pass clear, and
   indexed-triangle regression tests.
-- The default Vulkan device selection now accepts any suitable device so the
-  headless suite can run on software and integrated implementations. Explicit
-  device preference remains part of Milestone 1 capability negotiation.
-- Milestone 1 is next.
+- Milestone 1.1 is implemented: Vulkan capabilities are queried through
+  `Features2`/`Properties2`, exposed through a backend-neutral snapshot, and
+  checked against the renderer baseline. Software and integrated devices are
+  accepted unless `vulkan.requireDiscreteGPU` is explicitly enabled.
+- Milestone 1.2 now uses per-queue 64-bit timeline points, `vkQueueSubmit2`, and
+  Synchronization 2 image barriers. Transfer/graphics dependency tests pass;
+  the compute leg remains pending until compute commands arrive in slice 1.5.
+- Milestone 1.3 frame contexts and deferred destruction are next.
 
 ## Delivery rules
 

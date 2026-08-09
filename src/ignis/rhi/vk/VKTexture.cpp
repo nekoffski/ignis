@@ -233,42 +233,43 @@ void VKTexture::copyTo(VKBuffer& buffer, VkCommandBuffer cmdBuffer) {
 namespace {
 
 struct LayoutSyncInfo {
-    VkPipelineStageFlags stage;
-    VkAccessFlags access;
+    VkPipelineStageFlags2 stage;
+    VkAccessFlags2 access;
 };
 
 LayoutSyncInfo syncInfoForLayout(VkImageLayout layout) {
     switch (layout) {
         case VK_IMAGE_LAYOUT_UNDEFINED:
-            return {VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0};
+            return {VK_PIPELINE_STAGE_2_NONE, VK_ACCESS_2_NONE};
         case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
             return {
-                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT
+                VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT
             };
         case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
             return {
-                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_READ_BIT
+                VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT
             };
         case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
             return {
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT
+                VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+                VK_ACCESS_2_SHADER_READ_BIT
             };
         case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
             return {
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+                VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT
             };
         case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
             return {
-                VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
+                VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+                VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
             };
         case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-            return {VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0};
+            return {VK_PIPELINE_STAGE_2_NONE, VK_ACCESS_2_NONE};
         default:
             return {
-                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT
+                VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT
             };
     }
 }
@@ -278,25 +279,33 @@ LayoutSyncInfo syncInfoForLayout(VkImageLayout layout) {
 VKTexture::Transition VKTexture::transitionLayout(
     VkCommandBuffer cmdBuffer, const Transition& transition
 ) {
-    VkImageMemoryBarrier barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    VkImageMemoryBarrier2 barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    barrier.srcStageMask = transition.srcStageMask;
+    barrier.dstStageMask = transition.dstStageMask;
+    barrier.srcAccessMask = transition.srcAccessMask;
+    barrier.dstAccessMask = transition.dstAccessMask;
     barrier.oldLayout = m_layout;
     barrier.newLayout = transition.newLayout;
-    barrier.srcQueueFamilyIndex = m_device.queueIndex(transition.srcQueue);
-    barrier.dstQueueFamilyIndex = m_device.queueIndex(transition.dstQueue);
+    if (transition.srcQueue == transition.dstQueue) {
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    } else {
+        barrier.srcQueueFamilyIndex = m_device.queueIndex(transition.srcQueue);
+        barrier.dstQueueFamilyIndex = m_device.queueIndex(transition.dstQueue);
+    }
     barrier.image = m_image;
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
-    barrier.srcAccessMask = transition.srcAccessMask;
-    barrier.dstAccessMask = transition.dstAccessMask;
+    VkDependencyInfo dependency{};
+    dependency.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    dependency.imageMemoryBarrierCount = 1;
+    dependency.pImageMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier(
-        cmdBuffer, transition.srcStageMask, transition.dstStageMask, 0, 0,
-        nullptr, 0, nullptr, 1, &barrier
-    );
+    vkCmdPipelineBarrier2(cmdBuffer, &dependency);
 
     Transition reverse{
         .newLayout = m_layout,

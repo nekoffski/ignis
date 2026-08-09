@@ -7,12 +7,11 @@
 #include "Queue.hh"
 #include "ignis/core/Concepts.hh"
 #include "ignis/core/Core.hh"
-#include "ignis/core/Handle.hh"
 #include "ignis/core/Log.hh"
 
 namespace ignis::rhi {
 
-using WorkloadReceipt = HandleKey;
+using WorkloadReceipt = TimelinePoint;
 
 class Workload : public NonCopyable, public NonMovable {
    public:
